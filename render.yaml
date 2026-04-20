@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: post-maker-shtunda13
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/config
+    autoDeployTrigger: commit
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_IMAGE_MODEL
+        value: gemini-3.1-flash-image-preview
+      - key: GEMINI_TEXT_MODEL
+        value: gemini-2.5-flash

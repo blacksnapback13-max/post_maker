@@ -1,0 +1,12 @@
+{
+  "name": "post-maker",
+  "version": "0.2.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js && node --check \"Мобильная версия/app.js\""
+  }
+}

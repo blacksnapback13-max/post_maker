@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Пост мейкер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Manrope:wght@500;700;800&family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@500;600;700&family=Noto+Serif:wght@500;600;700&family=PT+Serif:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="hero-topline">
+            <span id="hero-kicker" class="hero-kicker"
+              >Мини-приложение для христианских постов от команды Shtunda13</span
+            >
+          </div>
+          <h1 id="hero-title">
+            Тема, место Писания, текст и готовая картинка в одном окне
+          </h1>
+          <p id="hero-description">
+            Введите тему, выберите подходящее место Писания и сразу получите
+            короткий пост вместе с иллюстрацией, которую можно скачать как
+            изображение.
+          </p>
+          <div class="hero-brand-mark" aria-hidden="true">
+            <img
+              src="assets/shtunda13-logo.png"
+              alt=""
+              class="hero-brand-logo"
+            />
+          </div>
+        </div>
+        <div class="hero-card">
+          <span id="hero-card-title">Как это работает</span>
+          <ol>
+            <li id="hero-step-1">Введите тему поста.</li>
+            <li id="hero-step-2">Выберите одно из предложенных мест Писания.</li>
+            <li id="hero-step-3">Скопируйте текст и скачайте картинку.</li>
+          </ol>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="panel input-panel">
+          <div class="panel-head">
+            <div>
+              <p id="step1-eyebrow" class="eyebrow">Шаг 1</p>
+              <h2 id="step1-title">Тема</h2>
+            </div>
+            <div class="inline-actions">
+              <button type="button" id="scripture-mode-btn" class="ghost-btn compact-btn">
+                Явный подбор
+              </button>
+              <button type="button" id="language-btn" class="ghost-btn compact-btn">
+                Русский
+              </button>
+            </div>
+          </div>
+
+          <form id="topic-form" class="topic-form">
+            <label id="topic-label" for="topic-input">О чем будет пост?</label>
+            <textarea
+              id="topic-input"
+              name="topic"
+              rows="5"
+              placeholder="Например: связь между женщиной и мужчиной до брака"
+            ></textarea>
+
+            <div class="topic-actions">
+              <button id="topic-submit-btn" type="submit" class="primary-btn">
+                Подобрать места Писания
+              </button>
+              <button type="button" id="surprise-btn" class="ghost-btn">
+                Случайная тема
+              </button>
+            </div>
+          </form>
+
+          <div id="selected-verse" class="selected-verse hidden"></div>
+
+          <div class="support-teaser support-teaser-panel">
+            <p id="support-teaser-title" class="support-teaser-title">
+              Поддержать миссию
+            </p>
+            <p id="support-teaser-copy" class="support-teaser-copy">
+              Если приложение помогает вам в служении, можно поддержать дальнейшую
+              разработку и развитие.
+            </p>
+            <button id="support-open-btn" type="button" class="ghost-btn compact-btn">
+              Поддержать
+            </button>
+          </div>
+        </section>
+
+        <section class="panel text-panel">
+          <div class="panel-head">
+            <div>
+              <p id="step2-eyebrow" class="eyebrow">Шаг 2</p>
+              <h2 id="step2-title">Короткий пост</h2>
+            </div>
+            <div class="inline-actions">
+              <button id="post-style-btn" class="ghost-btn">
+                Выбрать стиль подачи
+              </button>
+              <button id="emoji-toggle-btn" class="ghost-btn">
+                Смайлики: нет
+              </button>
+              <button id="regenerate-post-btn" class="ghost-btn" disabled>
+                Перегенерировать
+              </button>
+              <button id="copy-post-btn" class="ghost-btn" disabled>
+                Скопировать
+              </button>
+            </div>
+          </div>
+
+          <div id="post-options-summary" class="setting-summary"></div>
+          <p id="post-status" class="post-status"></p>
+
+          <article id="post-output" class="post-output empty-state">
+            Введите тему и выберите место Писания, чтобы здесь появился готовый
+            короткий текст для публикации.
+          </article>
+        </section>
+
+        <section class="panel poster-panel">
+          <div class="panel-head">
+            <div>
+              <p id="step3-eyebrow" class="eyebrow">Шаг 3</p>
+              <h2 id="step3-title">Картинка поста</h2>
+            </div>
+            <div class="poster-actions">
+              <button id="reference-upload-btn" class="ghost-btn">
+                Загрузить референс
+              </button>
+              <button id="poster-settings-btn" class="ghost-btn">
+                Настройки постера
+              </button>
+              <button id="new-poster-btn" class="ghost-btn" disabled>
+                Новый фон
+              </button>
+              <button id="download-btn" class="primary-btn" disabled>
+                Скачать PNG
+              </button>
+            </div>
+          </div>
+
+          <div id="poster-options-summary" class="setting-summary"></div>
+
+          <div class="canvas-frame">
+            <canvas id="poster-canvas" width="1080" height="1350"></canvas>
+          </div>
+          <p id="poster-status" class="poster-status">
+            Проверяю, доступен ли AI-фон для генерации.
+          </p>
+
+          <input
+            id="reference-upload-input"
+            class="hidden-file-input"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+          />
+          <input
+            id="poster-logo-input"
+            class="hidden-file-input"
+            type="file"
+            accept="image/png"
+          />
+        </section>
+      </main>
+    </div>
+
+    <div id="scripture-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="scripture-modal"></div>
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scripture-modal-title"
+      >
+        <div class="modal-head">
+          <div>
+            <p id="scripture-modal-eyebrow" class="eyebrow">Шаг 1.5</p>
+            <h2 id="scripture-modal-title">Выберите место Писания</h2>
+            <p id="modal-subtitle" class="modal-subtitle"></p>
+          </div>
+          <button type="button" class="icon-btn" id="close-scripture-modal-btn">
+            ×
+          </button>
+        </div>
+
+        <div id="scripture-grid" class="scripture-grid"></div>
+      </div>
+    </div>
+
+    <div id="language-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="language-modal"></div>
+      <div class="modal-dialog compact-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="language-modal-eyebrow" class="eyebrow">Язык</p>
+            <h2 id="language-modal-title">Выберите язык</h2>
+            <p id="language-modal-subtitle" class="modal-subtitle">
+              Язык интерфейса, поста и постера.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="language-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div id="language-grid" class="option-grid"></div>
+      </div>
+    </div>
+
+    <div id="support-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="support-modal"></div>
+      <div class="modal-dialog support-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="support-modal-eyebrow" class="eyebrow">Поддержка</p>
+            <h2 id="support-modal-title">Поддержать миссию и разработку</h2>
+            <p id="support-modal-subtitle" class="modal-subtitle">
+              Можно поддержать развитие приложения по ссылке или через QR-код.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="support-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <p id="support-modal-intro" class="support-modal-intro">
+          Спасибо за любую поддержку. Она помогает развивать приложение, улучшать
+          генерацию постов и выпускать следующие функции.
+        </p>
+
+        <div class="support-grid">
+          <article class="support-card">
+            <img
+              src="assets/qr/monobank.png"
+              alt="Monobank QR"
+              class="support-qr"
+            />
+            <h3 id="support-monobank-title">Monobank</h3>
+            <p id="support-monobank-copy">
+              Поддержать миссию через банку Monobank.
+            </p>
+            <a
+              id="support-monobank-link"
+              class="support-link"
+              href="https://send.monobank.ua/jar/7wpFqAoLUV"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Открыть ссылку
+            </a>
+          </article>
+
+          <article class="support-card">
+            <img
+              src="assets/qr/buymeacoffee.png"
+              alt="Buy Me a Coffee QR"
+              class="support-qr"
+            />
+            <h3 id="support-bmc-title">Buy Me a Coffee</h3>
+            <p id="support-bmc-copy">
+              Поддержать дальнейшую разработку через Buy Me a Coffee.
+            </p>
+            <a
+              id="support-bmc-link"
+              class="support-link"
+              href="https://buymeacoffee.com/shtunda13"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Открыть ссылку
+            </a>
+          </article>
+
+          <article class="support-card">
+            <img
+              src="assets/qr/paypal.png"
+              alt="PayPal QR"
+              class="support-qr"
+            />
+            <h3 id="support-paypal-title">PayPal</h3>
+            <p id="support-paypal-copy">
+              Можно поддержать через PayPal, отсканировав QR-код.
+            </p>
+            <span id="support-paypal-note" class="support-note">
+              Сканируйте QR-код
+            </span>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div id="scripture-mode-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="scripture-mode-modal"></div>
+      <div class="modal-dialog compact-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="scripture-mode-eyebrow" class="eyebrow">Подбор мест Писания</p>
+            <h2 id="scripture-mode-title">Выберите глубину подбора</h2>
+            <p id="scripture-mode-subtitle" class="modal-subtitle">
+              Можно искать прямые или более глубокие, неявные связи с темой.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="scripture-mode-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div id="scripture-mode-grid" class="option-grid"></div>
+      </div>
+    </div>
+
+    <div id="post-style-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="post-style-modal"></div>
+      <div class="modal-dialog compact-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="post-style-modal-eyebrow" class="eyebrow">Стиль подачи</p>
+            <h2 id="post-style-modal-title">Выберите стиль текста</h2>
+            <p id="post-style-modal-subtitle" class="modal-subtitle">
+              Это влияет на интонацию и подачу короткого поста.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="post-style-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div id="post-style-grid" class="option-grid"></div>
+      </div>
+    </div>
+
+    <div id="poster-settings-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="poster-settings-modal"></div>
+      <div class="modal-dialog settings-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="poster-settings-eyebrow" class="eyebrow">Настройки постера</p>
+            <h2 id="poster-settings-title">Гибкая настройка фона и текста</h2>
+            <p id="poster-settings-subtitle" class="modal-subtitle">
+              Фон, стиль генерации, типографика и расположение текста.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="poster-settings-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <form id="poster-settings-form" class="settings-form">
+          <div class="field-grid">
+            <label class="field-group">
+              <span id="poster-subject-label">Сюжет фона</span>
+              <select id="poster-subject-select" class="select-field"></select>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-visual-style-label">Художественный стиль</span>
+              <select id="poster-visual-style-select" class="select-field"></select>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-typography-label">Типографика</span>
+              <select id="poster-typography-select" class="select-field"></select>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-layout-label">Расположение текста</span>
+              <select id="poster-layout-select" class="select-field"></select>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <div class="field-group field-group-wide">
+              <span id="poster-reference-label">Референс для генерации</span>
+              <div class="upload-box">
+                <div class="upload-actions">
+                  <button
+                    id="poster-reference-upload-btn"
+                    type="button"
+                    class="ghost-btn compact-btn"
+                  >
+                    Загрузить референс
+                  </button>
+                  <button
+                    id="poster-reference-clear-btn"
+                    type="button"
+                    class="ghost-btn compact-btn"
+                  >
+                    Очистить
+                  </button>
+                </div>
+                <p id="poster-reference-name" class="upload-meta">
+                  Референс не загружен.
+                </p>
+              </div>
+            </div>
+
+            <div class="field-group field-group-wide">
+              <span id="poster-logo-label">PNG-логотип</span>
+              <div class="upload-box">
+                <div class="upload-actions">
+                  <button
+                    id="poster-logo-upload-btn"
+                    type="button"
+                    class="ghost-btn compact-btn"
+                  >
+                    Загрузить логотип
+                  </button>
+                  <button
+                    id="poster-logo-clear-btn"
+                    type="button"
+                    class="ghost-btn compact-btn"
+                  >
+                    Очистить
+                  </button>
+                </div>
+                <p id="poster-logo-name" class="upload-meta">
+                  Логотип не загружен.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-grid sliders-grid">
+            <label class="field-group">
+              <span id="poster-opacity-label">Прозрачность текста</span>
+              <div class="range-row">
+                <input
+                  id="poster-opacity-range"
+                  class="range-field"
+                  type="range"
+                  min="55"
+                  max="100"
+                  step="1"
+                />
+                <output id="poster-opacity-value" class="range-value">100%</output>
+              </div>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-stroke-label">Сила обводки</span>
+              <div class="range-row">
+                <input
+                  id="poster-stroke-range"
+                  class="range-field"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                />
+                <output id="poster-stroke-value" class="range-value">60%</output>
+              </div>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label class="field-group">
+              <span id="poster-logo-position-label">Позиция логотипа</span>
+              <select id="poster-logo-position-select" class="select-field"></select>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-logo-size-label">Размер логотипа</span>
+              <div class="range-row">
+                <input
+                  id="poster-logo-size-range"
+                  class="range-field"
+                  type="range"
+                  min="8"
+                  max="28"
+                  step="1"
+                />
+                <output id="poster-logo-size-value" class="range-value">14%</output>
+              </div>
+            </label>
+
+            <label class="field-group">
+              <span id="poster-logo-opacity-label">Прозрачность логотипа</span>
+              <div class="range-row">
+                <input
+                  id="poster-logo-opacity-range"
+                  class="range-field"
+                  type="range"
+                  min="35"
+                  max="100"
+                  step="1"
+                />
+                <output id="poster-logo-opacity-value" class="range-value">100%</output>
+              </div>
+            </label>
+          </div>
+
+          <div class="topic-actions">
+            <button id="poster-settings-apply-btn" type="submit" class="primary-btn">
+              Применить
+            </button>
+            <button id="poster-settings-reset-btn" type="button" class="ghost-btn">
+              Сбросить
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
