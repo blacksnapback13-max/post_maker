@@ -6,14 +6,11 @@ const http = require("node:http");
 const { URL } = require("node:url");
 
 const APP_ROOT = __dirname;
-const LOCAL_ENV_PATH = path.join(APP_ROOT, ".env");
-const PARENT_ENV_PATH = path.join(APP_ROOT, "..", ".env");
+const ENV_PATH = path.join(APP_ROOT, ".env");
 
-loadEnvFile(LOCAL_ENV_PATH);
-process.env.PORT = process.env.PORT || "3001";
-loadEnvFile(PARENT_ENV_PATH);
+loadEnvFile(ENV_PATH);
 
-const PORT = Number(process.env.PORT || 3001);
+const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "127.0.0.1";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
@@ -109,7 +106,6 @@ const languageMeta = {
   ru: { name: "Russian", fallbackHashtags: ["#вера", "#евангелие", "#библия", "#христианство", "#надежда"] },
   uk: { name: "Ukrainian", fallbackHashtags: ["#віра", "#євангеліє", "#біблія", "#християнство", "#надія"] },
   pl: { name: "Polish", fallbackHashtags: ["#wiara", "#ewangelia", "#biblia", "#chrześcijaństwo", "#nadzieja"] },
-  tr: { name: "Turkish", fallbackHashtags: ["#iman", "#müjde", "#kutsalkitap", "#hristiyanlık", "#umut"] },
 };
 
 const postStyleGuides = {
@@ -156,27 +152,27 @@ const storytellingGuides = {
 
 const topicLensGuides = [
   {
-    matches: ["до брака", "до шлюбу", "przed ślub", "evlilikten önce", "relacj", "ilişk", "стосунк", "отношен"],
+    matches: ["до брака", "до шлюбу", "przed ślub", "relacj", "стосунк", "отношен"],
     guidance:
       "Address motives, boundaries, emotional honesty, patience, chastity, and whether the relationship is moving toward covenantal faithfulness instead of self-centered desire.",
   },
   {
-    matches: ["брак", "шлюб", "małżeń", "evlilik", "семья", "родин", "aile"],
+    matches: ["брак", "шлюб", "małżeń", "семья", "родин"],
     guidance:
       "Emphasize covenant, sacrificial love, mutual responsibility, prayer, and the home being built under the lordship of Christ rather than on feelings alone.",
   },
   {
-    matches: ["чистот", "czysto", "paklık", "temizlik", "святост", "święto", "kutsal", "грех", "гріх", "grzech", "günah"],
+    matches: ["чистот", "czysto", "святост", "święto", "грех", "гріх", "grzech"],
     guidance:
       "Stress holiness, repentance, self-control, grace for obedience, and the goodness of purity as protection for joy, peace, and clear conscience before God.",
   },
   {
-    matches: ["конфликт", "конфлікт", "konflikt", "çatış", "обид", "образ", "incin", "прощ", "пробач", "przebacz", "bağış", "affet"],
+    matches: ["конфликт", "конфлікт", "konflikt", "обид", "образ", "прощ", "пробач", "przebacz"],
     guidance:
       "Highlight repentance, forgiveness, careful speech, patient listening, and peace-making rooted in the mercy believers themselves have received in Christ.",
   },
   {
-    matches: ["выбор", "wybór", "wybor", "seçim", "довер", "довір", "zauf", "güven", "воля бож", "wola boża", "tanrı'nın isteği", "tanrının isteği"],
+    matches: ["выбор", "wybór", "wybor", "довер", "довір", "zauf", "воля бож", "wola boża"],
     guidance:
       "Call for trusting God's wisdom above impulse, bringing decisions to Scripture and prayer, and seeking peace that flows from submission to the Lord.",
   },
@@ -288,41 +284,18 @@ const posterSubjectGuides = {
 };
 
 const posterVisualStyleGuides = {
-  natural:
-    "true-to-life photography, natural lens perspective, believable materials, soft documentary atmosphere, no surreal effects",
-  editorial:
-    "premium magazine editorial photography, deliberate art direction, refined styling, polished layout-like negative space",
-  cinematic:
-    "cinematic film still, dramatic depth, motivated light, anamorphic atmosphere, strong foreground-background separation",
-  minimalist:
-    "minimalist art direction, large quiet surfaces, reduced objects, restrained palette, strong negative space and calm geometry",
-  painterly:
-    "fine-art painting language, visible brush texture, layered color transitions, handcrafted atmosphere, not photorealistic",
-  vintage_film:
-    "1970s analog film photography, soft grain, faded contrast, imperfect exposure, nostalgic lens character",
-  dreamy:
-    "ethereal dreamlike scene, luminous haze, soft-focus glow, delicate highlights, gentle surreal atmosphere",
-  modernism:
-    "modernist design composition, Bauhaus-like geometry, clean planes, disciplined grid, reduced color and architectural rhythm",
-  postmodern:
-    "postmodern art composition, playful layered shapes, unexpected scale shifts, collage-like spatial tension, expressive but balanced",
-  glitch:
-    "digital glitch-art atmosphere, fractured light planes, chromatic displacement, subtle scanline artifacts, experimental tech texture",
-  luxury:
-    "luxury editorial aesthetic, premium materials, controlled highlights, refined contrast, elegant high-end visual restraint",
-  analog:
-    "tactile analog process, handmade paper grain, slight imperfections, organic texture, human-crafted visual character",
-};
-
-const posterFormatGuides = {
-  portrait_4_5:
-    "vertical 4:5 Instagram feed format, 1080 by 1350 composition, poster-like portrait crop",
-  story_9_16:
-    "vertical 9:16 Stories/Reels format, 1080 by 1920 composition, tall cinematic crop with strong vertical breathing room",
-  square_1_1:
-    "square 1:1 Instagram format, 1080 by 1080 composition, balanced centered crop with calm margins",
-  landscape_16_9:
-    "wide 16:9 format, 1920 by 1080 composition, horizontal cinematic crop with text-safe central area",
+  natural: "photorealistic, atmospheric, refined, believable, cinematic but natural",
+  editorial: "editorial, magazine-like, polished, premium, balanced composition",
+  cinematic: "cinematic, dramatic depth, rich atmosphere, filmic light and composition",
+  minimalist: "minimalist, restrained, highly readable, elegant negative space, reduced detail",
+  painterly: "painterly, textured, fine-art atmosphere, brush-like transitions, poetic light",
+  vintage_film: "vintage film look, subtle grain, faded contrast, nostalgic but premium",
+  dreamy: "dreamy, luminous, airy, soft-focus, glowing highlights, gentle atmosphere",
+  modernism: "modernist, geometric, clean forms, graphic discipline, reduced palette, gallery-like composition",
+  postmodern: "postmodern, layered, unexpected juxtapositions, artistic tension, expressive but still harmonious",
+  glitch: "glitch-art inspired, experimental, fractured light, digital distortion accents, still elegant and usable for text overlay",
+  luxury: "luxury editorial, premium materials, refined color control, polished and elevated aesthetic",
+  analog: "analog, tactile, lightly imperfect, organic grain, human-crafted visual character",
 };
 
 const layoutGuides = {
@@ -650,30 +623,15 @@ function buildGeminiPrompt(input) {
   const settings = input.posterSettings || {};
   const variant = Number.isFinite(Number(input.variant)) ? Number(input.variant) : 0;
   const profile = selectMoodProfile(topic, verseFocus, tags);
+  const seed = hashString([topic, reference, verseText, verseFocus, tags.join(" "), String(variant)].join("|"));
   const subject = String(settings.subject || "landscape");
-  const visualStyleId = String(settings.visualStyle || "natural");
-  const formatId = String(settings.format || "portrait_4_5");
-  const seed = hashString(
-    [
-      topic,
-      reference,
-      verseText,
-      verseFocus,
-      tags.join(" "),
-      subject,
-      visualStyleId,
-      formatId,
-      String(variant),
-    ].join("|")
-  );
   const scene = pickSubjectScene(subject, profile, seed + 11);
   const lighting = pickBySeed(profile.lightings, seed + 19);
   const palette = pickBySeed(profile.palettes, seed + 29);
   const mood = profile.moods.join(", ");
   const composition = pickBySeed(compositionPool, seed + 37);
   const variation = pickBySeed(variationPool, seed + 47);
-  const artStyle = posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural;
-  const formatPrompt = posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5;
+  const artStyle = posterVisualStyleGuides[String(settings.visualStyle || "natural")] || posterVisualStyleGuides.natural;
   const layoutPrompt = layoutGuides[String(settings.layout || "top")] || layoutGuides.top;
   const typographyHint = buildTypographyHint(settings);
   const subjectSafety = buildSubjectSafetyGuidance(subject);
@@ -681,17 +639,14 @@ function buildGeminiPrompt(input) {
 
   return [
     "Create a high-quality background image for a Christian social media post.",
-    "Image format: " + formatPrompt + ".",
-    "Generate a pure background scene only, not a finished poster, quote card, book cover, flyer, title card, or social media template.",
-    "Keep the composition suitable for later overlay text added by the app, but do not render any text in the image itself.",
-    "Do not use any readable or unreadable letters, numbers, glyphs, captions, scripture references, verse fragments, logos, monograms, signage, book covers, paper scraps, screens, watermarks, or faux-typography textures anywhere in the image.",
+    "The image must be vertical 4:5 and visually suitable for a poster with text overlay.",
+    "Write visual cues with awareness that the final text overlay will be in " + languageMeta[language].name + ".",
     'Theme context: "' + topic + '".',
+    'Bible verse context: "' + reference + ' — ' + shortenText(verseText, 180) + '".',
     'Spiritual emphasis: "' + shortenText(verseFocus || postText, 220) + '".',
     "Post tone: " + (postStyleGuides[postStyle] || postStyleGuides.inspiring) + ".",
     "Visual direction: " + scene + ".",
     "Visual style: " + artStyle + ".",
-    "Subject-style lock: the selected subject must dominate the actual scene, and the selected visual style must change composition, materials, color behavior, camera language, and texture, not merely add a filter.",
-    "Do not default back to a pastoral landscape when the selected subject is city, architecture, interior, people, abstract, texture, night, or street.",
     "Lighting: " + lighting + ".",
     "Color palette: " + palette + ".",
     "Mood: " + mood + ".",
@@ -702,10 +657,9 @@ function buildGeminiPrompt(input) {
       ? "A user reference image is attached. Use it as inspiration for composition, atmosphere, palette, and visual motifs while still creating a fresh original background for this verse. Do not copy any text, logos, watermarks, or brand elements from the reference."
       : "No reference image is attached, so derive the visual completely from the prompt itself.",
     "Variation cue: " + variation + ".",
-    "Make this generation visibly different from prior variants by changing camera distance, scene structure, focal plane, and atmospheric treatment while preserving readability for overlay text.",
     "Use imagery that faithfully matches the selected subject and still feels suitable for a Christian post.",
     "Subject guardrails: " + subjectSafety + ".",
-    "Absolutely no text, no letters, no verses, no references, no font names, and no typography inside the image.",
+    "Absolutely no text, no letters, no verses, no typography inside the image.",
     "Keep the intended text area calm, softly lit, elegant, and uncluttered so overlay text can be placed on top later.",
     "The result should feel peaceful, reverent, emotionally aligned with the post, and beautiful without looking generic.",
   ].join(" ");
@@ -903,16 +857,7 @@ function prependTopicToPostBody(body, topic) {
   }
 
   if (normalize(cleanBody).startsWith(normalize(cleanTopic))) {
-    const trailingBody = cleanBody
-      .slice(cleanTopic.length)
-      .replace(/^[\s.,;:!?-]+/u, "")
-      .trim();
-
-    if (!trailingBody) {
-      return cleanTopic;
-    }
-
-    return cleanTopic + "\n\n" + trailingBody;
+    return cleanBody;
   }
 
   return cleanTopic + "\n\n" + cleanBody;
@@ -953,28 +898,22 @@ function buildTypographyHint(settings) {
   const textOpacity = Number.isFinite(Number(settings.textOpacity)) ? Number(settings.textOpacity) : 92;
   const strokeStrength = Number.isFinite(Number(settings.strokeStrength)) ? Number(settings.strokeStrength) : 68;
   const typographyGuides = {
-    noto_sans: "clean multilingual sans-serif overlay",
-    noto_serif: "refined multilingual serif overlay",
-    manrope: "bold modern sans-serif overlay",
-    montserrat: "geometric sans-serif overlay",
-    pt_serif: "classic church-publication serif overlay",
-    lora: "elegant editorial serif overlay",
-    merriweather: "warm long-form reading serif overlay",
-    source_serif: "literary book-like serif overlay",
-    playfair: "high-contrast elegant display serif overlay",
-    cormorant: "graceful classical serif overlay",
-    oswald: "condensed strong headline overlay",
-    roboto_slab: "stable slab-serif editorial overlay",
+    noto_sans: "clean Noto Sans multilingual sans serif",
+    noto_serif: "refined Noto Serif multilingual serif",
+    manrope: "bold modern Manrope sans serif",
+    montserrat: "geometric Montserrat sans serif",
+    pt_serif: "classic PT Serif with church-publication feeling",
+    lora: "elegant Lora editorial serif",
   };
 
   return (
-    "Preserve a calm, high-contrast negative space for a later " +
+    "The final poster will use a " +
     (typographyGuides[typography] || typographyGuides.noto_serif) +
-    ", with text opacity around " +
+    " type treatment, text opacity around " +
     textOpacity +
     "%, and outline strength around " +
     strokeStrength +
-    "%. The image itself must contain no rendered letters or typography."
+    "%, so preserve readability under overlay text."
   );
 }
 
@@ -1161,7 +1100,7 @@ function normalizeHashtag(value) {
   return cleanText(value)
     .toLowerCase()
     .replace(/ё/g, "е")
-    .replace(/[^\p{L}\p{N}]+/gu, "");
+    .replace(/[^a-zа-яąćęłńóśźżїієґ0-9]+/giu, "");
 }
 
 function pickBySeed(items, seed) {

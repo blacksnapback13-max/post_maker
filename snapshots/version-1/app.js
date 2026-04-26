@@ -385,99 +385,6 @@
     },
   };
 
-  const turkishScriptureTranslations = {
-    "gen-2-24": {
-      reference: "Yaratılış 2:24",
-      text: "Bu nedenle adam annesini babasını bırakıp karısına bağlanacak, ikisi tek beden olacak.",
-    },
-    "mark-10-9": {
-      reference: "Markos 10:9",
-      text: "O halde Tanrı'nın birleştirdiğini insan ayırmasın.",
-    },
-    "ps-126-1": {
-      reference: "Mezmurlar 127:1",
-      text: "Evi RAB yapmazsa, yapıcılar boşuna çalışır.",
-    },
-    "prov-4-23": {
-      reference: "Süleyman'ın Özdeyişleri 4:23",
-      text: "Her şeyden önce yüreğini koru, çünkü yaşam ondan kaynaklanır.",
-    },
-    "1thes-4-3-4": {
-      reference: "1 Selanikliler 4:3-4",
-      text: "Tanrı'nın isteği şudur: kutsal olmanız, fuhuştan kaçınmanız; her biriniz bedenini kutsallık ve saygınlık içinde denetlemeyi bilsin.",
-    },
-    "song-8-4": {
-      reference: "Ezgiler Ezgisi 8:4",
-      text: "Sevgiyi zamanı gelmeden uyandırmayın, harekete geçirmeyin.",
-    },
-    "amos-3-3": {
-      reference: "Amos 3:3",
-      text: "İki kişi anlaşmadan birlikte yürür mü?",
-    },
-    "matt-6-33": {
-      reference: "Matta 6:33",
-      text: "Siz önce Tanrı'nın Egemenliği'nin ve doğruluğunun ardından gidin; o zaman size bütün bunlar da verilecektir.",
-    },
-    "prov-3-5-6": {
-      reference: "Süleyman'ın Özdeyişleri 3:5-6",
-      text: "RAB'be bütün yüreğinle güven, kendi aklına bel bağlama. Her yolunda O'nu an, O da senin yollarını düze çıkarır.",
-    },
-    "eccl-4-9-10": {
-      reference: "Vaiz 4:9-10",
-      text: "İki kişi bir kişiden iyidir, çünkü emeklerine iyi karşılık alırlar. Biri düşerse, öbürü arkadaşını kaldırır.",
-    },
-    "1cor-13-4-7": {
-      reference: "1 Korintliler 13:4-7",
-      text: "Sevgi sabırlıdır, sevgi şefkatlidir; kendi çıkarını aramaz, kolayca öfkelenmez, her şeye katlanır, her şeye inanır, her şeyi umut eder, her şeye dayanır.",
-    },
-    "phil-2-3-4": {
-      reference: "Filipililer 2:3-4",
-      text: "Hiçbir şeyi bencil tutkularla ya da boş övünmeyle yapmayın; alçakgönüllülükle başkalarını kendinizden üstün sayın. Yalnız kendi yararınızı değil, başkalarının yararını da gözetin.",
-    },
-    "james-1-19": {
-      reference: "Yakup 1:19",
-      text: "Herkes dinlemekte çabuk, konuşmakta yavaş, öfkelenmekte yavaş olsun.",
-    },
-    "gal-5-22-23": {
-      reference: "Galatyalılar 5:22-23",
-      text: "Ruh'un meyvesi sevgi, sevinç, esenlik, sabır, şefkat, iyilik, bağlılık, yumuşak huyluluk ve özdenetimdir.",
-    },
-    "2tim-2-22": {
-      reference: "2 Timoteos 2:22",
-      text: "Gençlik tutkularından kaç; temiz yürekle Rab'be yakaranlarla birlikte doğruluk, iman, sevgi ve esenliğin ardından git.",
-    },
-    "eph-4-2-3": {
-      reference: "Efesliler 4:2-3",
-      text: "Her bakımdan alçakgönüllü, yumuşak huylu ve sabırlı olun. Birbirinize sevgiyle katlanın. Ruh'un birliğini esenlik bağıyla korumaya gayret edin.",
-    },
-    "col-3-13-14": {
-      reference: "Koloseliler 3:13-14",
-      text: "Birbirinize katlanın ve birbirinizi bağışlayın. Bunların hepsinin üzerine sevgiyi giyinin; sevgi yetkin birliğin bağıdır.",
-    },
-    "rom-12-10": {
-      reference: "Romalılar 12:10",
-      text: "Birbirinizi kardeşlik sevgisiyle sevin. Birbirinize saygı göstermekte yarışın.",
-    },
-    "1pet-4-8": {
-      reference: "1 Petrus 4:8",
-      text: "Her şeyden önce birbirinizi candan sevin, çünkü sevgi birçok günahı örter.",
-    },
-    "eph-5-25": {
-      reference: "Efesliler 5:25",
-      text: "Ey kocalar, Mesih'in kiliseyi sevip onun uğruna kendini feda ettiği gibi siz de karılarınızı sevin.",
-    },
-    "prov-19-14": {
-      reference: "Süleyman'ın Özdeyişleri 19:14",
-      text: "Ev ve servet babalardan mirastır; sağduyulu eş RAB'dendir.",
-    },
-  };
-
-  Object.keys(turkishScriptureTranslations).forEach(function (id) {
-    scriptureTranslations[id] = Object.assign({}, scriptureTranslations[id], {
-      tr: turkishScriptureTranslations[id],
-    });
-  });
-
   const tagTranslations = {
     uk: {
       брак: "шлюб",
@@ -585,59 +492,6 @@
     },
   };
 
-  tagTranslations.tr = {
-    брак: "evlilik",
-    завет: "antlaşma",
-    мужчина: "erkek",
-    женщина: "kadın",
-    семья: "aile",
-    единство: "birlik",
-    верность: "sadakat",
-    дом: "ev",
-    основание: "temel",
-    Бог: "Tanrı",
-    сердце: "yürek",
-    мудрость: "bilgelik",
-    границы: "sınırlar",
-    чистота: "paklık",
-    "до брака": "evlilikten önce",
-    святость: "kutsallık",
-    отношения: "ilişkiler",
-    время: "zaman",
-    любовь: "sevgi",
-    ожидание: "bekleyiş",
-    согласие: "uyum",
-    ценности: "değerler",
-    выбор: "seçim",
-    приоритет: "öncelik",
-    поиск: "arayış",
-    доверие: "güven",
-    решение: "karar",
-    поддержка: "destek",
-    дружба: "dostluk",
-    партнерство: "ortaklık",
-    характер: "karakter",
-    терпение: "sabır",
-    милость: "merhamet",
-    смирение: "alçakgönüllülük",
-    уважение: "saygı",
-    служение: "hizmet",
-    общение: "iletişim",
-    конфликт: "çatışma",
-    мир: "esenlik",
-    слушание: "dinleme",
-    "плод духа": "Ruh'un meyvesi",
-    воздержание: "özdenetim",
-    молодежь: "gençlik",
-    праведность: "doğruluk",
-    кротость: "yumuşak huyluluk",
-    прощение: "bağışlama",
-    нежность: "şefkat",
-    муж: "koca",
-    жена: "eş",
-    жертвенность: "fedakarlık",
-  };
-
   const categoryRules = [
     {
       category: "до брака",
@@ -646,27 +500,21 @@
         "до шлюбу",
         "przed ślub",
         "przedmalżeń",
-        "evlilikten önce",
         "свидан",
         "отношен",
         "стосунк",
-        "ilişk",
         "relacj",
         "związk",
         "женщин",
         "мужчин",
         "жінк",
         "чолов",
-        "kadın",
-        "erkek",
         "kobiet",
         "mężczyzn",
         "пар",
         "пара",
-        "çift",
         "роман",
         "близост",
-        "yakın",
         "встреч",
       ],
     },
@@ -676,19 +524,15 @@
         "брак",
         "шлюб",
         "małżeń",
-        "evlilik",
         "муж",
         "жена",
         "чоловік",
         "дружин",
-        "koca",
-        "eş",
         "mąż",
         "żona",
         "семь",
         "семья",
         "родин",
-        "aile",
         "rodzin",
         "венч",
         "супруг",
@@ -699,69 +543,62 @@
       keywords: [
         "чистот",
         "czysto",
-        "paklık",
-        "temizlik",
         "целомудр",
         "грех",
         "гріх",
-        "günah",
         "grzech",
         "соблаз",
         "спокус",
-        "ayart",
         "pokus",
         "страст",
         "похот",
-        "tutku",
         "границ",
         "межі",
-        "sınır",
         "granic",
         "святост",
         "святість",
-        "kutsal",
         "święto",
       ],
     },
     {
       category: "любовь",
-      keywords: ["любов", "кохан", "sevgi", "miło", "нежност", "şefkat", "сердц", "серц", "yürek", "serc", "забот", "турбот", "romant"],
+      keywords: ["любов", "кохан", "miło", "нежност", "сердц", "серц", "serc", "забот", "турбот", "romant"],
     },
     {
       category: "общение",
-      keywords: ["ссор", "конфликт", "конфлікт", "çatış", "konflikt", "разговор", "розмов", "konuş", "rozmow", "слуш", "слух", "dinle", "słuch", "пониман", "anla", "rozum", "общен", "спілку", "iletişim", "komunik"],
+      keywords: ["ссор", "конфликт", "конфлікт", "konflikt", "разговор", "розмов", "rozmow", "слуш", "слух", "słuch", "пониман", "rozum", "общен", "спілку", "komunik"],
     },
     {
       category: "доверие",
-      keywords: ["довер", "довір", "güven", "zauf", "выбор", "seçim", "wybor", "wybór", "решен", "рішен", "karar", "decyz", "страх", "korku", "неувер", "belirsiz", "ожидан", "bekley", "oczekiw", "воля бож", "воля божа", "tanrı'nın isteği", "tanrının isteği", "wola boża"],
+      keywords: ["довер", "довір", "zauf", "выбор", "wybor", "wybór", "решен", "рішен", "decyz", "страх", "неувер", "ожидан", "oczekiw", "воля бож", "воля божа", "wola boża"],
     },
     {
       category: "прощение",
-      keywords: ["прощ", "пробач", "bağış", "affet", "przebacz", "обид", "образ", "incin", "uraż", "ран", "zran", "восстанов", "віднов", "onar", "odnow", "милост", "merhamet", "łaska"],
+      keywords: ["прощ", "пробач", "przebacz", "обид", "образ", "uraż", "ран", "zran", "восстанов", "віднов", "odnow", "милост", "łaska"],
     },
     {
       category: "единство",
-      keywords: ["един", "єдн", "birlik", "uyum", "jedn", "соглас", "zgod", "ценност", "цінност", "değer", "wartoś", "совмест", "спільн", "ortak", "wspóln", "партнер", "partner"],
+      keywords: ["един", "єдн", "jedn", "соглас", "zgod", "ценност", "цінност", "wartoś", "совмест", "спільн", "wspóln", "партнер", "partner"],
     },
     {
       category: "тревога",
-      keywords: ["тревог", "тривог", "kaygı", "endiş", "lęk", "lek", "страх", "korku", "anx", "беспокой", "неспок", "huzursuz", "непевн", "неувер", "belirsiz", "future", "майбут", "будущ", "gelecek"],
+      keywords: ["тревог", "тривог", "lęk", "lek", "страх", "anx", "беспокой", "неспок", "непевн", "неувер", "future", "майбут", "будущ"],
     },
     {
       category: "одиночество",
-      keywords: ["одиноч", "самотн", "yalnız", "samotn", "изоляц", "ізоляц", "izol", "isolac", "покинут", "залишен", "terk", "opuszcz"],
+      keywords: ["одиноч", "самотн", "samotn", "изоляц", "ізоляц", "isolac", "покинут", "залишен", "opuszcz"],
     },
     {
       category: "финансы",
-      keywords: ["деньг", "грош", "para", "pien", "финанс", "finans", "економ", "эконом", "ekonomi", "інфляц", "inflac", "fiyat", "цен", "кошти", "оплат", "рахунк", "fatura", "bills"],
+      keywords: ["деньг", "грош", "pien", "финанс", "економ", "эконом", "інфляц", "inflac", "цен", "кошти", "оплат", "рахунк", "bills"],
     },
     {
       category: "цифровой шум",
-      keywords: ["соцсет", "соцмер", "sosyal medya", "social", "instagram", "tiktok", "лайк", "beğeni", "like", "цифров", "dijital", "digital", "інформац", "информац", "bilgi", "шум", "akış", "feed"],
+      keywords: ["соцсет", "соцмер", "social", "instagram", "tiktok", "лайк", "like", "цифров", "digital", "інформац", "информац", "шум", "feed"],
     },
     {
       category: "выгорание",
-      keywords: ["выгор", "вигор", "tüken", "burnout", "втом", "устал", "yorgun", "bitkin", "zmęcz", "przeciąż", "перегруз", "aşırı yük", "перевтом"],
+      keywords: ["выгор", "вигор", "burnout", "втом", "устал", "zmęcz", "przeciąż", "перегруз", "перевтом"],
     },
   ];
 
@@ -945,53 +782,13 @@
     ],
   };
 
-  sampleTopicsByLanguage.tr = [
-    "evlilikten önce kadın ve erkek arasındaki ilişki",
-    "ilişkilerde paklığı nasıl korumalı",
-    "evliliği Tanrı'nın temeli üzerine nasıl kurmalı",
-    "ilişkide çok kırgınlık ve yanlış anlaşılma olduğunda ne yapmalı",
-    "bir kişinin evliliğe hazır olup olmadığını nasıl anlamalı",
-    "sevgi yalnızca duygu değil, hizmet olarak nasıl yaşanır",
-  ];
-
-  currentConcernTopicsByLanguage.tr = [
-    "haberler ve gelecek kaygılandırırken yüreğin esenliğini nasıl korumalı",
-    "Kutsal Kitap bırakmayan stres hakkında ne söyler",
-    "yorgunluk yaşam tarzına dönüştüğünde tükenmemek için ne yapmalı",
-    "yalnızlık döneminden acılaşmadan nasıl geçilir",
-    "yüzeysel iletişim çağında derin ilişkiler nasıl kurulur",
-    "sosyal medya kıyaslamayı ve kıskançlığı artırdığında ne yapmalı",
-    "dijital ayartılar dünyasında temiz yürek nasıl korunur",
-    "bir Hristiyan para ve ailenin geleceği konusundaki kaygıya nasıl yaklaşmalı",
-    "fiyatlar artarken ve güven azalırken Tanrı'ya nasıl güvenilir",
-    "iş anlamı ve gücü tükettiğinde ne yapmalı",
-    "değişim ve belirsizlik korkutuyorsa Tanrı'nın isteği nasıl aranır",
-    "etrafta çok kötü haber varken umutla nasıl yaşanır",
-    "toplum sadakate inanmazken evlilik nasıl inşa edilir",
-    "agresyon ve kutuplaşma kültüründe gerçeği sevgiyle nasıl söylemeli",
-    "dışarıda yoğunluk varken iç boşluk hakkında Kutsal Kitap ne söyler",
-    "yürek başkalarının acısından yorulduğunda merhamet nasıl kaybedilmez",
-    "ebeveynler dijital çağda ailede esenliği nasıl korur",
-    "gençler bilgi gürültüsü içinde zihin ve yüreği nasıl korur",
-    "sağlık korkusundan panik yapmadan nasıl geçilir",
-    "dünya sahte haber ve manipülasyonla doluyken güven nasıl korunur",
-    "teknoloji gündelik hayatı değiştirirken imanla nasıl yaşanır",
-    "kendi değerini beğeniler ve başkalarının onayı üzerine kurmamak",
-    "zihin sürekli aşırı yüklüyken sessizlik ve duaya nasıl öğrenilir",
-    "ilişkiler beklenenden daha çok yaraladığında ne yapmalı",
-    "ailede finansal baskı karşılıklı suçlama olmadan nasıl aşılır",
-    "gelecek sisli göründüğünde umut nasıl kaybedilmez",
-  ];
-
-  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-04-26";
-  const TOPIC_DECK_SIZE = 1000;
+  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-04";
   const topicTranslationCatalog = buildTopicTranslationCatalog();
 
   const languageOptions = [
     { id: "ru", nativeLabel: "Русский" },
     { id: "uk", nativeLabel: "Українська" },
     { id: "pl", nativeLabel: "Polski" },
-    { id: "tr", nativeLabel: "Türkçe" },
   ];
 
   const scriptureMatchOptions = [
@@ -1053,13 +850,6 @@
     { id: "analog" },
   ];
 
-  const posterFormatOptions = [
-    { id: "portrait_4_5", width: 1080, height: 1350 },
-    { id: "story_9_16", width: 1080, height: 1920 },
-    { id: "square_1_1", width: 1080, height: 1080 },
-    { id: "landscape_16_9", width: 1920, height: 1080 },
-  ];
-
   const typographyOptions = [
     { id: "noto_sans" },
     { id: "noto_serif" },
@@ -1067,12 +857,6 @@
     { id: "montserrat" },
     { id: "pt_serif" },
     { id: "lora" },
-    { id: "merriweather" },
-    { id: "source_serif" },
-    { id: "playfair" },
-    { id: "cormorant" },
-    { id: "oswald" },
-    { id: "roboto_slab" },
   ];
 
   const layoutOptions = [
@@ -1162,7 +946,6 @@
       posterSettingsEyebrow: "Настройки постера",
       posterSettingsTitle: "Гибкая настройка фона и текста",
       posterSettingsSubtitle: "Фон, стиль генерации, типографика, референс, логотип и расположение текста.",
-      posterFormatLabel: "Формат картинки",
       posterSubjectLabel: "Сюжет фона",
       posterVisualStyleLabel: "Художественный стиль",
       posterTypographyLabel: "Типографика",
@@ -1203,7 +986,6 @@
       postSummaryStylePrefix: "Стиль:",
       postSummaryEmojiPrefix: "Смайлики:",
       posterSummaryPrefix: "Фон:",
-      posterSummaryFormatPrefix: "Формат:",
       posterSummaryTypographyPrefix: "Типографика:",
       posterSummaryReferencePrefix: "Референс:",
       posterSummaryLogoPrefix: "Логотип:",
@@ -1224,9 +1006,6 @@
       configRequestFailed: "Сервер не ответил на запрос конфигурации.",
       openViaServer: "Откройте приложение через node server.js.",
       addGeminiToEnv: "Добавьте GEMINI_API_KEY в файл .env.",
-      generatingScripturesOverlay: "Подождите, идет подбор мест Писания",
-      generatingPostOverlay: "Подождите, идет генерация поста",
-      generatingPosterOverlay: "Подождите, идет генерация картинки",
     },
     uk: {
       heroKicker: "Мінізастосунок для християнських дописів від команди Shtunda13",
@@ -1298,7 +1077,6 @@
       posterSettingsEyebrow: "Налаштування постера",
       posterSettingsTitle: "Гнучке налаштування фону і тексту",
       posterSettingsSubtitle: "Фон, стиль генерації, типографіка, референс, логотип і розташування тексту.",
-      posterFormatLabel: "Формат картинки",
       posterSubjectLabel: "Сюжет фону",
       posterVisualStyleLabel: "Художній стиль",
       posterTypographyLabel: "Типографіка",
@@ -1339,7 +1117,6 @@
       postSummaryStylePrefix: "Стиль:",
       postSummaryEmojiPrefix: "Смайлики:",
       posterSummaryPrefix: "Фон:",
-      posterSummaryFormatPrefix: "Формат:",
       posterSummaryTypographyPrefix: "Типографіка:",
       posterSummaryReferencePrefix: "Референс:",
       posterSummaryLogoPrefix: "Логотип:",
@@ -1360,9 +1137,6 @@
       configRequestFailed: "Сервер не відповів на запит конфігурації.",
       openViaServer: "Відкрийте застосунок через node server.js.",
       addGeminiToEnv: "Додайте GEMINI_API_KEY у файл .env.",
-      generatingScripturesOverlay: "Зачекайте, триває добір місць Писання",
-      generatingPostOverlay: "Зачекайте, триває генерація допису",
-      generatingPosterOverlay: "Зачекайте, триває генерація картинки",
     },
     pl: {
       heroKicker: "Miniaplikacja do chrześcijańskich postów od zespołu Shtunda13",
@@ -1434,7 +1208,6 @@
       posterSettingsEyebrow: "Ustawienia plakatu",
       posterSettingsTitle: "Elastyczne ustawienia tła i tekstu",
       posterSettingsSubtitle: "Tło, styl generacji, typografia, referencja, logo i układ tekstu.",
-      posterFormatLabel: "Format grafiki",
       posterSubjectLabel: "Motyw tła",
       posterVisualStyleLabel: "Styl artystyczny",
       posterTypographyLabel: "Typografia",
@@ -1475,7 +1248,6 @@
       postSummaryStylePrefix: "Styl:",
       postSummaryEmojiPrefix: "Emoji:",
       posterSummaryPrefix: "Tło:",
-      posterSummaryFormatPrefix: "Format:",
       posterSummaryTypographyPrefix: "Typografia:",
       posterSummaryReferencePrefix: "Referencja:",
       posterSummaryLogoPrefix: "Logo:",
@@ -1496,148 +1268,8 @@
       configRequestFailed: "Serwer nie odpowiedział na żądanie konfiguracji.",
       openViaServer: "Otwórz aplikację przez node server.js.",
       addGeminiToEnv: "Dodaj GEMINI_API_KEY do pliku .env.",
-      generatingScripturesOverlay: "Poczekaj, trwa dobieranie fragmentów Pisma",
-      generatingPostOverlay: "Poczekaj, trwa generowanie posta",
-      generatingPosterOverlay: "Poczekaj, trwa generowanie grafiki",
     },
   };
-
-  uiStrings.tr = Object.assign({}, uiStrings.ru, {
-    heroKicker: "Shtunda13 ekibinden Hristiyan paylaşımları için mini uygulama",
-    heroTitle: "Konu, Kutsal Yazı, metin ve hazır görsel tek ekranda",
-    heroDescription:
-      "Konuyu yazın, uygun Kutsal Yazı bölümünü seçin ve indirilebilir görselle birlikte kısa bir paylaşım alın.",
-    heroCardTitle: "Nasıl çalışır",
-    heroStep1: "Paylaşım konusunu yazın.",
-    heroStep2: "Önerilen Kutsal Yazı bölümlerinden birini seçin.",
-    heroStep3: "Metni kopyalayın ve görseli indirin.",
-    supportTeaserTitle: "Misyonu destekle",
-    supportTeaserCopy:
-      "Uygulama hizmetinizde yardımcı oluyorsa, geliştirme ve yeni özellikleri destekleyebilirsiniz.",
-    supportTeaserButton: "Destekle",
-    step1Eyebrow: "Adım 1",
-    step1Title: "Konu",
-    scriptureModeButton: "Açık seçim",
-    topicLabel: "Paylaşım ne hakkında olacak?",
-    topicPlaceholder: "Örneğin: evlilikten önce kadın ve erkek arasındaki ilişki",
-    topicSubmit: "Kutsal Yazı bölümlerini seç",
-    surpriseTopic: "Rastgele konu",
-    step2Eyebrow: "Adım 2",
-    step2Title: "Kısa paylaşım",
-    postStyleButton: "Anlatım stilini seç",
-    emojiToggleOn: "Emoji: evet",
-    emojiToggleOff: "Emoji: hayır",
-    regeneratePost: "Yeniden oluştur",
-    copyPost: "Kopyala",
-    copied: "Kopyalandı",
-    step3Eyebrow: "Adım 3",
-    step3Title: "Paylaşım görseli",
-    referenceUploadButton: "Referans yükle",
-    posterSettingsButton: "Poster ayarları",
-    newPoster: "Yeni arka plan",
-    generatingPoster: "Oluşturuluyor...",
-    downloadPng: "PNG indir",
-    scriptureModalEyebrow: "Adım 1.5",
-    scriptureModalTitle: "Kutsal Yazı seçin",
-    scriptureModalTopicPrefix: 'Konu: "',
-    scriptureModalTopicSuffix: '". Bu bölüm üzerine paylaşım oluşturmak için karta tıklayın.',
-    scriptureModalModePrefix: "Seçim modu:",
-    scriptureModeEyebrow: "Kutsal Yazı seçimi",
-    scriptureModeTitle: "Seçim derinliğini belirleyin",
-    scriptureModeSubtitle: "Konuyla açık veya daha derin, dolaylı bağlantılar aranabilir.",
-    scriptureModeExplicitLabel: "Açık",
-    scriptureModeExplicitDescription:
-      "Konunuzdan doğrudan ve belirgin şekilde söz eden ayetleri seçer.",
-    scriptureModeImplicitLabel: "Dolaylı",
-    scriptureModeImplicitDescription:
-      "Sorunun kökünü, motivasyonları, bilgeliği ve yüreğin durumunu aydınlatan ayetleri seçer.",
-    scriptureReasonExplicitPrefix: "Doğrudan değinir:",
-    scriptureReasonImplicitPrefix: "Daha derinden açar:",
-    languageModalEyebrow: "Dil",
-    languageModalTitle: "Dil seçin",
-    languageModalSubtitle: "Arayüz, paylaşım ve poster dili.",
-    supportModalEyebrow: "Destek",
-    supportModalTitle: "Misyonu ve geliştirmeyi destekle",
-    supportModalSubtitle: "Uygulamanın gelişimini bağlantı veya QR kod ile destekleyebilirsiniz.",
-    supportModalIntro:
-      "Her destek için teşekkürler. Bu destek, uygulamayı geliştirmeye ve yeni özellikler çıkarmaya yardım eder.",
-    supportMonobankCopy: "Misyonu Monobank üzerinden destekleyin.",
-    supportBuyMeCopy: "Geliştirmeyi Buy Me a Coffee üzerinden destekleyin.",
-    supportPayPalCopy: "PayPal için QR kodu tarayabilirsiniz.",
-    supportOpenLink: "Bağlantıyı aç",
-    supportQrOnly: "QR kodu tarayın",
-    postStyleModalEyebrow: "Anlatım stili",
-    postStyleModalTitle: "Metin stilini seçin",
-    postStyleModalSubtitle: "Bu, kısa paylaşımın tonunu ve anlatımını etkiler.",
-    posterSettingsEyebrow: "Poster ayarları",
-    posterSettingsTitle: "Arka plan ve metin için esnek ayarlar",
-    posterSettingsSubtitle: "Format, arka plan, üretim stili, tipografi, referans, logo ve metin konumu.",
-    posterFormatLabel: "Görsel formatı",
-    posterSubjectLabel: "Arka plan konusu",
-    posterVisualStyleLabel: "Sanatsal stil",
-    posterTypographyLabel: "Tipografi",
-    posterLayoutLabel: "Metin konumu",
-    posterOpacityLabel: "Metin opaklığı",
-    posterStrokeLabel: "Kontur gücü",
-    posterReferenceLabel: "Üretim referansı",
-    posterReferenceUpload: "Referans yükle",
-    posterReferenceClear: "Temizle",
-    posterReferenceEmpty: "Referans yüklenmedi.",
-    posterLogoLabel: "PNG logo",
-    posterLogoUpload: "Logo yükle",
-    posterLogoClear: "Temizle",
-    posterLogoEmpty: "Logo yüklenmedi.",
-    posterLogoPositionLabel: "Logo konumu",
-    posterLogoSizeLabel: "Logo boyutu",
-    posterLogoOpacityLabel: "Logo opaklığı",
-    posterApply: "Uygula",
-    posterReset: "Sıfırla",
-    selectedVersePrefix: "Seçilen Kutsal Yazı:",
-    postEmpty: "Hazır kısa paylaşım burada görünsün diye konu yazın ve Kutsal Yazı seçin.",
-    postWaiting: "Bu konu için kısa paylaşım oluşturmak üzere Kutsal Yazı seçin",
-    postGenerating: "Konu, teoloji, dil ve anlatım stiline göre yeni paylaşım oluşturuluyor.",
-    postReady: "Paylaşım hazır. İsterseniz stili değiştirip yeniden oluşturabilirsiniz.",
-    postFallback:
-      "AI metin üretimi şu anda kullanılamıyor; bu yüzden yerel yedek metin hazırlandı. Yeniden deneyebilirsiniz.",
-    posterChecking: "Nano Banana arka plan üretimi için kontrol ediliyor.",
-    posterAwaiting: "Arka planı seçmek için Kutsal Yazı seçimi bekleniyor.",
-    posterWaiting: "Önce ayeti seçin; ardından uygulama paylaşımı ve arka planı hazırlayacak.",
-    posterPreparing: "Konu ve ayetin ruhuna uygun AI arka planı hazırlanıyor.",
-    placeholderTheme: "Konu yazın",
-    placeholderReference: "Kutsal Yazı seçin",
-    placeholderPosterMessage:
-      "Seçimden sonra burada konunun ruhuna göre oluşturulmuş arka planlı hazır görsel görünecek.",
-    waitingPosterMessage:
-      "Ayet kartına tıkladığınızda uygulama kısa paylaşımı ve görseli hazırlayacak.",
-    postSummaryPrefix: "Dil:",
-    postSummaryStylePrefix: "Stil:",
-    postSummaryEmojiPrefix: "Emoji:",
-    posterSummaryPrefix: "Arka plan:",
-    posterSummaryFormatPrefix: "Format:",
-    posterSummaryTypographyPrefix: "Tipografi:",
-    posterSummaryReferencePrefix: "Referans:",
-    posterSummaryLogoPrefix: "Logo:",
-    emojiEnabledLabel: "evet",
-    emojiDisabledLabel: "hayır",
-    appTitle: "Post Maker",
-    serverUnavailable: "Yerel sunucu yanıt vermiyor.",
-    missingGeminiKey: "Gemini anahtarı tanımlı değil.",
-    postRequestFailed: "AI'dan paylaşım alınamadı.",
-    backgroundRequestFailed: "AI modelinden görsel alınamadı.",
-    imageLoadFailed: "AI'dan gelen görsel yüklenemedi.",
-    imageUploadFailed: "Görsel yüklenemedi. PNG, JPG veya WEBP kullanın.",
-    logoUploadFailed: "Logo yüklenemedi. Şeffaf PNG kullanın.",
-    referenceAppliedStatus: "Referans yüklendi. Sonraki arka plan üretiminde kullanılacak.",
-    referenceClearedStatus: "Referans temizlendi. Sonraki arka plan onsuz üretilecek.",
-    logoAppliedStatus: "Logo yüklendi ve postere yerleştirilmeye hazır.",
-    logoClearedStatus: "Logo posterden kaldırıldı.",
-    configRequestFailed: "Sunucu yapılandırma isteğine yanıt vermedi.",
-    openViaServer: "Uygulamayı node server.js üzerinden açın.",
-    addGeminiToEnv: "GEMINI_API_KEY değerini .env dosyasına ekleyin.",
-    generatingScripturesOverlay: "Lütfen bekleyin, Kutsal Yazı bölümleri hazırlanıyor",
-    generatingPostOverlay: "Lütfen bekleyin, paylaşım metni oluşturuluyor",
-    generatingPosterOverlay: "Lütfen bekleyin, paylaşım görseli oluşturuluyor",
-  });
 
   const state = {
     language: "ru",
@@ -1747,7 +1379,6 @@
     posterSettingsTitle: document.getElementById("poster-settings-title"),
     posterSettingsSubtitle: document.getElementById("poster-settings-subtitle"),
     posterSettingsForm: document.getElementById("poster-settings-form"),
-    posterFormatLabel: document.getElementById("poster-format-label"),
     posterSubjectLabel: document.getElementById("poster-subject-label"),
     posterVisualStyleLabel: document.getElementById("poster-visual-style-label"),
     posterTypographyLabel: document.getElementById("poster-typography-label"),
@@ -1765,7 +1396,6 @@
     posterLogoPositionLabel: document.getElementById("poster-logo-position-label"),
     posterLogoSizeLabel: document.getElementById("poster-logo-size-label"),
     posterLogoOpacityLabel: document.getElementById("poster-logo-opacity-label"),
-    posterFormatSelect: document.getElementById("poster-format-select"),
     posterSubjectSelect: document.getElementById("poster-subject-select"),
     posterVisualStyleSelect: document.getElementById("poster-visual-style-select"),
     posterTypographySelect: document.getElementById("poster-typography-select"),
@@ -1789,7 +1419,6 @@
   init();
 
   function init() {
-    syncPosterCanvasSize();
     syncPosterSettingsForm();
     renderLanguageOptions();
     renderScriptureModeOptions();
@@ -1936,13 +1565,6 @@
         финансы: "presja finansowa",
         "цифровой шум": "cyfrowy szum",
         выгорание: "wypalenie",
-      },
-      tr: {
-        тревога: "kaygı",
-        одиночество: "yalnızlık",
-        финансы: "finansal baskı",
-        "цифровой шум": "dijital gürültü",
-        выгорание: "tükenmişlik",
       },
     };
 
@@ -2197,7 +1819,6 @@
   }
 
   async function enhanceScriptureSuggestions(topic) {
-    showGenerationOverlay(t("generatingScripturesOverlay"));
     try {
       const payload = await requestScriptureSuggestionsFromServer(topic);
       const verseMap = new Map(
@@ -2220,8 +1841,6 @@
       renderScriptureModal();
     } catch {
       // Keep the local suggestion order if AI suggestions are unavailable.
-    } finally {
-      hideGenerationOverlay();
     }
   }
 
@@ -2350,7 +1969,6 @@
     }
 
     state.postPending = true;
-    showGenerationOverlay(t("generatingPostOverlay"));
     updatePostButtons(true);
     elements.postOutput.classList.add("empty-state");
     elements.postOutput.textContent = t("postGenerating");
@@ -2377,7 +1995,6 @@
       state.postPending = false;
       updatePostButtons(false);
       updateSummaryLabels();
-      hideGenerationOverlay();
     }
 
     if (refreshPoster) {
@@ -2429,7 +2046,6 @@
       return;
     }
 
-    showGenerationOverlay(t("generatingPosterOverlay"));
     state.posterVariant += 1;
     state.backgroundPending = true;
     updatePosterButtons(true);
@@ -2474,8 +2090,6 @@
       renderPosterFallback();
       updatePosterButtons(false);
       setPosterStatus(buildFallbackStatus(error), "warning");
-    } finally {
-      hideGenerationOverlay();
     }
   }
 
@@ -2615,14 +2229,9 @@
         posterReadyPrefix: "Tło wygenerowano przez",
         posterReadySuffix: "Kliknij „Nowe tło”, aby otrzymać kolejny wariant w wybranym stylu.",
       },
-      tr: {
-        posterReadyPrefix: "Arka plan şu modelle oluşturuldu:",
-        posterReadySuffix: "Seçilen stilde yeni bir seçenek için “Yeni arka plan”a basın.",
-      },
     };
 
-    const languageSentences = sentences[state.language] || sentences.ru;
-    return languageSentences[key] || sentences.ru[key];
+    return sentences[state.language][key];
   }
 
   function getPosterTheme() {
@@ -2757,20 +2366,17 @@
       ru: "AI-фон сейчас не загрузился, поэтому я оставил локальный спокойный фон.",
       uk: "AI-фон зараз не завантажився, тому я залишив локальний спокійний фон.",
       pl: "Tło AI nie załadowało się, dlatego pozostawiłem lokalne spokojne tło.",
-      tr: "AI arka planı şu anda yüklenemedi, bu yüzden yerel sakin bir arka plan bırakıldı.",
     };
     const fallbackSuffix = {
       ru: "Попробуйте еще раз кнопкой «Новый фон».",
       uk: "Спробуйте ще раз кнопкою «Новий фон».",
       pl: "Spróbuj ponownie przyciskiem „Nowe tło”.",
-      tr: "“Yeni arka plan” düğmesiyle tekrar deneyin.",
     };
-    const language = fallbackPrefix[state.language] ? state.language : "ru";
 
     return (
-      fallbackPrefix[language] +
+      fallbackPrefix[state.language] +
       " " +
-      (error && error.message ? error.message : fallbackSuffix[language])
+      (error && error.message ? error.message : fallbackSuffix[state.language])
     );
   }
 
@@ -2959,7 +2565,7 @@
       return posterFontWarmupPromise;
     }
 
-    const sample = "Абвг Ґґ Єє Іі Її Łł Ąą Ęę Ńń Óó Śś Źź Żż Çç Ğğ İı Öö Şş Üü";
+    const sample = "Абвг Ґґ Єє Іі Її Łł Ąą Ęę Ńń Óó Śś Źź Żż";
     const fonts = [
       "700 64px 'Noto Sans'",
       "700 64px 'Noto Serif'",
@@ -2967,12 +2573,6 @@
       "700 64px 'Montserrat'",
       "700 64px 'PT Serif'",
       "700 64px 'Lora'",
-      "700 64px 'Merriweather'",
-      "700 64px 'Source Serif 4'",
-      "700 64px 'Playfair Display'",
-      "700 64px 'Cormorant Garamond'",
-      "500 64px 'Oswald'",
-      "700 64px 'Roboto Slab'",
     ];
 
     posterFontWarmupPromise = Promise.all(
@@ -3032,8 +2632,7 @@
         ru: "AI-фон недоступен из этого запуска. Откройте приложение через node server.js.",
         uk: "AI-фон недоступний з цього запуску. Відкрийте застосунок через node server.js.",
         pl: "Tło AI jest niedostępne w tym uruchomieniu. Otwórz aplikację przez node server.js.",
-        tr: "AI arka planı bu başlatmada kullanılamıyor. Uygulamayı node server.js ile açın.",
-      }[state.language] || "AI-фон недоступен из этого запуска. Откройте приложение через node server.js.";
+      }[state.language];
     }
 
     if (!config.imageEnabled) {
@@ -3041,16 +2640,14 @@
         ru: "Сервер запущен, но ключ Gemini не найден. Добавьте GEMINI_API_KEY в .env, чтобы включить Nano Banana.",
         uk: "Сервер запущено, але ключ Gemini не знайдено. Додайте GEMINI_API_KEY у .env, щоб увімкнути Nano Banana.",
         pl: "Serwer działa, ale nie znaleziono klucza Gemini. Dodaj GEMINI_API_KEY do .env, aby włączyć Nano Banana.",
-        tr: "Sunucu çalışıyor, ancak Gemini anahtarı bulunamadı. Nano Banana'yı açmak için .env dosyasına GEMINI_API_KEY ekleyin.",
-      }[state.language] || "Сервер запущен, но ключ Gemini не найден. Добавьте GEMINI_API_KEY в .env, чтобы включить Nano Banana.";
+      }[state.language];
     }
 
     return {
       ru: "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически.",
       uk: "AI-фон увімкнено: " + friendlyModelName(config.model) + ". Після вибору вірша фон генеруватиметься автоматично.",
       pl: "Tło AI jest włączone: " + friendlyModelName(config.model) + ". Po wybraniu wersetu tło będzie generowane automatycznie.",
-      tr: "AI arka planı açık: " + friendlyModelName(config.model) + ". Ayet seçildikten sonra arka plan otomatik oluşturulacak.",
-    }[state.language] || "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически.";
+    }[state.language];
   }
 
   function drawBackground(context, scene, palette) {
@@ -3334,15 +2931,14 @@
   }
 
   function drawWave(context, width, baseline, amplitude, frequency) {
-    const height = elements.canvas.height;
     context.beginPath();
     context.moveTo(0, baseline);
     for (let x = 0; x <= width; x += 10) {
       const y = baseline + Math.sin(x * frequency) * amplitude;
       context.lineTo(x, y);
     }
-    context.lineTo(width, height);
-    context.lineTo(0, height);
+    context.lineTo(width, 1350);
+    context.lineTo(0, 1350);
     context.closePath();
     context.fill();
   }
@@ -3467,39 +3063,6 @@
     modalElement.classList.add("hidden");
     modalElement.setAttribute("aria-hidden", "true");
     syncModalScrollLock();
-  }
-
-  function showGenerationOverlay(message) {
-    let overlay = document.getElementById("generation-overlay");
-
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.id = "generation-overlay";
-      overlay.className = "generation-overlay hidden";
-      overlay.setAttribute("aria-live", "polite");
-      overlay.setAttribute("aria-hidden", "true");
-      overlay.innerHTML =
-        '<div class="generation-overlay-badge" data-generation-message></div>';
-      document.body.appendChild(overlay);
-    }
-
-    const messageNode = overlay.querySelector("[data-generation-message]");
-    if (messageNode) {
-      messageNode.textContent = message;
-    }
-
-    overlay.classList.remove("hidden");
-    overlay.setAttribute("aria-hidden", "false");
-  }
-
-  function hideGenerationOverlay() {
-    const overlay = document.getElementById("generation-overlay");
-    if (!overlay) {
-      return;
-    }
-
-    overlay.classList.add("hidden");
-    overlay.setAttribute("aria-hidden", "true");
   }
 
   function syncModalScrollLock() {
@@ -3634,7 +3197,6 @@
     elements.posterSettingsEyebrow.textContent = t("posterSettingsEyebrow");
     elements.posterSettingsTitle.textContent = t("posterSettingsTitle");
     elements.posterSettingsSubtitle.textContent = t("posterSettingsSubtitle");
-    elements.posterFormatLabel.textContent = t("posterFormatLabel");
     elements.posterSubjectLabel.textContent = t("posterSubjectLabel");
     elements.posterVisualStyleLabel.textContent = t("posterVisualStyleLabel");
     elements.posterTypographyLabel.textContent = t("posterTypographyLabel");
@@ -3723,13 +3285,6 @@
 
   function populatePosterSettingSelects() {
     populateSelect(
-      elements.posterFormatSelect,
-      posterFormatOptions.map(function (option) {
-        return { value: option.id, label: getPosterFormatLabel(option.id) };
-      }),
-      state.posterSettings.format
-    );
-    populateSelect(
       elements.posterSubjectSelect,
       posterSubjectOptions.map(function (option) {
         return { value: option.id, label: getPosterSubjectLabel(option.id) };
@@ -3783,7 +3338,6 @@
   }
 
   function syncPosterSettingsForm() {
-    elements.posterFormatSelect.value = state.posterSettings.format;
     elements.posterSubjectSelect.value = state.posterSettings.subject;
     elements.posterVisualStyleSelect.value = state.posterSettings.visualStyle;
     elements.posterTypographySelect.value = state.posterSettings.typography;
@@ -4013,7 +3567,6 @@
     event.preventDefault();
 
     state.posterSettings = {
-      format: elements.posterFormatSelect.value,
       subject: elements.posterSubjectSelect.value,
       visualStyle: elements.posterVisualStyleSelect.value,
       typography: elements.posterTypographySelect.value,
@@ -4026,7 +3579,6 @@
     };
 
     syncPosterSettingsForm();
-    syncPosterCanvasSize();
     updateSummaryLabels();
     closeModal(elements.posterSettingsModal);
 
@@ -4047,7 +3599,6 @@
   function resetPosterSettings() {
     state.posterSettings = getDefaultPosterSettings();
     syncPosterSettingsForm();
-    syncPosterCanvasSize();
     updateSummaryLabels();
 
     if (state.selectedVerse) {
@@ -4082,10 +3633,6 @@
       getPosterSubjectLabel(state.posterSettings.subject) +
       " / " +
       getPosterVisualStyleLabel(state.posterSettings.visualStyle) +
-      "  •  " +
-      t("posterSummaryFormatPrefix") +
-      " " +
-      getPosterFormatLabel(state.posterSettings.format) +
       "  •  " +
       t("posterSummaryTypographyPrefix") +
       " " +
@@ -4122,7 +3669,6 @@
 
   function getDefaultPosterSettings() {
     return {
-      format: "portrait_4_5",
       subject: "landscape",
       visualStyle: "natural",
       typography: "noto_serif",
@@ -4142,24 +3688,6 @@
     return option ? option.nativeLabel : "Русский";
   }
 
-  function syncPosterCanvasSize() {
-    const format = getPosterFormat(state.posterSettings.format);
-    if (elements.canvas.width === format.width && elements.canvas.height === format.height) {
-      return;
-    }
-
-    elements.canvas.width = format.width;
-    elements.canvas.height = format.height;
-  }
-
-  function getPosterFormat(formatId) {
-    return (
-      posterFormatOptions.find(function (option) {
-        return option.id === formatId;
-      }) || posterFormatOptions[0]
-    );
-  }
-
   function getScriptureMatchModeLabel(modeId) {
     const labels = {
       ru: {
@@ -4174,14 +3702,9 @@
         explicit: t("scriptureModeExplicitLabel"),
         implicit: t("scriptureModeImplicitLabel"),
       },
-      tr: {
-        explicit: t("scriptureModeExplicitLabel"),
-        implicit: t("scriptureModeImplicitLabel"),
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[modeId] || languageLabels.explicit;
+    return labels[state.language][modeId] || labels[state.language].explicit;
   }
 
   function getScriptureMatchModeButtonLabel(modeId) {
@@ -4189,10 +3712,9 @@
       ru: "подбор",
       uk: "добір",
       pl: "dobór",
-      tr: "seçim",
     };
 
-    return getScriptureMatchModeLabel(modeId) + " " + (suffix[state.language] || suffix.ru);
+    return getScriptureMatchModeLabel(modeId) + " " + suffix[state.language];
   }
 
   function getScriptureMatchModeDescription(modeId) {
@@ -4239,21 +3761,9 @@
         meditative: "Medytacyjny",
         poetic: "Poetycki",
       },
-      tr: {
-        soft: "Yumuşak",
-        inspiring: "İlham verici",
-        conservative: "Muhafazakar",
-        modern: "Modern",
-        historical: "Tarihsel",
-        pastoral: "Pastoral",
-        evangelistic: "Müjdeleyici",
-        meditative: "Derin düşünceli",
-        poetic: "Şiirsel",
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[styleId] || labels.ru[styleId] || styleId;
+    return labels[state.language][styleId];
   }
 
   function getPostStyleDescription(styleId) {
@@ -4291,52 +3801,9 @@
         meditative: "Cichy, głęboki i modlitewnie skupiony styl.",
         poetic: "Obrazowy i piękny język bez utraty teologicznej precyzji.",
       },
-      tr: {
-        soft: "Sıcak, dikkatli ve pastoral bir ton.",
-        inspiring: "Umut veren ve eyleme çağıran anlatım.",
-        conservative: "Daha ölçülü ve doktrinsel olarak toparlanmış dil.",
-        modern: "Güncel, açık ve erişilebilir anlatım.",
-        historical: "Tarihsel Protestan vaaz geleneğini hatırlatan ton.",
-        pastoral: "Ruhsal eşlik hissi veren şefkatli pastoral anlatım.",
-        evangelistic: "İmana, tövbeye ve Tanrı'ya cevaba açık çağrı.",
-        meditative: "Sessiz, derin ve duaya odaklı anlatım.",
-        poetic: "Teolojik doğruluğu kaybetmeden imgeli ve güzel dil.",
-      },
     };
 
-    const languageDescriptions = descriptions[state.language] || descriptions.ru;
-    return languageDescriptions[styleId] || descriptions.ru[styleId] || "";
-  }
-
-  function getPosterFormatLabel(formatId) {
-    const labels = {
-      ru: {
-        portrait_4_5: "Instagram 4:5",
-        story_9_16: "Stories / Reels 9:16",
-        square_1_1: "Квадрат 1:1",
-        landscape_16_9: "Широкий 16:9",
-      },
-      uk: {
-        portrait_4_5: "Instagram 4:5",
-        story_9_16: "Stories / Reels 9:16",
-        square_1_1: "Квадрат 1:1",
-        landscape_16_9: "Широкий 16:9",
-      },
-      pl: {
-        portrait_4_5: "Instagram 4:5",
-        story_9_16: "Stories / Reels 9:16",
-        square_1_1: "Kwadrat 1:1",
-        landscape_16_9: "Szeroki 16:9",
-      },
-      tr: {
-        portrait_4_5: "Instagram 4:5",
-        story_9_16: "Stories / Reels 9:16",
-        square_1_1: "Kare 1:1",
-        landscape_16_9: "Geniş 16:9",
-      },
-    };
-
-    return (labels[state.language] && labels[state.language][formatId]) || labels.ru.portrait_4_5;
+    return descriptions[state.language][styleId];
   }
 
   function getPosterSubjectLabel(subjectId) {
@@ -4419,36 +3886,9 @@
         abstract: "Abstrakcja",
         texture: "Tekstura i światło",
       },
-      tr: {
-        landscape: "Manzara",
-        sea: "Deniz",
-        forest: "Orman",
-        mountains: "Dağlar",
-        meadow: "Çayır",
-        sunrise: "Gün doğumu",
-        sunset: "Gün batımı",
-        sky: "Gökyüzü ve bulutlar",
-        lake: "Göl",
-        river: "Nehir",
-        desert: "Çöl",
-        flowers: "Çiçekler ve bahçe",
-        rain: "Yağmur ve sis",
-        city: "Şehir",
-        old_town: "Eski şehir",
-        street: "Sokak",
-        architecture: "Mimari",
-        interior: "İç mekan",
-        people: "İnsanlar",
-        couple: "Çift",
-        journey: "Yol ve yürüyüş",
-        night: "Gece ışığı",
-        abstract: "Soyut",
-        texture: "Doku ve ışık",
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[subjectId] || labels.ru[subjectId] || subjectId;
+    return labels[state.language][subjectId];
   }
 
   function getPosterVisualStyleLabel(styleId) {
@@ -4495,24 +3935,9 @@
         luxury: "Luksusowy",
         analog: "Analogowy",
       },
-      tr: {
-        natural: "Doğal",
-        editorial: "Editoryal",
-        cinematic: "Sinematik",
-        minimalist: "Minimalist",
-        painterly: "Resimsel",
-        vintage_film: "Vintage film",
-        dreamy: "Düşsel",
-        modernism: "Modernizm",
-        postmodern: "Postmodern",
-        glitch: "Glitch",
-        luxury: "Premium",
-        analog: "Analog",
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[styleId] || labels.ru[styleId] || styleId;
+    return labels[state.language][styleId];
   }
 
   function getTypographyLabel(typographyId) {
@@ -4524,12 +3949,6 @@
         montserrat: "Montserrat",
         pt_serif: "PT Serif",
         lora: "Lora",
-        merriweather: "Merriweather",
-        source_serif: "Source Serif 4",
-        playfair: "Playfair Display",
-        cormorant: "Cormorant Garamond",
-        oswald: "Oswald",
-        roboto_slab: "Roboto Slab",
       },
       uk: {
         noto_sans: "Noto Sans",
@@ -4538,12 +3957,6 @@
         montserrat: "Montserrat",
         pt_serif: "PT Serif",
         lora: "Lora",
-        merriweather: "Merriweather",
-        source_serif: "Source Serif 4",
-        playfair: "Playfair Display",
-        cormorant: "Cormorant Garamond",
-        oswald: "Oswald",
-        roboto_slab: "Roboto Slab",
       },
       pl: {
         noto_sans: "Noto Sans",
@@ -4552,31 +3965,10 @@
         montserrat: "Montserrat",
         pt_serif: "PT Serif",
         lora: "Lora",
-        merriweather: "Merriweather",
-        source_serif: "Source Serif 4",
-        playfair: "Playfair Display",
-        cormorant: "Cormorant Garamond",
-        oswald: "Oswald",
-        roboto_slab: "Roboto Slab",
-      },
-      tr: {
-        noto_sans: "Noto Sans",
-        noto_serif: "Noto Serif",
-        manrope: "Manrope",
-        montserrat: "Montserrat",
-        pt_serif: "PT Serif",
-        lora: "Lora",
-        merriweather: "Merriweather",
-        source_serif: "Source Serif 4",
-        playfair: "Playfair Display",
-        cormorant: "Cormorant Garamond",
-        oswald: "Oswald",
-        roboto_slab: "Roboto Slab",
       },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[typographyId] || labels.ru[typographyId] || typographyId;
+    return labels[state.language][typographyId];
   }
 
   function getLayoutLabel(layoutId) {
@@ -4596,15 +3988,9 @@
         center: "Na środku",
         bottom: "Na dole",
       },
-      tr: {
-        top: "Üstte",
-        center: "Ortada",
-        bottom: "Altta",
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[layoutId] || labels.ru[layoutId] || layoutId;
+    return labels[state.language][layoutId];
   }
 
   function getLogoPositionLabel(positionId) {
@@ -4636,109 +4022,52 @@
         bottom_center: "Na dole na środku",
         bottom_right: "Na dole po prawej",
       },
-      tr: {
-        top_left: "Üst sol",
-        top_center: "Üst orta",
-        top_right: "Üst sağ",
-        middle_center: "Tam orta",
-        bottom_left: "Alt sol",
-        bottom_center: "Alt orta",
-        bottom_right: "Alt sağ",
-      },
     };
 
-    const languageLabels = labels[state.language] || labels.ru;
-    return languageLabels[positionId] || labels.ru[positionId] || positionId;
+    return labels[state.language][positionId];
   }
 
   function getTypographyPreset(typographyId) {
-    const scale = getPosterFontScale();
-    function fontSpec(weight, size, family, fallback) {
-      return weight + " " + Math.round(size * scale) + "px '" + family + "', " + fallback;
-    }
-
     const presets = {
       noto_sans: {
-        topicFont: fontSpec(600, 28, "Noto Sans", "sans-serif"),
-        verseFont: fontSpec(600, 60, "Noto Sans", "sans-serif"),
-        referenceFont: fontSpec(600, 54, "Noto Sans", "sans-serif"),
-        placeholderFont: fontSpec(600, 40, "Noto Sans", "sans-serif"),
+        topicFont: "600 28px 'Noto Sans', sans-serif",
+        verseFont: "600 60px 'Noto Sans', sans-serif",
+        referenceFont: "600 54px 'Noto Sans', sans-serif",
+        placeholderFont: "600 40px 'Noto Sans', sans-serif",
       },
       noto_serif: {
-        topicFont: fontSpec(600, 28, "Noto Serif", "serif"),
-        verseFont: fontSpec(600, 64, "Noto Serif", "serif"),
-        referenceFont: fontSpec(600, 56, "Noto Serif", "serif"),
-        placeholderFont: fontSpec(600, 41, "Noto Serif", "serif"),
+        topicFont: "600 28px 'Noto Serif', serif",
+        verseFont: "600 64px 'Noto Serif', serif",
+        referenceFont: "600 56px 'Noto Serif', serif",
+        placeholderFont: "600 41px 'Noto Serif', serif",
       },
       manrope: {
-        topicFont: fontSpec(700, 27, "Manrope", "sans-serif"),
-        verseFont: fontSpec(800, 60, "Manrope", "sans-serif"),
-        referenceFont: fontSpec(700, 54, "Manrope", "sans-serif"),
-        placeholderFont: fontSpec(700, 40, "Manrope", "sans-serif"),
+        topicFont: "700 27px 'Manrope', sans-serif",
+        verseFont: "800 60px 'Manrope', sans-serif",
+        referenceFont: "700 54px 'Manrope', sans-serif",
+        placeholderFont: "700 40px 'Manrope', sans-serif",
       },
       montserrat: {
-        topicFont: fontSpec(600, 27, "Montserrat", "sans-serif"),
-        verseFont: fontSpec(600, 60, "Montserrat", "sans-serif"),
-        referenceFont: fontSpec(600, 54, "Montserrat", "sans-serif"),
-        placeholderFont: fontSpec(600, 40, "Montserrat", "sans-serif"),
+        topicFont: "600 27px 'Montserrat', sans-serif",
+        verseFont: "600 60px 'Montserrat', sans-serif",
+        referenceFont: "600 54px 'Montserrat', sans-serif",
+        placeholderFont: "600 40px 'Montserrat', sans-serif",
       },
       pt_serif: {
-        topicFont: fontSpec(700, 28, "PT Serif", "serif"),
-        verseFont: fontSpec(700, 63, "PT Serif", "serif"),
-        referenceFont: fontSpec(700, 56, "PT Serif", "serif"),
-        placeholderFont: fontSpec(700, 41, "PT Serif", "serif"),
+        topicFont: "700 28px 'PT Serif', serif",
+        verseFont: "700 63px 'PT Serif', serif",
+        referenceFont: "700 56px 'PT Serif', serif",
+        placeholderFont: "700 41px 'PT Serif', serif",
       },
       lora: {
-        topicFont: fontSpec(700, 28, "Lora", "serif"),
-        verseFont: fontSpec(700, 62, "Lora", "serif"),
-        referenceFont: fontSpec(700, 56, "Lora", "serif"),
-        placeholderFont: fontSpec(700, 41, "Lora", "serif"),
-      },
-      merriweather: {
-        topicFont: fontSpec(700, 27, "Merriweather", "serif"),
-        verseFont: fontSpec(700, 58, "Merriweather", "serif"),
-        referenceFont: fontSpec(700, 52, "Merriweather", "serif"),
-        placeholderFont: fontSpec(700, 39, "Merriweather", "serif"),
-      },
-      source_serif: {
-        topicFont: fontSpec(700, 28, "Source Serif 4", "serif"),
-        verseFont: fontSpec(700, 64, "Source Serif 4", "serif"),
-        referenceFont: fontSpec(700, 56, "Source Serif 4", "serif"),
-        placeholderFont: fontSpec(700, 41, "Source Serif 4", "serif"),
-      },
-      playfair: {
-        topicFont: fontSpec(700, 29, "Playfair Display", "serif"),
-        verseFont: fontSpec(700, 66, "Playfair Display", "serif"),
-        referenceFont: fontSpec(700, 58, "Playfair Display", "serif"),
-        placeholderFont: fontSpec(700, 42, "Playfair Display", "serif"),
-      },
-      cormorant: {
-        topicFont: fontSpec(700, 31, "Cormorant Garamond", "serif"),
-        verseFont: fontSpec(700, 72, "Cormorant Garamond", "serif"),
-        referenceFont: fontSpec(700, 62, "Cormorant Garamond", "serif"),
-        placeholderFont: fontSpec(700, 45, "Cormorant Garamond", "serif"),
-      },
-      oswald: {
-        topicFont: fontSpec(500, 28, "Oswald", "sans-serif"),
-        verseFont: fontSpec(500, 62, "Oswald", "sans-serif"),
-        referenceFont: fontSpec(500, 54, "Oswald", "sans-serif"),
-        placeholderFont: fontSpec(500, 40, "Oswald", "sans-serif"),
-      },
-      roboto_slab: {
-        topicFont: fontSpec(700, 27, "Roboto Slab", "serif"),
-        verseFont: fontSpec(700, 60, "Roboto Slab", "serif"),
-        referenceFont: fontSpec(700, 54, "Roboto Slab", "serif"),
-        placeholderFont: fontSpec(700, 40, "Roboto Slab", "serif"),
+        topicFont: "700 28px 'Lora', serif",
+        verseFont: "700 62px 'Lora', serif",
+        referenceFont: "700 56px 'Lora', serif",
+        placeholderFont: "700 41px 'Lora', serif",
       },
     };
 
     return presets[typographyId] || presets.noto_serif;
-  }
-
-  function getPosterFontScale() {
-    const widthScale = elements.canvas.width / 1080;
-    const heightScale = elements.canvas.height / 1350;
-    return clamp(Math.min(widthScale, heightScale), 0.72, 1.12);
   }
 
   function getLayoutPreset(layoutId, isPlaceholder) {
@@ -4772,20 +4101,7 @@
       },
     };
 
-    const base = presets[layoutId] || presets.top;
-    const widthScale = elements.canvas.width / 1080;
-    const heightScale = elements.canvas.height / 1350;
-    const lineScale = getPosterFontScale();
-
-    return {
-      topicY: base.topicY * heightScale,
-      verseStartY: base.verseStartY * heightScale,
-      verseMaxWidth: Math.min(base.verseMaxWidth * widthScale, elements.canvas.width * 0.84),
-      verseLineHeight: base.verseLineHeight * lineScale,
-      referenceGap: base.referenceGap * heightScale,
-      topiclessOffset: base.topiclessOffset * heightScale,
-      contentAnchorY: base.contentAnchorY * heightScale,
-    };
+    return presets[layoutId] || presets.top;
   }
 
   function getFallbackLanguagePack() {
@@ -4829,22 +4145,9 @@
           "Odpowiedzią na taki tekst powinno być nie tylko poruszenie, ale też pokuta, wiara i posłuszeństwo.",
         ],
       },
-      tr: {
-        intros: [
-          "\"{topic}\" konusu özellikle Kutsal Yazı'nın ışığına ihtiyaç duyar.",
-          "\"{topic}\" hakkında konuşurken Tanrı'nın bakışını duymak önemlidir.",
-          '"{topic}" konusunda Kutsal Yazı bizi yüreğin durumuna geri götürür.',
-        ],
-        reminds: "hatırlatır",
-        closers: [
-          "Bu ayet yalnızca düşünceye değil, Tanrı'ya pratik itaat etmeye de götürsün.",
-          "Tanrı'nın Sözü kararlar, dua ve günlük sadakat için temel olsun.",
-          "Böyle bir metne cevap yalnızca ilham değil, tövbe, iman ve itaat olmalıdır.",
-        ],
-      },
     };
 
-    return pack[state.language] || pack.ru;
+    return pack[state.language];
   }
 
   function getFallbackStylePack() {
@@ -5127,101 +4430,7 @@
       },
     };
 
-    packs.tr = {
-      soft: {
-        theologyLines: [
-          "Müjde yüreğe nazikçe konuşur, ama gerçeği bulanıklaştırmaz.",
-          "Tanrı'nın lütfu insanı ezmez; onu tövbeye ve olgunluğa yumuşakça yöneltir.",
-        ],
-        callsToAction: [
-          "Cevabınız sessiz bir dua, Tanrı önünde dürüstlük ve bugün O'nun Sözü'ne itaat olsun.",
-          "Bir iman adımı atın: konuyu Tanrı'ya emanet edin, yüreğinizi Kutsal Yazı'yla sınayın ve paklığı seçin.",
-        ],
-      },
-      inspiring: {
-        theologyLines: [
-          "Kutsal Yazı yalnızca konuyu aydınlatmaz; Mesih'te cesur, kutsal ve umutlu yaşamaya çağırır.",
-          "Mesih'te yürek için yalnızca teşhis değil, yeni itaat için güç de vardır.",
-        ],
-        callsToAction: [
-          "Bu ayeti sadece ilham olarak bırakmayın: onu karara, duaya ve somut bir iman adımına dönüştürün.",
-          "Bu söz sizi eyleme kaldırsın: Rab'bi arayın, tavizi reddedin ve ışığın yolunda yürüyün.",
-        ],
-      },
-      conservative: {
-        theologyLines: [
-          "Protestan Kutsal Yazı okuması bizi her zaman Söz'ün yeterliliğine, lütfa ve imanın meyvesi olan kutsal yaşama döndürür.",
-          "Tanrı'nın gerçeği yüzeysel bir duygu değil, tövbe, iman ve Rab önünde düzenli bir yaşam ister.",
-        ],
-        callsToAction: [
-          "Motivasyonlarınızı Tanrı önünde sınayın, kararlarınızı Kutsal Yazı'ya tabi kılın ve rahatlığı değil Mesih'e sadakati arayın.",
-          "Bu metin Tanrı'yla tartışmak için değil, O'nun önünde alçalmak ve itaat yoluna girmek için bir çağrı olsun.",
-        ],
-      },
-      modern: {
-        theologyLines: [
-          "Müjde problemi süslemez; onu dürüstçe adlandırır ve Mesih'te iyileşme yolunu gösterir.",
-          "Kutsal Kitap doğrudan yüreğe konuşur: yürek kendini kandırmaya değil, Tanrı'nın Sözü altında yenilenmeye muhtaçtır.",
-        ],
-        callsToAction: [
-          "Kendinize dürüstçe sorun: Tanrı'ya sadakat için bugün atabileceğiniz sonraki adım nedir?",
-          "İçsel çalışmayı ertelemeyin: konuyu duaya taşıyın, kararları Kutsal Yazı'yla ölçün ve Mesih'i pratikte izleyin.",
-        ],
-      },
-      historical: {
-        theologyLines: [
-          "İyi bir tarihsel Protestan vaazında olduğu gibi burada da Kutsal Yazı'ya, vicdana ve Tanrı önünde kutsal yaşama dönüş çağrısı duyulur.",
-          "Kilisenin sadık kuşakları şunu öğretti: Tanrı'nın Sözü açığa çıkarır, teselli eder ve insanı Mesih'e yöneltir.",
-        ],
-        callsToAction: [
-          "Bu söz vicdanınızın yanından geçip gitmesin; sizi alçakgönüllülüğe, imana ve kutsallık için yenilenmiş gayrete götürsün.",
-          "Kutsal Yazı'nın yargısı ve tesellisi altında durun ki bundan sonraki yolu korku değil Rab'be itaat belirlesin.",
-        ],
-      },
-      pastoral: {
-        theologyLines: [
-          "Mesih yalnızca gerçeği açıklamaz; yaralı yüreği şefkatle iyileşmeye ve itaate götürür.",
-          "Bu metnin pastoral gücü lütfu, gerçeği ve vicdanla ilgilenmeyi birleştirmesindedir.",
-        ],
-        callsToAction: [
-          "Bu konuyu duaya getirin, Tanrı'nın önünde dürüstçe açın ve sonraki adım için O'ndan bilgelik isteyin.",
-          "Bu soruyla yalnız kalmayın: Tanrı'nın Sözü'nü, duayı ve olgun ruhsal rehberliği arayın.",
-        ],
-      },
-      evangelistic: {
-        theologyLines: [
-          "Müjde yalnızca davranışı düzeltmeye değil, önce yüreğin Mesih'e imanla dönmesine çağırır.",
-          "Tanrı'ya doğru cevabın merkezinde kendini geliştirme değil, tövbe ve İsa Mesih'e güven vardır.",
-        ],
-        callsToAction: [
-          "Rab bu ayetle sizi uyarıyorsa ertelemeyin: bugün tövbe ve imanla O'na dönün.",
-          "Bu metin sadece paylaşılacak bir düşünce değil, Tanrı'yla barışmaya ve Mesih'in ardından gitmeye kişisel çağrı olsun.",
-        ],
-      },
-      meditative: {
-        theologyLines: [
-          "Tanrı'nın Sözü çoğu zaman derinden ve sessizce işler; acelede fark edemediğimiz şeyi aydınlatır.",
-          "Lütuf bize durmayı, dinlemeyi ve Kutsal Yazı'nın yüreği yargılayıp iyileştirmesine izin vermeyi öğretir.",
-        ],
-        callsToAction: [
-          "Bu ayetin önünde yavaşlayın, onun üzerinde dua edin ve Rab'bin yüreğinizde neyi değiştirmek istediğini sorun.",
-          "Sessizliğe, duaya ve dürüst düşünmeye yer açın ki Tanrı'nın Sözü duygulardan daha derine kök salsın.",
-        ],
-      },
-      poetic: {
-        theologyLines: [
-          "Tanrı'nın gerçeği güzel duyulduğunda zayıflamaz; açık bir imge ve canlı sözle yüreğe daha derin işler.",
-          "Kutsal Yazı aynı anda yaralayabilir ve iyileştirebilir, uyarabilir ve Mesih'in ışığına götürebilir.",
-        ],
-        callsToAction: [
-          "Bu ayet sizin için yalnızca güzel bir cümle değil, tövbeye, imana ve yeni itaate giden yol olsun.",
-          "Bu düşünceyi yüreğinizde saklayın, üzerinde dua edin ve kararlarınızı Tanrı önünde dönüştürmesine izin verin.",
-        ],
-      },
-    };
-
-    const languagePacks = packs[state.language] || packs.ru;
-    return languagePacks[state.postStyle] || languagePacks.inspiring || packs.ru.inspiring;
+    return packs[state.language][state.postStyle] || packs[state.language].inspiring;
   }
 
   function getFallbackStoryHooks() {
@@ -5340,48 +4549,9 @@
           "Bywa, że nawet cichy temat rozbrzmiewa w człowieku jak cała noc bez świtu.",
         ],
       },
-      tr: {
-        soft: [
-          "Bazen yürek doğru kelimeleri bulmadan önce yorulur.",
-          "Dışarıdan sakin görünse de bazı konular insanın içinde uzun zamandır acır.",
-        ],
-        inspiring: [
-          "Tanrı'nın önünde sorulan dürüst bir soru bazen hayatın yönünü değiştirir.",
-          "En karışık konuda bile Tanrı'nın Sözü açıklık ve umut yakabilir.",
-        ],
-        conservative: [
-          "Sorun çoğu zaman yüreğin Kutsal Yazı'yı dikkatle dinlemeyi bırakmasıyla başlar.",
-          "Hayatın en önemli konuları acele değil, Tanrı Sözü'nün ayık yargısını ister.",
-        ],
-        modern: [
-          "Bazen her şey normal görünür, ama içeride Tanrı'yla dürüst bir konuşmaya çoktan ihtiyaç vardır.",
-          "Bazı konularda etraftaki gürültü o kadar yüksektir ki Kutsal Yazı olmadan gerçeği duymak zorlaşır.",
-        ],
-        historical: [
-          "Her çağda insan yüreği aynı korkular, arzular ve yanılgılarla mücadele etti.",
-          "Kilise her zaman şunu bildi: gerçek değişim dıştan değil, Tanrı önündeki yürekten başlar.",
-        ],
-        pastoral: [
-          "Bazen insan gülümser, ama içinde ağır bir soruyu tek başına taşır.",
-          "Çoğu zaman en çok acıyan yerde Tanrı'nın Sözü en derinden iyileştirmeye başlar.",
-        ],
-        evangelistic: [
-          "Bazen konu kişisel görünür, ama Rab onun aracılığıyla yüreği tövbeye çağırır.",
-          "Dıştaki sorunun ardında çoğu zaman daha büyük bir soru vardır: yürek Mesih'e dönmeye hazır mı?",
-        ],
-        meditative: [
-          "Bazı sorular acele bir cevapla iyileştirilemez.",
-          "Bazen ruhun durması gerekir ki Tanrı'nın Sözü kaygıdan daha derin duyulsun.",
-        ],
-        poetic: [
-          "Bazen yürek tek bir kısa sorunun içinde bütün bir fırtına taşır.",
-          "Kimi zaman insanın içindeki sessiz konu, şafaksız bir gece gibi yankılanır.",
-        ],
-      },
     };
 
-    const languageHooks = hooks[state.language] || hooks.ru;
-    return languageHooks[state.postStyle] || languageHooks.inspiring || hooks.ru.inspiring;
+    return hooks[state.language][state.postStyle] || hooks[state.language].inspiring;
   }
 
   function getFallbackEmojiPair() {
@@ -5409,7 +4579,6 @@
       ru: ["#вера", "#евангелие", "#библия", "#христианство", "#надежда"],
       uk: ["#віра", "#євангеліє", "#біблія", "#християнство", "#надія"],
       pl: ["#wiara", "#ewangelia", "#biblia", "#chrześcijaństwo", "#nadzieja"],
-      tr: ["#iman", "#müjde", "#kutsalkitap", "#hristiyanlık", "#umut"],
     };
 
     const normalized = uniqueItems(
@@ -5418,7 +4587,7 @@
           return "#" + normalizeHashtagLocal(tag);
         })
         .filter(Boolean)
-        .concat(baseSets[state.language] || baseSets.ru)
+        .concat(baseSets[state.language])
     );
 
     return normalized.slice(0, 5);
@@ -5436,7 +4605,7 @@
     return String(value || "")
       .toLowerCase()
       .replace(/ё/g, "е")
-      .replace(/[^\p{L}\p{N}]+/gu, "")
+      .replace(/[^a-zа-яąćęłńóśźżїієґ0-9]+/giu, "")
       .trim();
   }
 
@@ -5460,8 +4629,7 @@
       const maxLength = Math.max(
         (topicPack.ru || []).length,
         (topicPack.uk || []).length,
-        (topicPack.pl || []).length,
-        (topicPack.tr || []).length
+        (topicPack.pl || []).length
       );
 
       for (let index = 0; index < maxLength; index += 1) {
@@ -5469,7 +4637,6 @@
           ru: topicPack.ru[index] || "",
           uk: topicPack.uk[index] || "",
           pl: topicPack.pl[index] || "",
-          tr: topicPack.tr[index] || "",
         };
 
         Object.keys(entry).forEach(function (language) {
@@ -5534,234 +4701,11 @@
     return payload;
   }
 
-  function getTopicDeckForLanguage(language, cycle) {
-    const targetLanguage = language || state.language;
-    const baseTopics = getSampleTopicsForLanguage(targetLanguage);
-    const generatedTopics = buildGeneratedTopicCandidates(targetLanguage, cycle || 0);
-
-    return uniqueItems(baseTopics.concat(generatedTopics)).slice(0, TOPIC_DECK_SIZE);
-  }
-
-  function buildGeneratedTopicCandidates(language, cycle) {
-    const bank = getTopicGeneratorBank(language);
-    const anchors = getSampleTopicsForLanguage(language);
-    const template = bank.templates[Math.abs(cycle || 0) % bank.templates.length];
-    const offset = Math.abs(hashString(language + ":" + cycle)) % anchors.length;
-    const candidates = [];
-
-    bank.actions.forEach(function (action) {
-      for (let index = 0; index < anchors.length; index += 1) {
-        const anchor = anchors[(index + offset) % anchors.length];
-        candidates.push(
-          template
-            .replace("{anchor}", anchor)
-            .replace("{action}", action)
-            .replace(/\s+/g, " ")
-            .trim()
-        );
-      }
-    });
-
-    return candidates;
-  }
-
-  function getTopicGeneratorBank(language) {
-    const banks = {
-      ru: {
-        templates: [
-          "{anchor} — как {action} по Писанию",
-          "{anchor}: что значит {action} практически",
-          "как {action}, если тема звучит так: {anchor}",
-          "{anchor} — как Евангелие помогает {action}",
-          "{anchor} — почему важно {action}",
-        ],
-        actions: [
-          "сохранять мир сердца",
-          "доверять Богу",
-          "не строить ценность на чужом одобрении",
-          "говорить правду с любовью",
-          "проходить конфликт без ожесточения",
-          "беречь чистоту сердца",
-          "строить отношения без спешки",
-          "искать Божью волю",
-          "молиться, когда нет сил",
-          "сохранять сострадание",
-          "не выгорать в служении",
-          "принимать мудрые решения",
-          "не сравнивать себя с другими",
-          "прощать, когда больно",
-          "не терять надежду",
-          "укреплять брак",
-          "восстанавливать доверие",
-          "хранить здоровые границы",
-          "слушать ближнего внимательно",
-          "воспитывать детей с миром",
-          "жить верой в неопределенности",
-          "относиться к деньгам без страха",
-          "находить тишину для молитвы",
-          "не зависеть от лайков",
-          "проходить одиночество без ожесточения",
-          "выбирать верность Христу",
-          "не отвечать гневом",
-          "видеть ценность человека",
-          "строить дом на Божьем основании",
-          "служить без гордости",
-          "жить свято в цифровую эпоху",
-          "сохранять радость",
-          "учиться терпению",
-          "признавать свои ошибки",
-          "начинать снова после падения",
-        ],
-      },
-      uk: {
-        templates: [
-          "{anchor} — як {action} за Писанням",
-          "{anchor}: що означає {action} на практиці",
-          "як {action}, якщо тема звучить так: {anchor}",
-          "{anchor} — як Євангеліє допомагає {action}",
-          "{anchor} — чому важливо {action}",
-        ],
-        actions: [
-          "зберігати мир у серці",
-          "довіряти Богові",
-          "не будувати цінність на чужому схваленні",
-          "говорити правду з любов'ю",
-          "проходити конфлікт без озлоблення",
-          "берегти чистоту серця",
-          "будувати стосунки без поспіху",
-          "шукати Божу волю",
-          "молитися, коли немає сил",
-          "зберігати співчуття",
-          "не вигоряти у служінні",
-          "приймати мудрі рішення",
-          "не порівнювати себе з іншими",
-          "прощати, коли боляче",
-          "не втрачати надію",
-          "зміцнювати шлюб",
-          "відновлювати довіру",
-          "берегти здорові межі",
-          "уважно слухати ближнього",
-          "виховувати дітей у мирі",
-          "жити вірою в невизначеності",
-          "ставитися до грошей без страху",
-          "знаходити тишу для молитви",
-          "не залежати від лайків",
-          "проходити самотність без озлоблення",
-          "обирати вірність Христу",
-          "не відповідати гнівом",
-          "бачити цінність людини",
-          "будувати дім на Божій основі",
-          "служити без гордості",
-          "жити свято в цифрову епоху",
-          "зберігати радість",
-          "вчитися терпінню",
-          "визнавати свої помилки",
-          "починати знову після падіння",
-        ],
-      },
-      pl: {
-        templates: [
-          "{anchor} — jak {action} według Pisma",
-          "{anchor}: co znaczy {action} w praktyce",
-          "jak {action}, gdy temat brzmi: {anchor}",
-          "{anchor} — jak Ewangelia pomaga {action}",
-          "{anchor} — dlaczego warto {action}",
-        ],
-        actions: [
-          "zachować pokój serca",
-          "ufać Bogu",
-          "nie budować wartości na cudzej aprobacie",
-          "mówić prawdę z miłością",
-          "przechodzić konflikt bez zgorzknienia",
-          "strzec czystości serca",
-          "budować relacje bez pośpiechu",
-          "szukać Bożej woli",
-          "modlić się, kiedy brakuje sił",
-          "zachować współczucie",
-          "nie wypalić się w służbie",
-          "podejmować mądre decyzje",
-          "nie porównywać się z innymi",
-          "przebaczać, kiedy boli",
-          "nie tracić nadziei",
-          "umacniać małżeństwo",
-          "odbudowywać zaufanie",
-          "strzec zdrowych granic",
-          "uważnie słuchać bliźniego",
-          "wychowywać dzieci w pokoju",
-          "żyć wiarą w niepewności",
-          "podchodzić do pieniędzy bez strachu",
-          "znajdować ciszę do modlitwy",
-          "nie zależeć od lajków",
-          "przechodzić samotność bez zgorzknienia",
-          "wybierać wierność Chrystusowi",
-          "nie odpowiadać gniewem",
-          "widzieć wartość człowieka",
-          "budować dom na Bożym fundamencie",
-          "służyć bez pychy",
-          "żyć święcie w cyfrowej epoce",
-          "zachować radość",
-          "uczyć się cierpliwości",
-          "przyznawać się do błędów",
-          "zaczynać od nowa po upadku",
-        ],
-      },
-      tr: {
-        templates: [
-          "{anchor} — Kutsal Yazı'ya göre {action}",
-          "{anchor}: pratikte {action} ne demektir",
-          "konu şuyken {action}: {anchor}",
-          "{anchor} — Müjde {action} konusunda nasıl yardım eder",
-          "{anchor} — neden {action} önemlidir",
-        ],
-        actions: [
-          "yüreğin esenliğini korumak",
-          "Tanrı'ya güvenmek",
-          "değerini başkalarının onayına dayandırmamak",
-          "gerçeği sevgiyle söylemek",
-          "çatışmadan acılaşmadan geçmek",
-          "yüreğin paklığını korumak",
-          "ilişkileri acele etmeden kurmak",
-          "Tanrı'nın isteğini aramak",
-          "güç kalmadığında dua etmek",
-          "merhameti kaybetmemek",
-          "hizmette tükenmemek",
-          "bilge kararlar vermek",
-          "kendini başkalarıyla kıyaslamamak",
-          "acı verdiğinde bağışlamak",
-          "umudu kaybetmemek",
-          "evliliği güçlendirmek",
-          "güveni yeniden kurmak",
-          "sağlıklı sınırları korumak",
-          "yakınını dikkatle dinlemek",
-          "çocukları esenlikle yetiştirmek",
-          "belirsizlikte imanla yaşamak",
-          "paraya korkusuzca yaklaşmak",
-          "dua için sessizliği bulmak",
-          "beğenilere bağımlı olmamak",
-          "yalnızlıktan acılaşmadan geçmek",
-          "Mesih'e sadakati seçmek",
-          "öfkeyle cevap vermemek",
-          "insanın değerini görmek",
-          "evi Tanrı'nın temeli üzerine kurmak",
-          "gurursuzca hizmet etmek",
-          "dijital çağda kutsal yaşamak",
-          "sevinci korumak",
-          "sabrı öğrenmek",
-          "hatalarını kabul etmek",
-          "düşüşten sonra yeniden başlamak",
-        ],
-      },
-    };
-
-    return banks[language] || banks.ru;
-  }
-
   function getNextRandomTopic(language) {
     const targetLanguage = language || state.language;
-    let rotation = state.topicRotation[targetLanguage] || createEmptyTopicLanguageState();
-    let topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
+    const topics = getSampleTopicsForLanguage(targetLanguage);
+    const rotation = state.topicRotation[targetLanguage] || { queue: [], recent: [] };
     const recentLimit = 18;
-    let deckSize = topics.length;
 
     rotation.queue = (rotation.queue || []).filter(function (topic) {
       return topics.indexOf(topic) !== -1;
@@ -5770,14 +4714,7 @@
       return topics.indexOf(topic) !== -1;
     });
 
-    if (!rotation.queue.length || (rotation.used || 0) >= deckSize) {
-      if ((rotation.used || 0) >= deckSize) {
-        rotation.cycle = (rotation.cycle || 0) + 1;
-      }
-
-      rotation.used = 0;
-      topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
-      deckSize = topics.length;
+    if (!rotation.queue.length) {
       const recentSet = new Set(rotation.recent.slice(0, recentLimit));
       const freshPool = topics.filter(function (topic) {
         return !recentSet.has(topic);
@@ -5789,11 +4726,9 @@
     const currentTopic = elements.topicInput.value.trim();
 
     if (nextTopic && currentTopic && nextTopic === currentTopic && rotation.queue.length) {
-      rotation.queue.unshift(nextTopic);
       nextTopic = rotation.queue.pop();
     }
 
-    rotation.used = Math.min(deckSize, (rotation.used || 0) + 1);
     rotation.recent = [nextTopic]
       .concat(
         rotation.recent.filter(function (topic) {
@@ -5844,19 +4779,9 @@
 
   function createEmptyTopicRotationState() {
     return {
-      ru: createEmptyTopicLanguageState(),
-      uk: createEmptyTopicLanguageState(),
-      pl: createEmptyTopicLanguageState(),
-      tr: createEmptyTopicLanguageState(),
-    };
-  }
-
-  function createEmptyTopicLanguageState() {
-    return {
-      queue: [],
-      recent: [],
-      used: 0,
-      cycle: 0,
+      ru: { queue: [], recent: [] },
+      uk: { queue: [], recent: [] },
+      pl: { queue: [], recent: [] },
     };
   }
 
@@ -5869,8 +4794,6 @@
       normalized[language] = {
         queue: Array.isArray(entry.queue) ? entry.queue.filter(Boolean) : [],
         recent: Array.isArray(entry.recent) ? entry.recent.filter(Boolean) : [],
-        used: Number.isFinite(Number(entry.used)) ? Math.max(0, Number(entry.used)) : 0,
-        cycle: Number.isFinite(Number(entry.cycle)) ? Math.max(0, Number(entry.cycle)) : 0,
       };
     });
 
