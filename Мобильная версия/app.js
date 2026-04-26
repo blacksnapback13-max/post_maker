@@ -1209,7 +1209,7 @@
       posterSummaryLogoPrefix: "Логотип:",
       emojiEnabledLabel: "да",
       emojiDisabledLabel: "нет",
-      appTitle: "Пост мейкер",
+      appTitle: "Штунда 13 Postmaker",
       serverUnavailable: "Локальный сервер не отвечает.",
       missingGeminiKey: "Ключ Gemini не задан.",
       postRequestFailed: "Не удалось получить пост от AI.",
@@ -1345,7 +1345,7 @@
       posterSummaryLogoPrefix: "Логотип:",
       emojiEnabledLabel: "так",
       emojiDisabledLabel: "ні",
-      appTitle: "Пост мейкер",
+      appTitle: "Штунда 13 Postmaker",
       serverUnavailable: "Локальний сервер не відповідає.",
       missingGeminiKey: "Ключ Gemini не задано.",
       postRequestFailed: "Не вдалося отримати допис від AI.",
@@ -1481,7 +1481,7 @@
       posterSummaryLogoPrefix: "Logo:",
       emojiEnabledLabel: "tak",
       emojiDisabledLabel: "nie",
-      appTitle: "Post maker",
+      appTitle: "Штунда 13 Postmaker",
       serverUnavailable: "Lokalny serwer nie odpowiada.",
       missingGeminiKey: "Klucz Gemini nie został ustawiony.",
       postRequestFailed: "Nie udało się pobrać postu z AI.",
@@ -1619,7 +1619,7 @@
     posterSummaryLogoPrefix: "Logo:",
     emojiEnabledLabel: "evet",
     emojiDisabledLabel: "hayır",
-    appTitle: "Post Maker",
+    appTitle: "Штунда 13 Postmaker",
     serverUnavailable: "Yerel sunucu yanıt vermiyor.",
     missingGeminiKey: "Gemini anahtarı tanımlı değil.",
     postRequestFailed: "AI'dan paylaşım alınamadı.",
@@ -1670,6 +1670,9 @@
   };
 
   const elements = {
+    inputPanel: document.querySelector(".input-panel"),
+    textPanel: document.querySelector(".text-panel"),
+    posterPanel: document.querySelector(".poster-panel"),
     heroKicker: document.getElementById("hero-kicker"),
     heroTitle: document.getElementById("hero-title"),
     heroDescription: document.getElementById("hero-description"),
@@ -1709,6 +1712,7 @@
     posterOptionsSummary: document.getElementById("poster-options-summary"),
     newPosterBtn: document.getElementById("new-poster-btn"),
     posterStatus: document.getElementById("poster-status"),
+    canvasFrame: document.querySelector(".canvas-frame"),
     canvas: document.getElementById("poster-canvas"),
     scriptureModal: document.getElementById("scripture-modal"),
     scriptureModalEyebrow: document.getElementById("scripture-modal-eyebrow"),
@@ -1785,6 +1789,7 @@
 
   const ctx = elements.canvas.getContext("2d");
   let posterFontWarmupPromise = null;
+  let activeGenerationTarget = null;
 
   init();
 
@@ -2197,7 +2202,7 @@
   }
 
   async function enhanceScriptureSuggestions(topic) {
-    showGenerationOverlay(t("generatingScripturesOverlay"));
+    showGenerationOverlay(t("generatingScripturesOverlay"), getScriptureGenerationTarget());
     try {
       const payload = await requestScriptureSuggestionsFromServer(topic);
       const verseMap = new Map(
@@ -2350,7 +2355,7 @@
     }
 
     state.postPending = true;
-    showGenerationOverlay(t("generatingPostOverlay"));
+    showGenerationOverlay(t("generatingPostOverlay"), elements.textPanel);
     updatePostButtons(true);
     elements.postOutput.classList.add("empty-state");
     elements.postOutput.textContent = t("postGenerating");
@@ -2429,7 +2434,7 @@
       return;
     }
 
-    showGenerationOverlay(t("generatingPosterOverlay"));
+    showGenerationOverlay(t("generatingPosterOverlay"), elements.posterPanel);
     state.posterVariant += 1;
     state.backgroundPending = true;
     updatePosterButtons(true);
@@ -3469,19 +3474,46 @@
     syncModalScrollLock();
   }
 
-  function showGenerationOverlay(message) {
+  function getScriptureGenerationTarget() {
+    const dialog = elements.scriptureModal
+      ? elements.scriptureModal.querySelector(".modal-dialog")
+      : null;
+
+    if (
+      dialog instanceof HTMLElement &&
+      !elements.scriptureModal.classList.contains("hidden")
+    ) {
+      return dialog;
+    }
+
+    return elements.inputPanel;
+  }
+
+  function showGenerationOverlay(message, targetElement) {
+    const target = targetElement instanceof HTMLElement ? targetElement : document.body;
     let overlay = document.getElementById("generation-overlay");
 
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "generation-overlay";
       overlay.className = "generation-overlay hidden";
+      overlay.setAttribute("role", "status");
       overlay.setAttribute("aria-live", "polite");
       overlay.setAttribute("aria-hidden", "true");
       overlay.innerHTML =
         '<div class="generation-overlay-badge" data-generation-message></div>';
-      document.body.appendChild(overlay);
     }
+
+    if (activeGenerationTarget && activeGenerationTarget !== target) {
+      activeGenerationTarget.classList.remove("is-generating");
+    }
+
+    if (overlay.parentElement !== target) {
+      target.appendChild(overlay);
+    }
+
+    activeGenerationTarget = target;
+    activeGenerationTarget.classList.add("is-generating");
 
     const messageNode = overlay.querySelector("[data-generation-message]");
     if (messageNode) {
@@ -3500,6 +3532,11 @@
 
     overlay.classList.add("hidden");
     overlay.setAttribute("aria-hidden", "true");
+
+    if (activeGenerationTarget) {
+      activeGenerationTarget.classList.remove("is-generating");
+      activeGenerationTarget = null;
+    }
   }
 
   function syncModalScrollLock() {
@@ -4144,12 +4181,23 @@
 
   function syncPosterCanvasSize() {
     const format = getPosterFormat(state.posterSettings.format);
+    syncPosterAspectRatio(format);
+
     if (elements.canvas.width === format.width && elements.canvas.height === format.height) {
       return;
     }
 
     elements.canvas.width = format.width;
     elements.canvas.height = format.height;
+  }
+
+  function syncPosterAspectRatio(format) {
+    const aspectRatio = format.width + " / " + format.height;
+    elements.canvas.style.aspectRatio = aspectRatio;
+
+    if (elements.canvasFrame) {
+      elements.canvasFrame.style.setProperty("--poster-aspect-ratio", aspectRatio);
+    }
   }
 
   function getPosterFormat(formatId) {

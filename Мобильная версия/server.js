@@ -437,6 +437,10 @@ function createServer() {
       }
 
       if (request.method === "GET") {
+        if (requestUrl.pathname === "/favicon.ico") {
+          return sendStaticAsset("/assets/shtunda13-postmaker-icon.png", response);
+        }
+
         return sendStaticAsset(requestUrl.pathname, response);
       }
 

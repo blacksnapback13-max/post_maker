@@ -209,6 +209,8 @@ textarea {
 .panel {
   border-radius: var(--radius-xl);
   padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .panel-head {
@@ -388,7 +390,9 @@ textarea:focus {
 }
 
 .canvas-frame {
+  aspect-ratio: var(--poster-aspect-ratio, 4 / 5);
   border-radius: 30px;
+  display: grid;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(247, 240, 228, 0.8));
   border: 1px solid var(--outline);
@@ -396,7 +400,7 @@ textarea:focus {
 
 #poster-canvas {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
 }
 
@@ -424,18 +428,25 @@ textarea:focus {
 }
 
 .generation-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 120;
+  z-index: 20;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(26, 38, 33, 0.48);
-  backdrop-filter: blur(8px);
+  padding: 18px;
+  border-radius: inherit;
+  background: rgba(26, 38, 33, 0.34);
+  backdrop-filter: blur(6px);
+}
+
+body > .generation-overlay {
+  position: fixed;
+  z-index: 120;
+  border-radius: 0;
 }
 
 .generation-overlay-badge {
-  width: min(420px, calc(100vw - 48px));
+  width: min(360px, calc(100% - 32px));
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.68);
   background: rgba(255, 252, 246, 0.96);

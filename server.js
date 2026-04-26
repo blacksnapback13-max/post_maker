@@ -464,6 +464,10 @@ function handleGetRequest(request, requestUrl, response) {
     return redirectToView(response, getPreferredView(request), "/", requestUrl.searchParams);
   }
 
+  if (requestUrl.pathname === "/favicon.ico") {
+    return sendStaticAssetFromRoot("/assets/shtunda13-postmaker-icon.png", response, APP_ROOT);
+  }
+
   if (requestUrl.pathname === DESKTOP_BASE_PATH) {
     return redirectToView(response, DESKTOP_VIEW, "/", requestUrl.searchParams);
   }
