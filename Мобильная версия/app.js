@@ -1225,6 +1225,7 @@
       openViaServer: "Откройте приложение через node server.js.",
       addGeminiToEnv: "Добавьте GEMINI_API_KEY в файл .env.",
       generatingScripturesOverlay: "Подождите, идет подбор мест Писания",
+      scriptureAiFocusFallback: "Этот текст раскрывает тему в свете Божьей истины и послушания Христу.",
       generatingPostOverlay: "Подождите, идет генерация поста",
       generatingPosterOverlay: "Подождите, идет генерация картинки",
     },
@@ -1361,6 +1362,7 @@
       openViaServer: "Відкрийте застосунок через node server.js.",
       addGeminiToEnv: "Додайте GEMINI_API_KEY у файл .env.",
       generatingScripturesOverlay: "Зачекайте, триває добір місць Писання",
+      scriptureAiFocusFallback: "Цей текст розкриває тему у світлі Божої істини й послуху Христу.",
       generatingPostOverlay: "Зачекайте, триває генерація допису",
       generatingPosterOverlay: "Зачекайте, триває генерація картинки",
     },
@@ -1497,6 +1499,7 @@
       openViaServer: "Otwórz aplikację przez node server.js.",
       addGeminiToEnv: "Dodaj GEMINI_API_KEY do pliku .env.",
       generatingScripturesOverlay: "Poczekaj, trwa dobieranie fragmentów Pisma",
+      scriptureAiFocusFallback: "Ten tekst ukazuje temat w świetle Bożej prawdy i posłuszeństwa Chrystusowi.",
       generatingPostOverlay: "Poczekaj, trwa generowanie posta",
       generatingPosterOverlay: "Poczekaj, trwa generowanie grafiki",
     },
@@ -1635,6 +1638,7 @@
     openViaServer: "Uygulamayı node server.js üzerinden açın.",
     addGeminiToEnv: "GEMINI_API_KEY değerini .env dosyasına ekleyin.",
     generatingScripturesOverlay: "Lütfen bekleyin, Kutsal Yazı bölümleri hazırlanıyor",
+    scriptureAiFocusFallback: "Bu metin konuyu Tanrı'nın gerçeği ve Mesih'e itaat ışığında açar.",
     generatingPostOverlay: "Lütfen bekleyin, paylaşım metni oluşturuluyor",
     generatingPosterOverlay: "Lütfen bekleyin, paylaşım görseli oluşturuluyor",
   });
@@ -1878,10 +1882,8 @@
     state.posterVariant = 0;
     state.selectedVerse = null;
     state.generatedPost = "";
+    state.suggestions = [];
     state.suggestionReasons = {};
-    const localSuggestions = getSuggestedScripturesLocal(topic);
-    state.suggestions = localSuggestions.verses;
-    state.suggestionReasons = localSuggestions.reasons;
 
     resetGeneratedOutput(topic);
     renderScriptureModal();
@@ -2026,10 +2028,6 @@
         score += explicitMode ? 1.25 : 4;
       }
     });
-
-    if (verse.tags.includes("отношения") || verse.tags.includes("брак")) {
-      score += explicitMode ? 0.9 : 0.5;
-    }
 
     if (matchedCategories.length === 0 && (verse.tags.includes("мудрость") || verse.tags.includes("любовь"))) {
       deepHits += 1;
@@ -2205,26 +2203,20 @@
     showGenerationOverlay(t("generatingScripturesOverlay"), getScriptureGenerationTarget());
     try {
       const payload = await requestScriptureSuggestionsFromServer(topic);
-      const verseMap = new Map(
-        scriptureLibrary.map(function (verse) {
-          return [verse.id, verse];
-        })
-      );
-      const aiReasons = payload.reasons || {};
-      const localSuggestions = getSuggestedScripturesLocal(topic);
-      const combinedIds = uniqueItems(payload.ids.concat(localSuggestions.verses.map(function (verse) {
-        return verse.id;
-      }))).slice(0, 8);
+      const aiSuggestions = normalizeRemoteScriptureSuggestions(payload.suggestions, payload.reasons);
 
-      state.suggestions = combinedIds
-        .map(function (id) {
-          return verseMap.get(id);
-        })
-        .filter(Boolean);
-      state.suggestionReasons = Object.assign({}, localSuggestions.reasons, aiReasons);
+      if (!aiSuggestions.length) {
+        throw new Error("empty-ai-suggestions");
+      }
+
+      state.suggestions = aiSuggestions.slice(0, 8);
+      state.suggestionReasons = payload.reasons || {};
       renderScriptureModal();
     } catch {
-      // Keep the local suggestion order if AI suggestions are unavailable.
+      const localSuggestions = getSuggestedScripturesLocal(topic);
+      state.suggestions = localSuggestions.verses;
+      state.suggestionReasons = localSuggestions.reasons;
+      renderScriptureModal();
     } finally {
       hideGenerationOverlay();
     }
@@ -2246,7 +2238,6 @@
         topic: topic,
         language: state.language,
         matchMode: state.scriptureMatchMode,
-        library: buildLocalizedScriptureCatalog(),
       }),
     });
 
@@ -2256,9 +2247,46 @@
     }
 
     return {
+      suggestions: Array.isArray(payload.suggestions) ? payload.suggestions : [],
       ids: Array.isArray(payload.ids) ? payload.ids : [],
       reasons: payload.reasons && typeof payload.reasons === "object" ? payload.reasons : {},
     };
+  }
+
+  function normalizeRemoteScriptureSuggestions(suggestions, reasons) {
+    const seen = new Set();
+    const rationaleMap = reasons && typeof reasons === "object" ? reasons : {};
+
+    return (Array.isArray(suggestions) ? suggestions : [])
+      .map(function (entry, index) {
+        const reference = cleanDisplayText(entry && entry.reference);
+        const text = cleanDisplayText(entry && entry.text);
+
+        if (!reference || !text) {
+          return null;
+        }
+
+        const id = cleanDisplayText(entry && entry.id) || "ai-scripture-" + String(index + 1);
+        const seenKey = normalize(reference);
+        if (seen.has(seenKey)) {
+          return null;
+        }
+        seen.add(seenKey);
+
+        return {
+          id: id,
+          reference: reference,
+          text: text,
+          tags: Array.isArray(entry.tags)
+            ? entry.tags.map(cleanDisplayText).filter(Boolean).slice(0, 5)
+            : [],
+          focus:
+            cleanDisplayText(entry.focus) ||
+            cleanDisplayText(rationaleMap[id]) ||
+            t("scriptureAiFocusFallback"),
+        };
+      })
+      .filter(Boolean);
   }
 
   function buildLocalizedScriptureCatalog() {
@@ -3999,9 +4027,8 @@
       renderSelectedVerse();
       void generatePostContent({ refreshPoster: true, forceRegenerate: true });
     } else if (state.topic) {
-      const localSuggestions = getSuggestedScripturesLocal(state.topic);
-      state.suggestions = localSuggestions.verses;
-      state.suggestionReasons = localSuggestions.reasons;
+      state.suggestions = [];
+      state.suggestionReasons = {};
       renderScriptureModal();
       resetGeneratedOutput(state.topic);
       void enhanceScriptureSuggestions(state.topic);
@@ -4017,9 +4044,8 @@
     closeModal(elements.scriptureModeModal);
 
     if (state.topic && !state.selectedVerse) {
-      const localSuggestions = getSuggestedScripturesLocal(state.topic);
-      state.suggestions = localSuggestions.verses;
-      state.suggestionReasons = localSuggestions.reasons;
+      state.suggestions = [];
+      state.suggestionReasons = {};
       renderScriptureModal();
       void enhanceScriptureSuggestions(state.topic);
     }
@@ -5932,6 +5958,10 @@
       .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  function cleanDisplayText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
   }
 
   function tokenize(value) {

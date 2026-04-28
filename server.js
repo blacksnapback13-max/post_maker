@@ -383,13 +383,14 @@ function createServer() {
         }
 
         const prompt = buildScriptureSuggestionPrompt(body);
-        const generated = await requestGeminiJson(prompt, getTextModel());
-        const normalized = normalizeSuggestedScriptures(generated, body.library);
+        const generated = await requestGeminiJson(prompt, getTextModel(), { temperature: 0.65 });
+        const normalized = normalizeSuggestedScriptures(generated, body);
 
         return sendJson(response, 200, {
           provider: "gemini",
           model: getTextModel(),
           prompt: prompt,
+          suggestions: normalized.suggestions,
           ids: normalized.ids,
           reasons: normalized.reasons,
         });
@@ -823,31 +824,30 @@ function buildScriptureSuggestionPrompt(input) {
   const topic = cleanText(input.topic);
   const language = resolveLanguage(input.language);
   const matchMode = String(input.matchMode || "explicit") === "implicit" ? "implicit" : "explicit";
-  const library = Array.isArray(input.library) ? input.library : [];
-  const compactLibrary = library.map(function (entry) {
-    return {
-      id: cleanText(entry.id),
-      reference: cleanText(entry.reference),
-      text: cleanText(entry.text),
-      tags: Array.isArray(entry.tags) ? entry.tags.map(cleanText).filter(Boolean) : [],
-    };
-  });
 
   return [
-    "You are a Protestant Scripture-topic matching editor.",
+    "You are a Protestant biblical research editor for a Christian social post app.",
     "Write only in " + languageMeta[language].name + ".",
-    "Your task is to select up to 8 Bible passages from the provided catalog for a Christian social post topic.",
+    "Your task is to research the whole Protestant Bible canon of 66 books and suggest up to 8 Bible passages for the exact user topic.",
+    "Do not use a fixed favorite list. Do not default to marriage, relationships, covenant, dating, family, or gender themes unless the topic explicitly asks for them.",
+    "Stay inside the semantic boundaries of the topic. Do not broaden the topic into a different pastoral issue.",
     matchMode === "explicit"
       ? "Selection mode is explicit: prioritize verses that directly and clearly speak about the stated topic."
       : "Selection mode is implicit: prioritize verses that illuminate the deeper root issue, motives, wisdom, heart condition, repentance, covenant, hope, or discipleship beneath the topic.",
-    "Do not force weak matches. Prefer theological faithfulness over cleverness.",
-    "Reasons must be concise, natural, and user-facing, explaining why each verse fits this topic.",
+    "Use Protestant theological judgment: Scripture interprets Scripture, gospel-centered application, sin and grace, repentance, faith, sanctification, obedience, hope in Christ.",
+    "Do not force weak matches. Prefer theological accuracy, canonical context, and clear relevance over cleverness.",
+    "Use diverse Bible books when appropriate. Avoid repeating the same passages across unrelated topics.",
+    "Each suggestion must include a canonical reference, the verse text in the target language, concise tags, a theological focus, and a user-facing rationale.",
+    "If exact translation wording is uncertain, use a faithful traditional-style rendering rather than inventing a modern paraphrase.",
+    "Do not fabricate references. Do not merge unrelated passages into one quote.",
     'Topic: "' + topic + '".',
-    "Verse catalog: " + JSON.stringify(compactLibrary) + ".",
     "Return strict JSON only with one key: suggestions.",
-    "suggestions must be an array of objects with keys: id, rationale.",
-    "Use only ids that exist in the catalog.",
-    "rationale must be 6 to 18 words long, in the target language, and should not quote the verse text verbatim.",
+    "suggestions must be an array of objects with keys: reference, text, tags, focus, rationale.",
+    "reference must include book, chapter, and verse range.",
+    "text must be the verse text, 1 to 4 verses maximum.",
+    "tags must contain 3 to 5 short topic tags in the target language.",
+    "focus must explain the theological angle in one concise sentence.",
+    "rationale must be 8 to 22 words long and explain why this passage fits this exact topic.",
   ].join(" ");
 }
 
@@ -870,45 +870,106 @@ function buildTopicTranslationPrompt(input) {
   ].join(" ");
 }
 
-function normalizeSuggestedScriptures(generated, library) {
-  const libraryEntries = Array.isArray(library) ? library : [];
-  const validIds = new Set(
-    libraryEntries
-      .map(function (entry) {
-        return cleanText(entry.id);
-      })
-      .filter(Boolean)
-  );
+function normalizeSuggestedScriptures(generated, input) {
+  const language = resolveLanguage(input && input.language);
   const suggestions = Array.isArray(generated && generated.suggestions) ? generated.suggestions : [];
+  const normalizedSuggestions = [];
   const ids = [];
   const reasons = {};
   const seen = new Set();
 
-  suggestions.forEach(function (entry) {
-    const candidateId =
-      typeof entry === "string"
-        ? cleanText(entry)
-        : cleanText(entry && entry.id);
-    const rationale =
-      typeof entry === "string"
-        ? ""
-        : cleanText(entry && entry.rationale);
-
-    if (!candidateId || !validIds.has(candidateId) || seen.has(candidateId)) {
+  suggestions.forEach(function (entry, index) {
+    if (!entry || typeof entry !== "object") {
       return;
     }
 
-    seen.add(candidateId);
-    ids.push(candidateId);
-    if (rationale) {
-      reasons[candidateId] = shortenText(rationale, 140);
+    const reference = shortenText(
+      cleanText(entry.reference || entry.ref || entry.passage || entry.citation),
+      90
+    );
+    const text = shortenText(
+      cleanText(entry.text || entry.verseText || entry.quote || entry.scripture),
+      520
+    );
+
+    if (!reference || !text) {
+      return;
     }
+
+    const seenKey = normalize(reference);
+    if (seen.has(seenKey)) {
+      return;
+    }
+
+    const id = buildGeneratedScriptureId(entry.id, reference, index);
+    const tags = Array.isArray(entry.tags)
+      ? entry.tags.map(cleanText).filter(Boolean).slice(0, 5)
+      : [];
+    const rationale = cleanText(entry.rationale || entry.reason || entry.why);
+    const focus = shortenText(
+      cleanText(entry.focus || entry.theologicalFocus || entry.application) ||
+        rationale ||
+        getScriptureFallbackFocus(language),
+      280
+    );
+
+    seen.add(seenKey);
+    ids.push(id);
+    if (rationale) {
+      reasons[id] = shortenText(rationale, 160);
+    }
+
+    normalizedSuggestions.push({
+      id: id,
+      reference: reference,
+      text: text,
+      tags: tags.length ? tags : getScriptureFallbackTags(language),
+      focus: focus,
+    });
   });
 
   return {
+    suggestions: normalizedSuggestions.slice(0, 8),
     ids: ids.slice(0, 8),
     reasons: reasons,
   };
+}
+
+function buildGeneratedScriptureId(rawId, reference, index) {
+  const explicitId = cleanText(rawId)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
+  const referenceSlug = cleanText(reference)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
+  const base = explicitId || referenceSlug || "scripture-" + String(index + 1);
+  const suffix = Math.abs(hashString(reference + ":" + index)).toString(36);
+
+  return "ai-" + base.slice(0, 48) + "-" + suffix;
+}
+
+function getScriptureFallbackFocus(language) {
+  const labels = {
+    ru: "Этот текст помогает раскрыть тему в свете Божьей истины, покаяния, веры и послушания Христу.",
+    uk: "Цей текст допомагає розкрити тему у світлі Божої істини, покаяння, віри й послуху Христу.",
+    pl: "Ten tekst pomaga ukazać temat w świetle Bożej prawdy, pokuty, wiary i posłuszeństwa Chrystusowi.",
+    tr: "Bu metin konuyu Tanrı'nın gerçeği, tövbe, iman ve Mesih'e itaat ışığında açar.",
+  };
+
+  return labels[language] || labels.ru;
+}
+
+function getScriptureFallbackTags(language) {
+  const labels = {
+    ru: ["вера", "покаяние", "послушание"],
+    uk: ["віра", "покаяння", "послух"],
+    pl: ["wiara", "pokuta", "posłuszeństwo"],
+    tr: ["iman", "tövbe", "itaat"],
+  };
+
+  return labels[language] || labels.ru;
 }
 
 function normalizeTranslatedTopic(generated, input) {
