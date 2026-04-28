@@ -833,28 +833,84 @@
 
   const sampleTopicsByLanguage = {
     ru: [
-      "связь между женщиной и мужчиной до брака",
-      "как хранить чистоту в отношениях",
+      "как доверять Богу, когда будущее кажется неопределенным",
+      "как сохранять мир сердца среди тревожных новостей",
+      "что делать, когда молитва кажется сухой и трудной",
+      "как не строить свою ценность на чужом одобрении",
+      "как проходить усталость без внутреннего ожесточения",
+      "как говорить правду с любовью, а не с раздражением",
+      "как принимать решения, когда не хватает ясности",
+      "как не терять сострадание, когда сердце устало",
+      "как относиться к деньгам без страха и поклонения им",
+      "как хранить чистоту сердца в цифровую эпоху",
+      "как прощать, когда боль не ушла сразу",
+      "как жить надеждой, когда обстоятельства давят",
+      "как сохранять верность Христу на работе",
+      "как находить тишину для молитвы в перегруженном дне",
+      "как пройти одиночество без самоизоляции",
+      "как укреплять семью без взаимных обвинений",
       "как строить брак на Божьем основании",
-      "когда в отношениях много обид и недопонимания",
-      "как понять, что человек подходит для брака",
-      "любовь как служение, а не только чувства",
+      "как служить людям без гордости и выгорания",
     ],
     uk: [
-      "стосунки між жінкою і чоловіком до шлюбу",
-      "як берегти чистоту у стосунках",
+      "як довіряти Богові, коли майбутнє здається невизначеним",
+      "як зберігати мир у серці серед тривожних новин",
+      "що робити, коли молитва здається сухою і важкою",
+      "як не будувати власну цінність на чужому схваленні",
+      "як проходити втому без внутрішнього озлоблення",
+      "як говорити правду з любов'ю, а не з роздратуванням",
+      "як приймати рішення, коли бракує ясності",
+      "як не втратити співчуття, коли серце втомилося",
+      "як ставитися до грошей без страху і поклоніння їм",
+      "як берегти чистоту серця у цифрову епоху",
+      "як прощати, коли біль не минув одразу",
+      "як жити надією, коли обставини тиснуть",
+      "як зберігати вірність Христу на роботі",
+      "як знаходити тишу для молитви в перевантаженому дні",
+      "як пройти самотність без самоізоляції",
+      "як зміцнювати сім'ю без взаємних звинувачень",
       "як будувати шлюб на Божій основі",
-      "коли у стосунках багато образ і непорозуміння",
-      "як зрозуміти, що людина готова до шлюбу",
-      "любов як служіння, а не лише почуття",
+      "як служити людям без гордості й вигорання",
     ],
     pl: [
-      "relacja między kobietą a mężczyzną przed ślubem",
-      "jak zachować czystość w relacji",
+      "jak ufać Bogu, gdy przyszłość wydaje się niepewna",
+      "jak zachować pokój serca pośród niepokojących wiadomości",
+      "co robić, gdy modlitwa wydaje się sucha i trudna",
+      "jak nie budować swojej wartości na cudzej aprobacie",
+      "jak przechodzić zmęczenie bez wewnętrznej goryczy",
+      "jak mówić prawdę z miłością, a nie z irytacją",
+      "jak podejmować decyzje, gdy brakuje jasności",
+      "jak nie stracić współczucia, gdy serce jest zmęczone",
+      "jak podchodzić do pieniędzy bez strachu i bałwochwalstwa",
+      "jak strzec czystości serca w cyfrowej epoce",
+      "jak przebaczać, gdy ból nie odszedł od razu",
+      "jak żyć nadzieją, gdy okoliczności przygniatają",
+      "jak zachować wierność Chrystusowi w pracy",
+      "jak znajdować ciszę do modlitwy w przeciążonym dniu",
+      "jak przejść przez samotność bez samoizolacji",
+      "jak wzmacniać rodzinę bez wzajemnego oskarżania",
       "jak budować małżeństwo na Bożym fundamencie",
-      "co robić, gdy w relacji jest dużo zranień i nieporozumień",
-      "jak rozpoznać, czy ta osoba nadaje się do małżeństwa",
-      "miłość jako służba, a nie tylko emocje",
+      "jak służyć ludziom bez pychy i wypalenia",
+    ],
+    tr: [
+      "gelecek belirsiz göründüğünde Tanrı'ya nasıl güvenilir",
+      "kaygı verici haberler arasında yüreğin esenliği nasıl korunur",
+      "dua kuru ve zor geldiğinde ne yapmalı",
+      "kendi değerini başkalarının onayına dayandırmamak",
+      "yorgunluktan içsel acılığa düşmeden nasıl geçilir",
+      "gerçeği sinirle değil sevgiyle nasıl söylemeli",
+      "açıklık eksikken bilge kararlar nasıl verilir",
+      "yürek yorulduğunda merhamet nasıl kaybedilmez",
+      "paraya korku ve putlaştırma olmadan nasıl yaklaşılır",
+      "dijital çağda yüreğin paklığı nasıl korunur",
+      "acı hemen geçmediğinde nasıl bağışlanır",
+      "şartlar ağır bastığında umutla nasıl yaşanır",
+      "işte Mesih'e sadakat nasıl korunur",
+      "aşırı yüklü bir günde dua için sessizlik nasıl bulunur",
+      "yalnızlıktan kendini izole etmeden nasıl geçilir",
+      "aile karşılıklı suçlama olmadan nasıl güçlendirilir",
+      "evlilik Tanrı'nın temeli üzerine nasıl kurulur",
+      "insanlara gurur ve tükenmişlik olmadan nasıl hizmet edilir",
     ],
   };
 
@@ -945,15 +1001,6 @@
     ],
   };
 
-  sampleTopicsByLanguage.tr = [
-    "evlilikten önce kadın ve erkek arasındaki ilişki",
-    "ilişkilerde paklığı nasıl korumalı",
-    "evliliği Tanrı'nın temeli üzerine nasıl kurmalı",
-    "ilişkide çok kırgınlık ve yanlış anlaşılma olduğunda ne yapmalı",
-    "bir kişinin evliliğe hazır olup olmadığını nasıl anlamalı",
-    "sevgi yalnızca duygu değil, hizmet olarak nasıl yaşanır",
-  ];
-
   currentConcernTopicsByLanguage.tr = [
     "haberler ve gelecek kaygılandırırken yüreğin esenliğini nasıl korumalı",
     "Kutsal Kitap bırakmayan stres hakkında ne söyler",
@@ -983,8 +1030,82 @@
     "gelecek sisli göründüğünde umut nasıl kaybedilmez",
   ];
 
-  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-04-26";
+  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-04-28";
   const TOPIC_DECK_SIZE = 1000;
+  const TOPIC_RECENT_LIMIT = 80;
+  const TOPIC_DIRECTION_WINDOW = 30;
+  const TOPIC_RELATIONSHIP_DIRECTION_LIMIT = 1;
+  const TOPIC_DEFAULT_DIRECTION_LIMIT = 2;
+  const topicDirectionRules = [
+    {
+      id: "finances",
+      keywords: ["деньг", "грош", "финанс", "економ", "эконом", "para", "pien", "fiyat", "кошти"],
+    },
+    {
+      id: "anxiety",
+      keywords: ["тревог", "тривог", "страх", "беспокой", "непевн", "неувер", "kayg", "endiş", "lęk", "niepew"],
+    },
+    {
+      id: "digital",
+      keywords: ["соцсет", "соцмер", "лайк", "цифров", "digital", "dijital", "instagram", "tiktok", "sosyal", "lajk"],
+    },
+    {
+      id: "burnout",
+      keywords: ["выгор", "вигор", "устал", "втом", "yorgun", "tüken", "zmęcz", "wypal"],
+    },
+    {
+      id: "loneliness",
+      keywords: ["одиноч", "самотн", "yalnız", "samotn", "изоляц", "ізоляц", "izol"],
+    },
+    {
+      id: "relationships",
+      keywords: ["до брака", "до шлюбу", "przed ślub", "evlilikten önce", "брак", "шлюб", "małżeń", "evlilik", "отношен", "стосунк", "relac", "ilişk", "związk", "муж", "жена", "чоловік", "дружин", "mąż", "żona", "eş"],
+    },
+    {
+      id: "family",
+      keywords: ["семь", "семья", "родин", "aile", "rodzin", "дет", "діт", "dziec", "çocuk", "родител", "батьк", "ebeveyn"],
+    },
+    {
+      id: "work",
+      keywords: ["работ", "прац", "служен", "служін", "iş", "praca", "służ", "hizmet"],
+    },
+    {
+      id: "prayer",
+      keywords: ["молит", "тишин", "тиші", "dua", "modlit", "cisz", "sessiz"],
+    },
+    {
+      id: "compassion",
+      keywords: ["сострадан", "співчут", "милосер", "merham", "współczuc", "чужой боли", "чужого болю"],
+    },
+    {
+      id: "identity",
+      keywords: ["ценност", "цінност", "одобрен", "схвален", "wartoś", "aprobat", "değer", "onay"],
+    },
+    {
+      id: "speech-conflict",
+      keywords: ["конфликт", "конфлікт", "ссор", "гнев", "гнів", "раздраж", "правду", "слуш", "слух", "çatış", "öfke", "konflikt", "gniew"],
+    },
+    {
+      id: "purity",
+      keywords: ["чистот", "святост", "святіст", "соблаз", "спокус", "paklık", "kutsal", "czysto", "święto", "pokus"],
+    },
+    {
+      id: "hope",
+      keywords: ["надеж", "наді", "umut", "nadziej", "майбут", "будущ", "gelecek", "przysz"],
+    },
+    {
+      id: "decisions",
+      keywords: ["решен", "рішен", "выбор", "вибір", "воля", "karar", "seçim", "decyz", "wola"],
+    },
+    {
+      id: "forgiveness",
+      keywords: ["прощ", "пробач", "обид", "боль", "біль", "bağış", "affet", "przebacz", "ból"],
+    },
+    {
+      id: "health",
+      keywords: ["здоров", "health", "sağlık", "zdrow"],
+    },
+  ];
   const topicTranslationCatalog = buildTopicTranslationCatalog();
 
   const languageOptions = [
@@ -5639,6 +5760,86 @@
     return candidates;
   }
 
+  function buildDiverseTopicQueue(topics) {
+    const buckets = {};
+    const directions = [];
+
+    shuffleArray(topics.slice()).forEach(function (topic) {
+      const direction = getTopicDirection(topic);
+      if (!buckets[direction]) {
+        buckets[direction] = [];
+        directions.push(direction);
+      }
+      buckets[direction].push(topic);
+    });
+
+    const queue = [];
+    let added = true;
+    const shuffledDirections = shuffleArray(directions.slice());
+
+    while (added) {
+      added = false;
+      shuffledDirections.forEach(function (direction) {
+        if (buckets[direction] && buckets[direction].length) {
+          queue.push(buckets[direction].pop());
+          added = true;
+        }
+      });
+    }
+
+    return queue;
+  }
+
+  function pullNextTopicFromQueue(rotation, currentTopic) {
+    const queue = rotation.queue || [];
+    const directionCounts = getRecentTopicDirectionCounts(rotation.recentDirections || []);
+
+    for (let index = queue.length - 1; index >= 0; index -= 1) {
+      const candidate = queue[index];
+      const direction = getTopicDirection(candidate);
+      const directionLimit = getTopicDirectionLimit(direction);
+
+      if (candidate !== currentTopic && (directionCounts[direction] || 0) < directionLimit) {
+        queue.splice(index, 1);
+        return candidate;
+      }
+    }
+
+    for (let index = queue.length - 1; index >= 0; index -= 1) {
+      const candidate = queue[index];
+      if (candidate !== currentTopic) {
+        queue.splice(index, 1);
+        return candidate;
+      }
+    }
+
+    return queue.pop() || "";
+  }
+
+  function getRecentTopicDirectionCounts(recentDirections) {
+    return recentDirections.slice(0, TOPIC_DIRECTION_WINDOW).reduce(function (counts, direction) {
+      counts[direction] = (counts[direction] || 0) + 1;
+      return counts;
+    }, {});
+  }
+
+  function getTopicDirectionLimit(direction) {
+    return direction === "relationships"
+      ? TOPIC_RELATIONSHIP_DIRECTION_LIMIT
+      : TOPIC_DEFAULT_DIRECTION_LIMIT;
+  }
+
+  function getTopicDirection(topic) {
+    const normalizedTopic = normalize(topic);
+    const matchedRule = topicDirectionRules.find(function (rule) {
+      return rule.keywords.some(function (keyword) {
+        return normalizedTopic.includes(normalize(keyword));
+      });
+    });
+
+    return matchedRule ? matchedRule.id : "spiritual-growth";
+  }
+
   function getTopicGeneratorBank(language) {
     const banks = {
       ru: {
@@ -5656,7 +5857,7 @@
           "говорить правду с любовью",
           "проходить конфликт без ожесточения",
           "беречь чистоту сердца",
-          "строить отношения без спешки",
+          "строить здоровые привычки веры",
           "искать Божью волю",
           "молиться, когда нет сил",
           "сохранять сострадание",
@@ -5665,7 +5866,7 @@
           "не сравнивать себя с другими",
           "прощать, когда больно",
           "не терять надежду",
-          "укреплять брак",
+          "укреплять верность Христу",
           "восстанавливать доверие",
           "хранить здоровые границы",
           "слушать ближнего внимательно",
@@ -5702,7 +5903,7 @@
           "говорити правду з любов'ю",
           "проходити конфлікт без озлоблення",
           "берегти чистоту серця",
-          "будувати стосунки без поспіху",
+          "будувати здорові звички віри",
           "шукати Божу волю",
           "молитися, коли немає сил",
           "зберігати співчуття",
@@ -5711,7 +5912,7 @@
           "не порівнювати себе з іншими",
           "прощати, коли боляче",
           "не втрачати надію",
-          "зміцнювати шлюб",
+          "зміцнювати вірність Христу",
           "відновлювати довіру",
           "берегти здорові межі",
           "уважно слухати ближнього",
@@ -5748,7 +5949,7 @@
           "mówić prawdę z miłością",
           "przechodzić konflikt bez zgorzknienia",
           "strzec czystości serca",
-          "budować relacje bez pośpiechu",
+          "budować zdrowe nawyki wiary",
           "szukać Bożej woli",
           "modlić się, kiedy brakuje sił",
           "zachować współczucie",
@@ -5757,7 +5958,7 @@
           "nie porównywać się z innymi",
           "przebaczać, kiedy boli",
           "nie tracić nadziei",
-          "umacniać małżeństwo",
+          "umacniać wierność Chrystusowi",
           "odbudowywać zaufanie",
           "strzec zdrowych granic",
           "uważnie słuchać bliźniego",
@@ -5794,7 +5995,7 @@
           "gerçeği sevgiyle söylemek",
           "çatışmadan acılaşmadan geçmek",
           "yüreğin paklığını korumak",
-          "ilişkileri acele etmeden kurmak",
+          "imanın sağlıklı alışkanlıklarını kurmak",
           "Tanrı'nın isteğini aramak",
           "güç kalmadığında dua etmek",
           "merhameti kaybetmemek",
@@ -5803,7 +6004,7 @@
           "kendini başkalarıyla kıyaslamamak",
           "acı verdiğinde bağışlamak",
           "umudu kaybetmemek",
-          "evliliği güçlendirmek",
+          "Mesih'e sadakati güçlendirmek",
           "güveni yeniden kurmak",
           "sağlıklı sınırları korumak",
           "yakınını dikkatle dinlemek",
@@ -5834,7 +6035,6 @@
     const targetLanguage = language || state.language;
     let rotation = state.topicRotation[targetLanguage] || createEmptyTopicLanguageState();
     let topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
-    const recentLimit = 18;
     let deckSize = topics.length;
 
     rotation.queue = (rotation.queue || []).filter(function (topic) {
@@ -5842,7 +6042,10 @@
     });
     rotation.recent = (rotation.recent || []).filter(function (topic) {
       return topics.indexOf(topic) !== -1;
-    });
+    }).slice(0, TOPIC_RECENT_LIMIT);
+    rotation.recentDirections = Array.isArray(rotation.recentDirections)
+      ? rotation.recentDirections.filter(Boolean).slice(0, TOPIC_DIRECTION_WINDOW)
+      : [];
 
     if (!rotation.queue.length || (rotation.used || 0) >= deckSize) {
       if ((rotation.used || 0) >= deckSize) {
@@ -5852,20 +6055,16 @@
       rotation.used = 0;
       topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
       deckSize = topics.length;
-      const recentSet = new Set(rotation.recent.slice(0, recentLimit));
+      const recentSet = new Set(rotation.recent.slice(0, TOPIC_RECENT_LIMIT));
       const freshPool = topics.filter(function (topic) {
         return !recentSet.has(topic);
       });
-      rotation.queue = shuffleArray((freshPool.length ? freshPool : topics).slice());
+      rotation.queue = buildDiverseTopicQueue(freshPool.length ? freshPool : topics);
     }
 
-    let nextTopic = rotation.queue.pop() || topics[0] || "";
     const currentTopic = elements.topicInput.value.trim();
-
-    if (nextTopic && currentTopic && nextTopic === currentTopic && rotation.queue.length) {
-      rotation.queue.unshift(nextTopic);
-      nextTopic = rotation.queue.pop();
-    }
+    const nextTopic = pullNextTopicFromQueue(rotation, currentTopic) || topics[0] || "";
+    const nextDirection = getTopicDirection(nextTopic);
 
     rotation.used = Math.min(deckSize, (rotation.used || 0) + 1);
     rotation.recent = [nextTopic]
@@ -5874,7 +6073,10 @@
           return topic !== nextTopic;
         })
       )
-      .slice(0, recentLimit);
+      .slice(0, TOPIC_RECENT_LIMIT);
+    rotation.recentDirections = [nextDirection]
+      .concat(rotation.recentDirections || [])
+      .slice(0, TOPIC_DIRECTION_WINDOW);
 
     state.topicRotation[targetLanguage] = rotation;
     saveTopicRotationState();
@@ -5929,6 +6131,7 @@
     return {
       queue: [],
       recent: [],
+      recentDirections: [],
       used: 0,
       cycle: 0,
     };
@@ -5943,6 +6146,9 @@
       normalized[language] = {
         queue: Array.isArray(entry.queue) ? entry.queue.filter(Boolean) : [],
         recent: Array.isArray(entry.recent) ? entry.recent.filter(Boolean) : [],
+        recentDirections: Array.isArray(entry.recentDirections)
+          ? entry.recentDirections.filter(Boolean).slice(0, TOPIC_DIRECTION_WINDOW)
+          : [],
         used: Number.isFinite(Number(entry.used)) ? Math.max(0, Number(entry.used)) : 0,
         cycle: Number.isFinite(Number(entry.cycle)) ? Math.max(0, Number(entry.cycle)) : 0,
       };
