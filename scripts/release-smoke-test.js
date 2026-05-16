@@ -137,7 +137,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.1");
+    assert.equal(configResult.payload.version, "1.2.2");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -146,6 +146,13 @@ async function main() {
     assert.equal(configResult.payload.aiPolicy.openRouter.modelAllowed, true);
     assert.ok(configResult.payload.aiPolicy.pollinations.configured);
     pass("/api/config exposes version, free-only AI policy, image providers, and search capability flags");
+
+    const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
+    assert.equal(imageUsageResult.response.status, 200);
+    assert.equal(imageUsageResult.payload.version, "1.2.2");
+    assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
+    assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
+    pass("/api/image-usage exposes daily image provider archive");
 
     const desktopResponse = await fetch(baseUrl + "/desktop/");
     assert.equal(desktopResponse.status, 200);

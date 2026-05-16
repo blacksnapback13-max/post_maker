@@ -14,22 +14,28 @@ const MOBILE_VIEW = "mobile";
 const DESKTOP_BASE_PATH = "/desktop";
 const MOBILE_BASE_PATH = "/mobile";
 const PACKAGE_PATH = path.join(APP_ROOT, "package.json");
+const IMAGE_USAGE_PATH = path.join(APP_ROOT, "data", "image-usage.json");
 
 loadEnvFile(ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.1";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.2";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
 const DEFAULT_TEXT_FALLBACK_MODELS = "gemini-2.5-flash-lite,gemini-3.1-flash-lite";
 const DEFAULT_IMAGE_FALLBACK_MODELS = "gemini-2.5-flash-image";
 const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
-const DEFAULT_IMAGE_PROVIDER_ORDER = process.env.AI_IMAGE_PROVIDER_ORDER || "gemini,pollinations,local";
+const DEFAULT_IMAGE_PROVIDER_ORDER = process.env.AI_IMAGE_PROVIDER_ORDER || "gemini,cloudflare,huggingface,qwen,pollinations,local";
+const DEFAULT_CLOUDFLARE_IMAGE_MODEL = process.env.CLOUDFLARE_IMAGE_MODEL || "@cf/black-forest-labs/flux-1-schnell";
+const DEFAULT_HUGGINGFACE_IMAGE_MODEL = process.env.HUGGINGFACE_IMAGE_MODEL || "black-forest-labs/FLUX.1-schnell";
+const DEFAULT_DASHSCOPE_IMAGE_MODEL = process.env.DASHSCOPE_IMAGE_MODEL || "qwen-image-2.0-pro";
+const DEFAULT_DASHSCOPE_BASE_URL = process.env.DASHSCOPE_BASE_URL || "https://dashscope-intl.aliyuncs.com/api/v1";
 const DEFAULT_POLLINATIONS_BASE_URL = process.env.POLLINATIONS_BASE_URL || "https://image.pollinations.ai";
 const DEFAULT_POLLINATIONS_IMAGE_MODEL = process.env.POLLINATIONS_IMAGE_MODEL || "flux";
 const DEFAULT_POLLINATIONS_TIMEOUT_MS = Number(process.env.POLLINATIONS_TIMEOUT_MS || 60000);
+const DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS = Number(process.env.IMAGE_PROVIDER_TIMEOUT_MS || 90000);
 const SERVER_STARTED_AT = new Date().toISOString();
 
 let latestJob = {
@@ -479,6 +485,7 @@ function buildStatusPayload() {
     textEnabled: Boolean(process.env.GEMINI_API_KEY),
     imageEnabled: hasAiImageProvider(),
     imageProviders: getEnabledImageProviders(),
+    imageProviderUsage: getImageProviderUsageSummary(),
     model: getImageModel(),
     textModel: getTextModel(),
     freeModelsOnly: isFreeAiPolicyEnabled(),
@@ -509,6 +516,7 @@ function createServer() {
           textEnabled: Boolean(process.env.GEMINI_API_KEY),
           imageEnabled: hasAiImageProvider(),
           imageProviders: getEnabledImageProviders(),
+          imageProviderUsage: getImageProviderUsageSummary(),
           model: getImageModel(),
           textModel: getTextModel(),
           freeModelsOnly: isFreeAiPolicyEnabled(),
@@ -516,6 +524,14 @@ function createServer() {
           googleSearchEnabled: isGoogleSearchGroundingEnabled(),
           searchTextModel: getSearchTextModel(),
           provider: "multi",
+        });
+      }
+
+      if (request.method === "GET" && requestUrl.pathname === "/api/image-usage") {
+        return sendJson(response, 200, {
+          version: APP_VERSION,
+          imageProviders: getEnabledImageProviders(),
+          imageProviderUsage: getImageProviderUsageSummary(),
         });
       }
 
@@ -869,8 +885,65 @@ async function requestBackgroundImage(input, prompt, model, referenceImage, onPr
 
       try {
         if (onProgress) onProgress(56, "Генерирую изображение через Gemini");
-        return await requestGeminiImage(prompt, model, referenceImage, input);
+        const image = await requestGeminiImage(prompt, model, referenceImage, input);
+        recordImageProviderResult(provider, true, null, image.model);
+        return image;
       } catch (error) {
+        recordImageProviderResult(provider, false, error, model);
+        errors.push(error);
+        continue;
+      }
+    }
+
+    if (provider === "cloudflare") {
+      if (referenceImage) {
+        errors.push(new Error("Cloudflare Flux fallback skipped because a reference image was attached."));
+        continue;
+      }
+
+      try {
+        if (onProgress) onProgress(62, "Пробую Cloudflare Workers AI / Flux");
+        const image = await requestCloudflareImage(input, prompt);
+        recordImageProviderResult(provider, true, null, image.model);
+        return image;
+      } catch (error) {
+        recordImageProviderResult(provider, false, error, getCloudflareImageModel());
+        errors.push(error);
+        continue;
+      }
+    }
+
+    if (provider === "huggingface") {
+      if (referenceImage) {
+        errors.push(new Error("Hugging Face fallback skipped because a reference image was attached."));
+        continue;
+      }
+
+      try {
+        if (onProgress) onProgress(66, "Пробую Hugging Face / Flux");
+        const image = await requestHuggingFaceImage(input, prompt);
+        recordImageProviderResult(provider, true, null, image.model);
+        return image;
+      } catch (error) {
+        recordImageProviderResult(provider, false, error, getHuggingFaceImageModel());
+        errors.push(error);
+        continue;
+      }
+    }
+
+    if (provider === "qwen") {
+      if (referenceImage) {
+        errors.push(new Error("Qwen fallback skipped because a reference image was attached."));
+        continue;
+      }
+
+      try {
+        if (onProgress) onProgress(68, "Пробую Qwen Image / DashScope");
+        const image = await requestDashscopeQwenImage(input, prompt);
+        recordImageProviderResult(provider, true, null, image.model);
+        return image;
+      } catch (error) {
+        recordImageProviderResult(provider, false, error, getDashscopeImageModel());
         errors.push(error);
         continue;
       }
@@ -884,8 +957,11 @@ async function requestBackgroundImage(input, prompt, model, referenceImage, onPr
 
       try {
         if (onProgress) onProgress(70, "Gemini недоступен, пробую бесплатный Pollinations/Flux");
-        return await requestPollinationsImage(input, prompt);
+        const image = await requestPollinationsImage(input, prompt);
+        recordImageProviderResult(provider, true, null, image.model);
+        return image;
       } catch (error) {
+        recordImageProviderResult(provider, false, error, getPollinationsImageModel());
         errors.push(error);
         continue;
       }
@@ -893,11 +969,15 @@ async function requestBackgroundImage(input, prompt, model, referenceImage, onPr
 
     if (provider === "local") {
       if (onProgress) onProgress(80, "AI-провайдеры недоступны, собираю локальный fallback-фон");
-      return buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+      const image = buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+      recordImageProviderResult(provider, true, null, image.model);
+      return image;
     }
   }
 
-  return buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+  const image = buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+  recordImageProviderResult("local", true, null, image.model);
+  return image;
 }
 
 function combineProviderErrors(errors) {
@@ -1003,81 +1083,339 @@ function getGeminiAspectRatio(formatId) {
   return ratios[String(formatId || "")] || ratios.portrait_4_5;
 }
 
+async function requestCloudflareImage(input, prompt) {
+  const imagePrompt = buildHighQualityImagePrompt(input, prompt, 1900);
+  const endpoint =
+    "https://api.cloudflare.com/client/v4/accounts/" +
+    encodeURIComponent(process.env.CLOUDFLARE_ACCOUNT_ID) +
+    "/ai/run/" +
+    getCloudflareImageModel();
+  const seed = getImageSeed(input);
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + process.env.CLOUDFLARE_API_TOKEN,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt: imagePrompt,
+      seed: seed,
+      steps: Math.max(4, Math.min(8, Number(process.env.CLOUDFLARE_IMAGE_STEPS || 8))),
+    }),
+  }, DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS);
+
+  if (!response.ok) {
+    throw await buildHttpError(response, "Cloudflare Workers AI image API failed");
+  }
+
+  const contentType = String(response.headers.get("content-type") || "");
+  if (contentType.startsWith("image/")) {
+    return imageFromArrayBuffer("cloudflare", getCloudflareImageModel(), contentType, await response.arrayBuffer(), imagePrompt);
+  }
+
+  const payload = await response.json();
+  const imageBase64 =
+    payload && payload.result && typeof payload.result.image === "string"
+      ? payload.result.image
+      : payload && typeof payload.image === "string"
+        ? payload.image
+        : "";
+
+  if (!imageBase64) {
+    throw new Error("Cloudflare Workers AI did not return an image.");
+  }
+
+  return {
+    provider: "cloudflare",
+    model: getCloudflareImageModel(),
+    prompt: imagePrompt,
+    mimeType: "image/jpeg",
+    dataUrl: "data:image/jpeg;base64," + imageBase64,
+  };
+}
+
+async function requestHuggingFaceImage(input, prompt) {
+  const imagePrompt = buildHighQualityImagePrompt(input, prompt, 1600);
+  const model = getHuggingFaceImageModel();
+  const endpoint = process.env.HUGGINGFACE_IMAGE_ENDPOINT ||
+    "https://api-inference.huggingface.co/models/" + encodeURIComponent(model);
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + getHuggingFaceToken(),
+      "Content-Type": "application/json",
+      Accept: "image/png,image/jpeg,image/webp,application/json",
+    },
+    body: JSON.stringify({
+      inputs: imagePrompt,
+      parameters: {
+        seed: getImageSeed(input),
+        num_inference_steps: Math.max(4, Math.min(8, Number(process.env.HUGGINGFACE_IMAGE_STEPS || 8))),
+      },
+      options: {
+        wait_for_model: true,
+      },
+    }),
+  }, DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS);
+
+  if (!response.ok) {
+    throw await buildHttpError(response, "Hugging Face image API failed");
+  }
+
+  const contentType = String(response.headers.get("content-type") || "");
+  if (contentType.startsWith("application/json")) {
+    const payload = await response.json();
+    const base64 = extractBase64ImageFromPayload(payload);
+    if (!base64) {
+      throw new Error("Hugging Face did not return an image.");
+    }
+    return {
+      provider: "huggingface",
+      model: "huggingface/" + model,
+      prompt: imagePrompt,
+      mimeType: "image/png",
+      dataUrl: "data:image/png;base64," + base64,
+    };
+  }
+
+  return imageFromArrayBuffer("huggingface", "huggingface/" + model, contentType || "image/png", await response.arrayBuffer(), imagePrompt);
+}
+
+async function requestDashscopeQwenImage(input, prompt) {
+  const imagePrompt = buildHighQualityImagePrompt(input, prompt, 1600);
+  const endpoint = normalizeBaseUrl(process.env.DASHSCOPE_BASE_URL || DEFAULT_DASHSCOPE_BASE_URL) +
+    "/services/aigc/multimodal-generation/generation";
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + getDashscopeApiKey(),
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      model: getDashscopeImageModel(),
+      input: {
+        messages: [
+          {
+            role: "user",
+            content: [{ text: imagePrompt }],
+          },
+        ],
+      },
+      parameters: {
+        seed: getImageSeed(input),
+      },
+    }),
+  }, DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS);
+
+  if (!response.ok) {
+    throw await buildHttpError(response, "Qwen/DashScope image API failed");
+  }
+
+  const payload = await response.json();
+  const imageUrl = extractImageUrlFromPayload(payload);
+  const base64 = extractBase64ImageFromPayload(payload);
+
+  if (base64) {
+    return {
+      provider: "qwen",
+      model: "qwen/" + getDashscopeImageModel(),
+      prompt: imagePrompt,
+      mimeType: "image/png",
+      dataUrl: "data:image/png;base64," + base64,
+    };
+  }
+
+  if (!imageUrl) {
+    throw new Error("Qwen/DashScope did not return an image URL.");
+  }
+
+  const imageResponse = await fetchWithTimeout(imageUrl, {
+    method: "GET",
+    headers: { Accept: "image/png,image/jpeg,image/webp,*/*" },
+  }, DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS);
+
+  if (!imageResponse.ok) {
+    throw await buildHttpError(imageResponse, "Qwen/DashScope image download failed");
+  }
+
+  const mimeType = String(imageResponse.headers.get("content-type") || "image/png").split(";")[0].trim();
+  return imageFromArrayBuffer("qwen", "qwen/" + getDashscopeImageModel(), mimeType, await imageResponse.arrayBuffer(), imagePrompt);
+}
+
 async function requestPollinationsImage(input, prompt) {
   const imagePrompt = buildPollinationsPrompt(input, prompt);
   const dimensions = getPollinationsImageDimensions(input && input.posterSettings && input.posterSettings.format);
   const seed = getImageSeed(input);
-  const baseUrl = normalizeBaseUrl(process.env.POLLINATIONS_BASE_URL || DEFAULT_POLLINATIONS_BASE_URL);
-  const url = new URL(getPollinationsImagePath(baseUrl, imagePrompt), baseUrl);
-  url.searchParams.set("model", getPollinationsImageModel());
-  url.searchParams.set("width", String(dimensions.width));
-  url.searchParams.set("height", String(dimensions.height));
-  url.searchParams.set("seed", String(seed));
-  url.searchParams.set("nologo", "true");
-  url.searchParams.set("private", "true");
-  url.searchParams.set("safe", "true");
-  url.searchParams.set("enhance", "true");
+  const errors = [];
 
-  if (process.env.POLLINATIONS_API_KEY) {
-    url.searchParams.set("key", process.env.POLLINATIONS_API_KEY);
+  for (const pollinationsModel of getPollinationsImageModels()) {
+    const baseUrl = normalizeBaseUrl(process.env.POLLINATIONS_BASE_URL || DEFAULT_POLLINATIONS_BASE_URL);
+    const url = new URL(getPollinationsImagePath(baseUrl, imagePrompt), baseUrl);
+    url.searchParams.set("model", pollinationsModel);
+    url.searchParams.set("width", String(dimensions.width));
+    url.searchParams.set("height", String(dimensions.height));
+    url.searchParams.set("seed", String(seed));
+    url.searchParams.set("nologo", "true");
+    url.searchParams.set("private", "true");
+    url.searchParams.set("safe", "true");
+    if (pollinationsModel !== "turbo") {
+      url.searchParams.set("enhance", "true");
+    }
+
+    if (process.env.POLLINATIONS_API_KEY) {
+      url.searchParams.set("key", process.env.POLLINATIONS_API_KEY);
+    }
+
+    try {
+      const response = await fetchWithTimeout(url, {
+        method: "GET",
+        headers: {
+          Accept: "image/png,image/jpeg,image/webp,*/*",
+          "User-Agent": "shtunda13-post-maker/" + APP_VERSION,
+        },
+      }, DEFAULT_POLLINATIONS_TIMEOUT_MS);
+
+      if (!response.ok) {
+        throw await buildHttpError(response, "Pollinations image API failed");
+      }
+
+      const mimeType = String(response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
+      if (!mimeType.startsWith("image/")) {
+        throw new Error("Pollinations did not return an image.");
+      }
+
+      return imageFromArrayBuffer("pollinations", "pollinations/" + pollinationsModel, mimeType, await response.arrayBuffer(), imagePrompt);
+    } catch (error) {
+      errors.push(error);
+    }
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(function () {
-    controller.abort();
-  }, Math.max(8000, DEFAULT_POLLINATIONS_TIMEOUT_MS || 22000));
-
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "image/png,image/jpeg,image/webp,*/*",
-        "User-Agent": "shtunda13-post-maker/" + APP_VERSION,
-      },
-      signal: controller.signal,
-    });
-  } catch (error) {
-    throw new Error(
-      error && error.name === "AbortError"
-        ? "Pollinations image request timed out."
-        : error && error.message
-          ? error.message
-          : "Pollinations image request failed."
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  if (!response.ok) {
-    throw new Error("Pollinations image API returned HTTP " + response.status + ".");
-  }
-
-  const mimeType = String(response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
-  if (!mimeType.startsWith("image/")) {
-    throw new Error("Pollinations did not return an image.");
-  }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
-  if (!buffer.length) {
-    throw new Error("Pollinations returned an empty image.");
-  }
-
-  if (buffer.length > 18_000_000) {
-    throw new Error("Pollinations image is too large.");
-  }
-
-  return {
-    provider: "pollinations",
-    model: "pollinations/" + getPollinationsImageModel(),
-    prompt: imagePrompt,
-    mimeType: mimeType,
-    dataUrl: "data:" + mimeType + ";base64," + buffer.toString("base64"),
-  };
+  throw combineProviderErrors(errors);
 }
 
 function normalizeBaseUrl(value) {
   return String(value || DEFAULT_POLLINATIONS_BASE_URL).replace(/\/+$/u, "");
+}
+
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(function () {
+    controller.abort();
+  }, Math.max(8000, Number(timeoutMs || DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS)));
+
+  try {
+    return await fetch(url, Object.assign({}, options || {}, {
+      signal: controller.signal,
+    }));
+  } catch (error) {
+    throw new Error(
+      error && error.name === "AbortError"
+        ? "Image provider request timed out."
+        : error && error.message
+          ? error.message
+          : "Image provider request failed."
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function buildHttpError(response, fallbackMessage) {
+  let detail = "";
+  try {
+    const contentType = String(response.headers.get("content-type") || "");
+    if (contentType.includes("application/json")) {
+      const payload = await response.json();
+      detail =
+        cleanText(payload && payload.error && payload.error.message) ||
+        cleanText(payload && payload.message) ||
+        cleanText(payload && payload.msg) ||
+        JSON.stringify(payload).slice(0, 260);
+    } else {
+      detail = cleanText(await response.text());
+    }
+  } catch {
+    detail = "";
+  }
+
+  const error = new Error((fallbackMessage || "Image provider failed") + " HTTP " + response.status + (detail ? ": " + shortenText(detail, 260) : "."));
+  error.statusCode = response.status;
+  throw error;
+}
+
+function imageFromArrayBuffer(provider, model, mimeType, arrayBuffer, prompt) {
+  const cleanMimeType = String(mimeType || "image/png").split(";")[0].trim();
+  const buffer = Buffer.from(arrayBuffer);
+  if (!buffer.length) {
+    throw new Error(provider + " returned an empty image.");
+  }
+  if (buffer.length > 18_000_000) {
+    throw new Error(provider + " image is too large.");
+  }
+  return {
+    provider: provider,
+    model: model,
+    prompt: prompt,
+    mimeType: cleanMimeType.startsWith("image/") ? cleanMimeType : "image/png",
+    dataUrl: "data:" + (cleanMimeType.startsWith("image/") ? cleanMimeType : "image/png") + ";base64," + buffer.toString("base64"),
+  };
+}
+
+function extractBase64ImageFromPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return "";
+  }
+
+  if (typeof payload.image === "string") return stripDataUrl(payload.image);
+  if (typeof payload.b64_json === "string") return stripDataUrl(payload.b64_json);
+  if (payload.result && typeof payload.result.image === "string") return stripDataUrl(payload.result.image);
+
+  const output = payload.output || payload.data || payload.results || payload.images || payload.choices;
+  const queue = Array.isArray(output) ? output.slice() : output && typeof output === "object" ? [output] : [];
+
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || typeof item !== "object") continue;
+    if (typeof item.image === "string" && isLikelyBase64Image(item.image)) return stripDataUrl(item.image);
+    if (typeof item.b64_json === "string") return stripDataUrl(item.b64_json);
+    if (Array.isArray(item.content)) queue.push.apply(queue, item.content);
+    if (item.message && typeof item.message === "object") queue.push(item.message);
+  }
+
+  return "";
+}
+
+function extractImageUrlFromPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return "";
+  }
+
+  if (typeof payload.url === "string" && /^https?:\/\//u.test(payload.url)) return payload.url;
+  if (typeof payload.image_url === "string" && /^https?:\/\//u.test(payload.image_url)) return payload.image_url;
+
+  const output = payload.output || payload.data || payload.results || payload.images || payload.choices;
+  const queue = Array.isArray(output) ? output.slice() : output && typeof output === "object" ? [output] : [];
+
+  while (queue.length) {
+    const item = queue.shift();
+    if (!item || typeof item !== "object") continue;
+    if (typeof item.url === "string" && /^https?:\/\//u.test(item.url)) return item.url;
+    if (typeof item.image_url === "string" && /^https?:\/\//u.test(item.image_url)) return item.image_url;
+    if (typeof item.image === "string" && /^https?:\/\//u.test(item.image)) return item.image;
+    if (Array.isArray(item.content)) queue.push.apply(queue, item.content);
+    if (item.message && typeof item.message === "object") queue.push(item.message);
+  }
+
+  return "";
+}
+
+function stripDataUrl(value) {
+  return String(value || "").replace(/^data:image\/[a-z0-9.+-]+;base64,/iu, "");
+}
+
+function isLikelyBase64Image(value) {
+  return /^data:image\//iu.test(value) || /^[A-Za-z0-9+/=]{120,}$/u.test(value);
 }
 
 function getPollinationsImagePath(baseUrl, prompt) {
@@ -1087,7 +1425,7 @@ function getPollinationsImagePath(baseUrl, prompt) {
     : "/image/" + encodedPrompt;
 }
 
-function buildPollinationsPrompt(input, prompt) {
+function buildHighQualityImagePrompt(input, prompt, maxLength) {
   const settings = input && input.posterSettings ? input.posterSettings : {};
   const topic = cleanText(input && input.topic);
   const reference = cleanText(input && input.reference);
@@ -1111,18 +1449,22 @@ function buildPollinationsPrompt(input, prompt) {
     "Theme: " + topic + ".",
     reference ? "Scripture reference mood: " + reference + "." : "",
     "Spiritual emphasis: " + shortenText(verseFocus || postText, 160) + ".",
-    "Subject: " + scene + ".",
-    "Style: " + artStyle + ".",
+    "Selected subject must be literal and dominant: " + subject + ". Render this as " + scene + ".",
+    "Selected style must be unmistakable: " + visualStyleId + ". Style guide: " + artStyle + ".",
     "Format: " + (posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5) + ".",
     "Lighting: " + lighting + ".",
     "Palette: " + palette + ".",
     "Composition: elegant editorial depth, strong focal hierarchy, natural texture, clean negative space, " + layoutPrompt + ".",
-    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution.",
+    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, not a gradient, not simple geometric bars.",
     "Safety: " + subjectSafety + ".",
     "Strictly no letters, no words, no captions, no typography, no watermark, no logo, no signage, no scripture text.",
     "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
     "Base prompt context: " + shortenText(prompt, 420),
-  ].filter(Boolean).join(" "), 1800);
+  ].filter(Boolean).join(" "), maxLength || 1800);
+}
+
+function buildPollinationsPrompt(input, prompt) {
+  return buildHighQualityImagePrompt(input, prompt, 1800);
 }
 
 function getPollinationsImageDimensions(formatId) {
@@ -2097,12 +2439,49 @@ function getPollinationsImageModel() {
   return process.env.POLLINATIONS_IMAGE_MODEL || DEFAULT_POLLINATIONS_IMAGE_MODEL;
 }
 
+function getPollinationsImageModels() {
+  const models = splitModelList(process.env.POLLINATIONS_IMAGE_MODEL || DEFAULT_POLLINATIONS_IMAGE_MODEL);
+  return Array.from(new Set(models.concat(["turbo"]).map(cleanText).filter(Boolean)));
+}
+
+function getCloudflareImageModel() {
+  return process.env.CLOUDFLARE_IMAGE_MODEL || DEFAULT_CLOUDFLARE_IMAGE_MODEL;
+}
+
+function getHuggingFaceImageModel() {
+  return process.env.HUGGINGFACE_IMAGE_MODEL || DEFAULT_HUGGINGFACE_IMAGE_MODEL;
+}
+
+function getDashscopeImageModel() {
+  return process.env.DASHSCOPE_IMAGE_MODEL || DEFAULT_DASHSCOPE_IMAGE_MODEL;
+}
+
+function getHuggingFaceToken() {
+  return process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN || "";
+}
+
+function getDashscopeApiKey() {
+  return process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || "";
+}
+
 function getImageProviderOrder() {
   return splitModelList(process.env.AI_IMAGE_PROVIDER_ORDER || DEFAULT_IMAGE_PROVIDER_ORDER);
 }
 
 function isGeminiImageProviderAvailable() {
   return Boolean(process.env.GEMINI_API_KEY);
+}
+
+function isCloudflareImageProviderAvailable() {
+  return Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
+}
+
+function isHuggingFaceImageProviderAvailable() {
+  return Boolean(getHuggingFaceToken());
+}
+
+function isDashscopeImageProviderAvailable() {
+  return readBooleanEnv("DASHSCOPE_IMAGE_ENABLED") === true && Boolean(getDashscopeApiKey());
 }
 
 function isPollinationsImageProviderAvailable() {
@@ -2116,21 +2495,37 @@ function isLocalImageFallbackEnabled() {
 function getEnabledImageProviders() {
   const providers = [];
   const configured = getImageProviderOrder();
-  const order = configured.length ? configured : ["gemini", "pollinations", "local"];
+  const order = configured.length ? configured : ["gemini", "cloudflare", "huggingface", "qwen", "pollinations", "local"];
 
   order.forEach(function (provider) {
     const normalized = String(provider || "").trim().toLowerCase();
 
+    if (!isImageProviderWithinDailyLimit(normalized)) {
+      return;
+    }
+
     if (normalized === "gemini" && isGeminiImageProviderAvailable()) {
-      providers.push("gemini");
+      providers.push(normalized);
+    }
+
+    if (normalized === "cloudflare" && isCloudflareImageProviderAvailable()) {
+      providers.push(normalized);
+    }
+
+    if ((normalized === "huggingface" || normalized === "hf") && isHuggingFaceImageProviderAvailable()) {
+      providers.push("huggingface");
+    }
+
+    if ((normalized === "qwen" || normalized === "dashscope") && isDashscopeImageProviderAvailable()) {
+      providers.push("qwen");
     }
 
     if (normalized === "pollinations" && isPollinationsImageProviderAvailable()) {
-      providers.push("pollinations");
+      providers.push(normalized);
     }
 
     if (normalized === "local" && isLocalImageFallbackEnabled()) {
-      providers.push("local");
+      providers.push(normalized);
     }
   });
 
@@ -2145,6 +2540,142 @@ function hasAiImageProvider() {
   return getEnabledImageProviders().some(function (provider) {
     return provider !== "local";
   });
+}
+
+function getImageProviderDailyLimit(provider) {
+  const limits = {
+    gemini: Number(process.env.GEMINI_IMAGE_DAILY_LIMIT || 20),
+    cloudflare: Number(process.env.CLOUDFLARE_IMAGE_DAILY_LIMIT || 40),
+    huggingface: Number(process.env.HUGGINGFACE_IMAGE_DAILY_LIMIT || 6),
+    qwen: Number(process.env.DASHSCOPE_IMAGE_DAILY_LIMIT || 10),
+    pollinations: Number(process.env.POLLINATIONS_IMAGE_DAILY_LIMIT || 50),
+    local: Number(process.env.LOCAL_IMAGE_DAILY_LIMIT || 10000),
+  };
+  const limit = limits[provider];
+  return Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 0;
+}
+
+function getImageUsageDateKey(date) {
+  return (date || new Date()).toISOString().slice(0, 10);
+}
+
+function readImageUsageArchive() {
+  try {
+    return JSON.parse(fs.readFileSync(IMAGE_USAGE_PATH, "utf8"));
+  } catch {
+    return { version: 1, days: {} };
+  }
+}
+
+function writeImageUsageArchive(archive) {
+  try {
+    fs.mkdirSync(path.dirname(IMAGE_USAGE_PATH), { recursive: true });
+    fs.writeFileSync(IMAGE_USAGE_PATH, JSON.stringify(archive, null, 2));
+  } catch {
+    // Usage tracking should never break generation.
+  }
+}
+
+function getImageProviderUsageRecord(archive, provider) {
+  const dayKey = getImageUsageDateKey();
+  archive.days = archive.days && typeof archive.days === "object" ? archive.days : {};
+  archive.days[dayKey] = archive.days[dayKey] && typeof archive.days[dayKey] === "object" ? archive.days[dayKey] : { providers: {} };
+  archive.days[dayKey].providers = archive.days[dayKey].providers && typeof archive.days[dayKey].providers === "object"
+    ? archive.days[dayKey].providers
+    : {};
+  archive.days[dayKey].providers[provider] = archive.days[dayKey].providers[provider] && typeof archive.days[dayKey].providers[provider] === "object"
+    ? archive.days[dayKey].providers[provider]
+    : { success: 0, failure: 0 };
+  return archive.days[dayKey].providers[provider];
+}
+
+function isImageProviderWithinDailyLimit(provider) {
+  const limit = getImageProviderDailyLimit(provider);
+  if (limit <= 0) {
+    return false;
+  }
+
+  const archive = readImageUsageArchive();
+  const record = getImageProviderUsageRecord(archive, provider);
+  const disabledUntil = record.disabledUntil ? Date.parse(record.disabledUntil) : 0;
+  if (disabledUntil && disabledUntil > Date.now()) {
+    return false;
+  }
+
+  return Number(record.success || 0) < limit;
+}
+
+function recordImageProviderResult(provider, ok, error, model) {
+  const archive = readImageUsageArchive();
+  const record = getImageProviderUsageRecord(archive, provider);
+  const now = new Date();
+  record.model = model || record.model || "";
+  record.lastAt = now.toISOString();
+
+  if (ok) {
+    record.success = Number(record.success || 0) + 1;
+    record.lastSuccessAt = record.lastAt;
+    delete record.disabledUntil;
+    delete record.lastError;
+  } else {
+    record.failure = Number(record.failure || 0) + 1;
+    record.lastFailureAt = record.lastAt;
+    record.lastError = error && error.message ? shortenText(error.message, 280) : "Image provider failed.";
+    if (isQuotaLikeError(error)) {
+      record.disabledUntil = getNextUtcDayIso(now);
+    }
+  }
+
+  writeImageUsageArchive(archive);
+}
+
+function isQuotaLikeError(error) {
+  const status = Number(error && error.statusCode);
+  const message = String(error && error.message ? error.message : "").toLowerCase();
+  return status === 401 ||
+    status === 402 ||
+    status === 403 ||
+    status === 429 ||
+    /quota|rate|limit|too many|credit|billing|insufficient|exceeded|unauthorized|forbidden/u.test(message);
+}
+
+function getNextUtcDayIso(date) {
+  const now = date || new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0)).toISOString();
+}
+
+function getImageProviderUsageSummary() {
+  const archive = readImageUsageArchive();
+  const dayKey = getImageUsageDateKey();
+  const day = archive.days && archive.days[dayKey] ? archive.days[dayKey] : { providers: {} };
+  const summary = {};
+  ["gemini", "cloudflare", "huggingface", "qwen", "pollinations", "local"].forEach(function (provider) {
+    const record = day.providers && day.providers[provider] ? day.providers[provider] : {};
+    summary[provider] = {
+      success: Number(record.success || 0),
+      failure: Number(record.failure || 0),
+      dailyLimit: getImageProviderDailyLimit(provider),
+      remaining: Math.max(0, getImageProviderDailyLimit(provider) - Number(record.success || 0)),
+      disabledUntil: record.disabledUntil || "",
+      lastError: record.lastError || "",
+      model: record.model || getImageProviderModelName(provider),
+    };
+  });
+
+  return {
+    date: dayKey,
+    path: IMAGE_USAGE_PATH,
+    providers: summary,
+  };
+}
+
+function getImageProviderModelName(provider) {
+  if (provider === "gemini") return getImageModel();
+  if (provider === "cloudflare") return getCloudflareImageModel();
+  if (provider === "huggingface") return getHuggingFaceImageModel();
+  if (provider === "qwen") return getDashscopeImageModel();
+  if (provider === "pollinations") return getPollinationsImageModel();
+  return "local-svg-background";
 }
 
 function getTextModel() {
@@ -2205,11 +2736,33 @@ function getAiPolicySummary() {
       textModel: getTextModel(),
       imageModel: getImageModel(),
     },
+    cloudflare: {
+      configured: isCloudflareImageProviderAvailable(),
+      model: getCloudflareImageModel(),
+      dailyLimit: getImageProviderDailyLimit("cloudflare"),
+      freeLimitGuard: true,
+    },
+    huggingFace: {
+      configured: isHuggingFaceImageProviderAvailable(),
+      model: getHuggingFaceImageModel(),
+      dailyLimit: getImageProviderDailyLimit("huggingface"),
+      freeLimitGuard: true,
+    },
+    qwen: {
+      configured: isDashscopeImageProviderAvailable(),
+      model: getDashscopeImageModel(),
+      dailyLimit: getImageProviderDailyLimit("qwen"),
+      enabledOnlyWhenExplicit: true,
+    },
     pollinations: {
       configured: isPollinationsImageProviderAvailable(),
       keyConfigured: Boolean(process.env.POLLINATIONS_API_KEY),
       model: getPollinationsImageModel(),
       freeLightUseOnly: true,
+    },
+    flow: {
+      configured: false,
+      reason: "Google Flow has free UI generations, but no official server API is configured.",
     },
     groq: {
       configured: Boolean(process.env.GROQ_API_KEY),

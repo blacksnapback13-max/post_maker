@@ -56,7 +56,9 @@
 - по умолчанию используется `gemini-3.1-flash-image-preview` - это Nano Banana 2;
 - если хотите использовать классический Nano Banana, укажите `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`;
 - для image-качества включен 2K-режим: `GEMINI_IMAGE_SIZE=2K`;
-- если Gemini image-квота недоступна, сервер пробует бесплатный fallback `Pollinations/Flux`: `AI_IMAGE_PROVIDER_ORDER=gemini,pollinations,local`;
+- если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations,local`;
+- дневные лимиты и ошибки image-провайдеров пишутся в `data/image-usage.json`; посмотреть текущий день можно через `/api/image-usage`;
+- Qwen/DashScope отключен по умолчанию, включайте только при уверенности, что используется бесплатная квота: `DASHSCOPE_IMAGE_ENABLED=true`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
 - fallback для текста: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;
 - fallback для изображения: `GEMINI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image`;

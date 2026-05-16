@@ -3296,6 +3296,18 @@
       return "Pollinations Flux";
     }
 
+    if (provider === "cloudflare") {
+      return "Cloudflare Flux";
+    }
+
+    if (provider === "huggingface") {
+      return "Hugging Face Flux/Qwen";
+    }
+
+    if (provider === "qwen") {
+      return "Qwen Image";
+    }
+
     if (provider === "local") {
       return "локальный fallback";
     }
@@ -3585,7 +3597,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.1";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.2";
     elements.appVersionBadge.textContent = "v" + version;
   }
 
