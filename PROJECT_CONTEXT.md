@@ -11,17 +11,17 @@
 ## Статус
 
 - Статус: Готов
-- Версия: v1.2.3
+- Версия: v1.2.4
 - Готовая сборка: да
 
 ## На чем остановились
 
-Подготовлена рабочая сборка v1.2.3: исправлен production-баг с падением в `local-svg-background`, image-генерация идет через дневной роутер `gemini -> cloudflare -> huggingface -> qwen -> pollinations`, а расход пишется в `data/image-usage.json`.
+Подготовлена рабочая сборка v1.2.4: исправлен блок карточек мест Писания, где структурированная AI-ссылка могла показываться как `[object Object]`; image-генерация остается через дневной роутер `gemini -> cloudflare -> huggingface -> qwen -> pollinations`, расход пишется в `data/image-usage.json`.
 
 ## Следующие шаги
 
-- Выкатить v1.2.3 на сервер и проверить production env-переменные.
-- Проверить продовый `/api/config`: должен отдавать `version: "1.2.3"`, `imageProviders` и `imageProviderUsage`.
+- Выкатить v1.2.4 на сервер и проверить production env-переменные.
+- Проверить продовый `/api/config`: должен отдавать `version: "1.2.4"`, `imageProviders` и `imageProviderUsage`.
 
 ## Ошибки и риски
 
@@ -43,6 +43,7 @@
 - 2026-05-16T01:30:00Z: Версия v1.2.1: бейдж версии в UI, версия в `/api/config`, бесплатный Pollinations/Flux fallback для image generation.
 - 2026-05-16T12:20:00Z: Версия v1.2.2: дневной роутер image-провайдеров, Cloudflare Flux, Hugging Face Flux/Qwen, Qwen/DashScope и endpoint `/api/image-usage`.
 - 2026-05-16T20:20:00Z: Версия v1.2.3: исправлено падение в SVG после временной очереди Pollinations; локальный SVG fallback выключен в production.
+- 2026-05-16T20:35:00Z: Версия v1.2.4: нормализация структурированных ссылок мест Писания и защита карточек от `[object Object]`.
 - 2026-05-15T15:20:57.317140Z: Добавлено общее правило бесплатных AI API ключей для всех программ.
 
 ## Правило среды

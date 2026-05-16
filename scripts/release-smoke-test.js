@@ -7,6 +7,7 @@ const {
   buildPostPrompt,
   buildScriptureSuggestionPrompt,
   createServer,
+  normalizeSuggestedScriptures,
 } = require("../server.js");
 
 const args = new Set(process.argv.slice(2));
@@ -97,6 +98,35 @@ async function main() {
   assert.match(scripturePrompt, /Selection mode is implicit/u);
   pass("scripture prompt includes Protestant web research contract and match mode");
 
+  const normalizedScriptures = normalizeSuggestedScriptures({
+    topicResearch: {
+      summary: "Проверка структурированной ссылки.",
+    },
+    suggestions: [
+      {
+        reference: {
+          book: "Псалом",
+          chapter: 139,
+          verse: { start: 1, end: 4 },
+        },
+        text: {
+          text: "Господи, Ты испытал меня и знаешь.",
+        },
+        tags: ["Божье познание", "уникальность"],
+        focus: "Бог знает человека глубже сравнений.",
+      },
+      {
+        reference: { book: "Broken" },
+        text: "Эта карточка должна быть отброшена.",
+      },
+    ],
+  }, { language: "ru" });
+
+  assert.equal(normalizedScriptures.suggestions.length, 1);
+  assert.equal(normalizedScriptures.suggestions[0].reference, "Псалом 139:1-4");
+  assert.doesNotMatch(normalizedScriptures.suggestions[0].reference, /\[object Object\]/u);
+  pass("scripture suggestions normalize structured references and reject invalid cards");
+
   const imagePrompt = buildGeminiPrompt({
     topic: sampleTopic,
     reference: sampleVerse.reference,
@@ -137,7 +167,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.3");
+    assert.equal(configResult.payload.version, "1.2.4");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -149,7 +179,7 @@ async function main() {
 
     const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
     assert.equal(imageUsageResult.response.status, 200);
-    assert.equal(imageUsageResult.payload.version, "1.2.3");
+    assert.equal(imageUsageResult.payload.version, "1.2.4");
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
     pass("/api/image-usage exposes daily image provider archive");

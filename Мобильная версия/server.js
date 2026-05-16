@@ -17,7 +17,7 @@ loadEnvFile(PARENT_ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || "127.0.0.1";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.3";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.4";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
@@ -1791,15 +1791,15 @@ function normalizeSuggestedScriptures(generated, input) {
     }
 
     const reference = shortenText(
-      cleanText(entry.reference || entry.ref || entry.passage || entry.citation),
+      normalizeScriptureReference(entry.reference || entry.ref || entry.passage || entry.citation),
       90
     );
     const text = shortenText(
-      cleanText(entry.text || entry.verseText || entry.quote || entry.scripture),
+      normalizeScriptureText(entry.text || entry.verseText || entry.quote || entry.scripture),
       520
     );
 
-    if (!reference || !text) {
+    if (!isValidScriptureReference(reference) || !text) {
       return;
     }
 
@@ -1847,6 +1847,119 @@ function normalizeSuggestedScriptures(generated, input) {
         : [],
     },
   };
+}
+
+function normalizeScriptureReference(value) {
+  const direct = cleanScalarText(value);
+  if (isValidScriptureReference(direct)) {
+    return direct;
+  }
+
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  const nested = value.reference || value.ref || value.passage || value.citation;
+  if (nested && nested !== value) {
+    const nestedReference = normalizeScriptureReference(nested);
+    if (nestedReference) {
+      return nestedReference;
+    }
+  }
+
+  const start = value.start || value.from || {};
+  const end = value.end || value.to || {};
+  const book = cleanScalarText(
+    value.book ||
+      value.bookName ||
+      value.book_name ||
+      value.canonicalBook ||
+      value.name ||
+      start.book ||
+      start.bookName
+  );
+  const chapter = normalizeReferencePart(value.chapter || value.chapterNumber || start.chapter || start.chapterNumber);
+  const verse = normalizeReferencePart(
+    value.verse ||
+      value.verses ||
+      value.verseRange ||
+      value.verse_range ||
+      value.startVerse ||
+      start.verse ||
+      start.verses ||
+      start.verseNumber
+  );
+  const endChapter = normalizeReferencePart(value.endChapter || end.chapter || end.chapterNumber);
+  const endVerse = normalizeReferencePart(value.endVerse || end.verse || end.verses || end.verseNumber);
+
+  if (!book || !chapter || !verse) {
+    return "";
+  }
+
+  if (endVerse && endChapter && endChapter !== chapter) {
+    return book + " " + chapter + ":" + verse + "-" + endChapter + ":" + endVerse;
+  }
+
+  if (endVerse && !String(verse).includes("-")) {
+    return book + " " + chapter + ":" + verse + "-" + endVerse;
+  }
+
+  return book + " " + chapter + ":" + verse;
+}
+
+function normalizeScriptureText(value) {
+  const direct = cleanScalarText(value);
+  if (direct) {
+    return direct;
+  }
+
+  if (Array.isArray(value)) {
+    return cleanText(value.map(normalizeScriptureText).filter(Boolean).join(" "));
+  }
+
+  if (value && typeof value === "object") {
+    return cleanScalarText(value.text || value.verseText || value.quote || value.scripture || value.content);
+  }
+
+  return "";
+}
+
+function normalizeReferencePart(value) {
+  if (Array.isArray(value)) {
+    return value.map(normalizeReferencePart).filter(Boolean).join("-");
+  }
+
+  if (value && typeof value === "object") {
+    const start = normalizeReferencePart(value.start || value.from || value.first);
+    const end = normalizeReferencePart(value.end || value.to || value.last);
+    if (start && end && start !== end) {
+      return start + "-" + end;
+    }
+    return start || end || normalizeReferencePart(value.number || value.value);
+  }
+
+  return cleanScalarText(value).replace(/\s+/gu, "");
+}
+
+function cleanScalarText(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return cleanText(value);
+  }
+
+  return "";
+}
+
+function isValidScriptureReference(reference) {
+  const normalized = cleanText(reference);
+  return Boolean(normalized) &&
+    !/\[object object\]/iu.test(normalized) &&
+    !/\b(undefined|null|nan)\b/iu.test(normalized) &&
+    /\p{L}/u.test(normalized) &&
+    /\d/u.test(normalized);
 }
 
 function buildGeneratedScriptureId(rawId, reference, index) {
@@ -2641,4 +2754,5 @@ module.exports = {
   buildPostPrompt,
   buildScriptureSuggestionPrompt,
   createServer,
+  normalizeSuggestedScriptures,
 };

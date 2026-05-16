@@ -2179,9 +2179,9 @@
   function getLocalizedVerseReference(verse) {
     const translations = scriptureTranslations[verse.id];
     if (translations && translations[state.language] && translations[state.language].reference) {
-      return translations[state.language].reference;
+      return normalizeScriptureReference(translations[state.language].reference);
     }
-    return verse.reference;
+    return normalizeScriptureReference(verse.reference);
   }
 
   function getLocalizedTag(tag) {
@@ -2536,8 +2536,8 @@
 
     [primarySuggestions || [], fallbackSuggestions || []].forEach(function (items) {
       items.forEach(function (verse) {
-        const reference = cleanDisplayText(verse && verse.reference);
-        const text = cleanDisplayText(verse && verse.text);
+        const reference = normalizeScriptureReference(verse && verse.reference);
+        const text = normalizeScriptureText(verse && verse.text);
         const key = normalize(reference || text);
 
         if (!key || seen.has(key)) {
@@ -2592,10 +2592,10 @@
 
     return (Array.isArray(suggestions) ? suggestions : [])
       .map(function (entry, index) {
-        const reference = cleanDisplayText(entry && entry.reference);
-        const text = cleanDisplayText(entry && entry.text);
+        const reference = normalizeScriptureReference(entry && entry.reference);
+        const text = normalizeScriptureText(entry && entry.text);
 
-        if (!reference || !text) {
+        if (!isValidScriptureReference(reference) || !text) {
           return null;
         }
 
@@ -3630,7 +3630,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.3";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.4";
     elements.appVersionBadge.textContent = "v" + version;
   }
 
@@ -6996,6 +6996,119 @@
 
   function cleanDisplayText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function normalizeScriptureReference(value) {
+    const direct = cleanScalarDisplayText(value);
+    if (isValidScriptureReference(direct)) {
+      return direct;
+    }
+
+    if (!value || typeof value !== "object") {
+      return "";
+    }
+
+    const nested = value.reference || value.ref || value.passage || value.citation;
+    if (nested && nested !== value) {
+      const nestedReference = normalizeScriptureReference(nested);
+      if (nestedReference) {
+        return nestedReference;
+      }
+    }
+
+    const start = value.start || value.from || {};
+    const end = value.end || value.to || {};
+    const book = cleanScalarDisplayText(
+      value.book ||
+        value.bookName ||
+        value.book_name ||
+        value.canonicalBook ||
+        value.name ||
+        start.book ||
+        start.bookName
+    );
+    const chapter = normalizeReferencePart(value.chapter || value.chapterNumber || start.chapter || start.chapterNumber);
+    const verse = normalizeReferencePart(
+      value.verse ||
+        value.verses ||
+        value.verseRange ||
+        value.verse_range ||
+        value.startVerse ||
+        start.verse ||
+        start.verses ||
+        start.verseNumber
+    );
+    const endChapter = normalizeReferencePart(value.endChapter || end.chapter || end.chapterNumber);
+    const endVerse = normalizeReferencePart(value.endVerse || end.verse || end.verses || end.verseNumber);
+
+    if (!book || !chapter || !verse) {
+      return "";
+    }
+
+    if (endVerse && endChapter && endChapter !== chapter) {
+      return book + " " + chapter + ":" + verse + "-" + endChapter + ":" + endVerse;
+    }
+
+    if (endVerse && !String(verse).includes("-")) {
+      return book + " " + chapter + ":" + verse + "-" + endVerse;
+    }
+
+    return book + " " + chapter + ":" + verse;
+  }
+
+  function normalizeScriptureText(value) {
+    const direct = cleanScalarDisplayText(value);
+    if (direct) {
+      return direct;
+    }
+
+    if (Array.isArray(value)) {
+      return cleanDisplayText(value.map(normalizeScriptureText).filter(Boolean).join(" "));
+    }
+
+    if (value && typeof value === "object") {
+      return cleanScalarDisplayText(value.text || value.verseText || value.quote || value.scripture || value.content);
+    }
+
+    return "";
+  }
+
+  function normalizeReferencePart(value) {
+    if (Array.isArray(value)) {
+      return value.map(normalizeReferencePart).filter(Boolean).join("-");
+    }
+
+    if (value && typeof value === "object") {
+      const start = normalizeReferencePart(value.start || value.from || value.first);
+      const end = normalizeReferencePart(value.end || value.to || value.last);
+      if (start && end && start !== end) {
+        return start + "-" + end;
+      }
+      return start || end || normalizeReferencePart(value.number || value.value);
+    }
+
+    return cleanScalarDisplayText(value).replace(/\s+/gu, "");
+  }
+
+  function cleanScalarDisplayText(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "string" || typeof value === "number") {
+      return cleanDisplayText(value);
+    }
+
+    return "";
+  }
+
+  function isValidScriptureReference(reference) {
+    const normalized = cleanDisplayText(reference);
+    return Boolean(normalized) &&
+      !/\[object object\]/iu.test(normalized) &&
+      !/\b(undefined|null|nan)\b/iu.test(normalized) &&
+      /\p{L}/u.test(normalized) &&
+      /\d/u.test(normalized);
   }
 
   function tokenize(value) {
