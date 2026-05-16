@@ -1352,6 +1352,7 @@
       missingGeminiKey: "Ключ Gemini не задан.",
       postRequestFailed: "Не удалось получить пост от AI.",
       backgroundRequestFailed: "Не удалось получить изображение от AI-модели.",
+      imageProvidersUnavailable: "AI-генераторы картинок сейчас недоступны. Попробуйте еще раз через минуту.",
       imageLoadFailed: "Не удалось загрузить изображение, полученное от AI.",
       imageUploadFailed: "Не удалось загрузить изображение. Используйте PNG, JPG или WEBP.",
       logoUploadFailed: "Не удалось загрузить логотип. Используйте PNG с прозрачностью.",
@@ -1513,6 +1514,7 @@
       missingGeminiKey: "Ключ Gemini не задано.",
       postRequestFailed: "Не вдалося отримати допис від AI.",
       backgroundRequestFailed: "Не вдалося отримати зображення від AI-моделі.",
+      imageProvidersUnavailable: "AI-генератори зображень зараз недоступні. Спробуйте ще раз за хвилину.",
       imageLoadFailed: "Не вдалося завантажити зображення, отримане від AI.",
       imageUploadFailed: "Не вдалося завантажити зображення. Використайте PNG, JPG або WEBP.",
       logoUploadFailed: "Не вдалося завантажити логотип. Використайте PNG з прозорістю.",
@@ -1674,6 +1676,7 @@
       missingGeminiKey: "Klucz Gemini nie został ustawiony.",
       postRequestFailed: "Nie udało się pobrać postu z AI.",
       backgroundRequestFailed: "Nie udało się pobrać obrazu z modelu AI.",
+      imageProvidersUnavailable: "Generatory obrazów AI są teraz niedostępne. Spróbuj ponownie za minutę.",
       imageLoadFailed: "Nie udało się załadować obrazu otrzymanego od AI.",
       imageUploadFailed: "Nie udało się wgrać obrazu. Użyj PNG, JPG lub WEBP.",
       logoUploadFailed: "Nie udało się wgrać logo. Użyj pliku PNG z przezroczystością.",
@@ -1837,6 +1840,7 @@
     missingGeminiKey: "Gemini anahtarı tanımlı değil.",
     postRequestFailed: "AI'dan paylaşım alınamadı.",
     backgroundRequestFailed: "AI modelinden görsel alınamadı.",
+    imageProvidersUnavailable: "AI görsel oluşturucuları şu anda kullanılamıyor. Bir dakika sonra tekrar deneyin.",
     imageLoadFailed: "AI'dan gelen görsel yüklenemedi.",
     imageUploadFailed: "Görsel yüklenemedi. PNG, JPG veya WEBP kullanın.",
     logoUploadFailed: "Logo yüklenemedi. Şeffaf PNG kullanın.",
@@ -2958,6 +2962,13 @@
       return;
     }
 
+    const previousBackground = {
+      imageUrl: state.backgroundImageUrl,
+      source: state.backgroundSource,
+      model: state.backgroundModel,
+      prompt: state.backgroundPrompt,
+    };
+
     showGenerationOverlay(t("generatingPosterOverlay"), elements.posterPanel);
     state.posterVariant += 1;
     state.backgroundPending = true;
@@ -2999,12 +3010,26 @@
       }
 
       state.backgroundPending = false;
-      state.backgroundImageUrl = "";
-      state.backgroundSource = "fallback";
-      await renderPosterFallback();
-      saveCurrentPosterToHistory("local-fallback", "");
+      const canRestorePrevious = Boolean(previousBackground.imageUrl);
+      if (canRestorePrevious) {
+        state.backgroundImageUrl = previousBackground.imageUrl;
+        state.backgroundSource = previousBackground.source;
+        state.backgroundModel = previousBackground.model;
+        state.backgroundPrompt = previousBackground.prompt;
+        try {
+          await renderPosterFromImage(previousBackground.imageUrl);
+        } catch {
+          await renderPosterFallback();
+        }
+      } else {
+        state.backgroundImageUrl = "";
+        state.backgroundSource = "";
+        state.backgroundModel = "";
+        state.backgroundPrompt = "";
+        await renderPosterFallback();
+      }
       updatePosterButtons(false);
-      setPosterStatus(buildFallbackStatus(error), "warning");
+      setPosterStatus(buildFallbackStatus(error, canRestorePrevious), "warning");
     } finally {
       hideGenerationOverlay();
     }
@@ -3018,7 +3043,7 @@
     }
 
     if (!config.imageEnabled) {
-      throw new Error(t("missingGeminiKey") + " " + t("addGeminiToEnv"));
+      throw new Error(t("imageProvidersUnavailable"));
     }
 
     const response = await fetch("/api/generate-background", {
@@ -3315,12 +3340,20 @@
     return provider || "AI-модель";
   }
 
-  function buildFallbackStatus(error) {
+  function buildFallbackStatus(error, previousRestored) {
     const fallbackPrefix = {
-      ru: "AI-фон сейчас не загрузился, поэтому я оставил локальный спокойный фон.",
-      uk: "AI-фон зараз не завантажився, тому я залишив локальний спокійний фон.",
-      pl: "Tło AI nie załadowało się, dlatego pozostawiłem lokalne spokojne tło.",
-      tr: "AI arka planı şu anda yüklenemedi, bu yüzden yerel sakin bir arka plan bırakıldı.",
+      ru: previousRestored
+        ? "AI-фон сейчас не загрузился, поэтому я оставил предыдущий нормальный фон."
+        : "AI-фон сейчас не загрузился.",
+      uk: previousRestored
+        ? "AI-фон зараз не завантажився, тому я залишив попередній нормальний фон."
+        : "AI-фон зараз не завантажився.",
+      pl: previousRestored
+        ? "Tło AI nie załadowało się, dlatego zostawiłem poprzednie poprawne tło."
+        : "Tło AI nie załadowało się.",
+      tr: previousRestored
+        ? "AI arka planı şu anda yüklenemedi, bu yüzden önceki düzgün arka plan bırakıldı."
+        : "AI arka planı şu anda yüklenemedi.",
     };
     const fallbackSuffix = {
       ru: "Попробуйте еще раз кнопкой «Новый фон».",
@@ -3597,7 +3630,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.2";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.3";
     elements.appVersionBadge.textContent = "v" + version;
   }
 

@@ -17,14 +17,14 @@ loadEnvFile(PARENT_ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || "127.0.0.1";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.2";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.3";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
 const DEFAULT_TEXT_FALLBACK_MODELS = "gemini-2.5-flash-lite,gemini-3.1-flash-lite";
 const DEFAULT_IMAGE_FALLBACK_MODELS = "gemini-2.5-flash-image";
 const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
-const DEFAULT_IMAGE_PROVIDER_ORDER = process.env.AI_IMAGE_PROVIDER_ORDER || "gemini,cloudflare,huggingface,qwen,pollinations,local";
+const DEFAULT_IMAGE_PROVIDER_ORDER = process.env.AI_IMAGE_PROVIDER_ORDER || "gemini,cloudflare,huggingface,qwen,pollinations";
 const DEFAULT_CLOUDFLARE_IMAGE_MODEL = process.env.CLOUDFLARE_IMAGE_MODEL || "@cf/black-forest-labs/flux-1-schnell";
 const DEFAULT_HUGGINGFACE_IMAGE_MODEL = process.env.HUGGINGFACE_IMAGE_MODEL || "black-forest-labs/FLUX.1-schnell";
 const DEFAULT_DASHSCOPE_IMAGE_MODEL = process.env.DASHSCOPE_IMAGE_MODEL || "qwen-image-2.0-pro";
@@ -33,6 +33,8 @@ const DEFAULT_POLLINATIONS_BASE_URL = process.env.POLLINATIONS_BASE_URL || "http
 const DEFAULT_POLLINATIONS_IMAGE_MODEL = process.env.POLLINATIONS_IMAGE_MODEL || "flux";
 const DEFAULT_POLLINATIONS_TIMEOUT_MS = Number(process.env.POLLINATIONS_TIMEOUT_MS || 60000);
 const DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS = Number(process.env.IMAGE_PROVIDER_TIMEOUT_MS || 90000);
+const DEFAULT_POLLINATIONS_RETRY_ATTEMPTS = Number(process.env.POLLINATIONS_RETRY_ATTEMPTS || 3);
+const DEFAULT_POLLINATIONS_RETRY_DELAY_MS = Number(process.env.POLLINATIONS_RETRY_DELAY_MS || 4500);
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -766,7 +768,7 @@ async function requestBackgroundImage(input, prompt, model, referenceImage, onPr
       }
     }
 
-    if (provider === "local") {
+    if (provider === "local" && isLocalImageFallbackEnabled()) {
       if (onProgress) onProgress(80, "AI-провайдеры недоступны, собираю локальный fallback-фон");
       const image = buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
       recordImageProviderResult(provider, true, null, image.model);
@@ -774,9 +776,7 @@ async function requestBackgroundImage(input, prompt, model, referenceImage, onPr
     }
   }
 
-  const image = buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
-  recordImageProviderResult("local", true, null, image.model);
-  return image;
+  throw buildImageProvidersUnavailableError(errors);
 }
 
 function combineProviderErrors(errors) {
@@ -791,6 +791,17 @@ function combineProviderErrors(errors) {
   }
 
   return new Error(messages.slice(0, 3).join(" | "));
+}
+
+function buildImageProvidersUnavailableError(errors) {
+  const combined = combineProviderErrors(errors);
+  const error = new Error(
+    "AI-генераторы изображения сейчас недоступны. Я не подставляю SVG-фон вместо AI-картинки. " +
+      "Подождите минуту и нажмите «Новый фон» еще раз. " +
+      shortenText(combined.message || "", 360)
+  );
+  error.statusCode = 503;
+  return error;
 }
 
 async function requestGeminiImage(prompt, model, referenceImage, input) {
@@ -1066,31 +1077,48 @@ async function requestPollinationsImage(input, prompt) {
       url.searchParams.set("key", process.env.POLLINATIONS_API_KEY);
     }
 
-    try {
-      const response = await fetchWithTimeout(url, {
-        method: "GET",
-        headers: {
-          Accept: "image/png,image/jpeg,image/webp,*/*",
-          "User-Agent": "shtunda13-post-maker/" + APP_VERSION,
-        },
-      }, DEFAULT_POLLINATIONS_TIMEOUT_MS);
+    for (let attempt = 1; attempt <= getPollinationsRetryAttempts(); attempt += 1) {
+      try {
+        const response = await fetchWithTimeout(url, {
+          method: "GET",
+          headers: {
+            Accept: "image/png,image/jpeg,image/webp,*/*",
+            "User-Agent": "shtunda13-post-maker/" + APP_VERSION,
+          },
+        }, DEFAULT_POLLINATIONS_TIMEOUT_MS);
 
-      if (!response.ok) {
-        throw await buildHttpError(response, "Pollinations image API failed");
+        if (!response.ok) {
+          throw await buildHttpError(response, "Pollinations image API failed");
+        }
+
+        const mimeType = String(response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
+        if (!mimeType.startsWith("image/")) {
+          throw new Error("Pollinations did not return an image.");
+        }
+
+        return imageFromArrayBuffer("pollinations", "pollinations/" + pollinationsModel, mimeType, await response.arrayBuffer(), imagePrompt);
+      } catch (error) {
+        errors.push(error);
+        if (attempt < getPollinationsRetryAttempts() && isTemporaryProviderBackoffError(error)) {
+          await delay(getPollinationsRetryDelayMs() * attempt);
+          continue;
+        }
+        break;
       }
-
-      const mimeType = String(response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
-      if (!mimeType.startsWith("image/")) {
-        throw new Error("Pollinations did not return an image.");
-      }
-
-      return imageFromArrayBuffer("pollinations", "pollinations/" + pollinationsModel, mimeType, await response.arrayBuffer(), imagePrompt);
-    } catch (error) {
-      errors.push(error);
     }
   }
 
   throw combineProviderErrors(errors);
+}
+
+function getPollinationsRetryAttempts() {
+  const attempts = Number(DEFAULT_POLLINATIONS_RETRY_ATTEMPTS);
+  return Number.isFinite(attempts) ? Math.max(1, Math.min(5, Math.floor(attempts))) : 3;
+}
+
+function getPollinationsRetryDelayMs() {
+  const delayMs = Number(DEFAULT_POLLINATIONS_RETRY_DELAY_MS);
+  return Number.isFinite(delayMs) ? Math.max(1000, Math.min(20000, Math.floor(delayMs))) : 4500;
 }
 
 function normalizeBaseUrl(value) {
@@ -2197,13 +2225,13 @@ function isPollinationsImageProviderAvailable() {
 }
 
 function isLocalImageFallbackEnabled() {
-  return readBooleanEnv("LOCAL_IMAGE_FALLBACK_ENABLED") !== false;
+  return readBooleanEnv("ALLOW_LOCAL_SVG_FALLBACK") === true;
 }
 
 function getEnabledImageProviders() {
   const providers = [];
   const configured = getImageProviderOrder();
-  const order = configured.length ? configured : ["gemini", "cloudflare", "huggingface", "qwen", "pollinations", "local"];
+  const order = configured.length ? configured : ["gemini", "cloudflare", "huggingface", "qwen", "pollinations"];
 
   order.forEach(function (provider) {
     const normalized = String(provider || "").trim().toLowerCase();
@@ -2307,7 +2335,12 @@ function isImageProviderWithinDailyLimit(provider) {
   const record = getImageProviderUsageRecord(archive, provider);
   const disabledUntil = record.disabledUntil ? Date.parse(record.disabledUntil) : 0;
   if (disabledUntil && disabledUntil > Date.now()) {
-    return false;
+    if (isStaleTemporaryProviderDisable(provider, record)) {
+      delete record.disabledUntil;
+      writeImageUsageArchive(archive);
+    } else {
+      return false;
+    }
   }
 
   return Number(record.success || 0) < limit;
@@ -2340,11 +2373,36 @@ function recordImageProviderResult(provider, ok, error, model) {
 function isQuotaLikeError(error) {
   const status = Number(error && error.statusCode);
   const message = String(error && error.message ? error.message : "").toLowerCase();
+  if (isTemporaryProviderBackoffError(error)) {
+    return false;
+  }
+
   return status === 401 ||
-    status === 402 ||
     status === 403 ||
     status === 429 ||
-    /quota|rate|limit|too many|credit|billing|insufficient|exceeded|unauthorized|forbidden/u.test(message);
+    (status === 402 && /payment|required|paywall|paid|credit|billing|insufficient|subscription/u.test(message)) ||
+    /\bquota\b|rate limit|\blimit(?:ed|s)?\b|too many requests|\bcredit\b|billing|insufficient|exceeded|unauthorized|forbidden/u.test(message);
+}
+
+function isTemporaryProviderBackoffError(error) {
+  const status = Number(error && error.statusCode);
+  const message = String(error && error.message ? error.message : "").toLowerCase();
+  return status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    /queue full|already queued|server busy|temporarily unavailable|try again|timed out|timeout/u.test(message);
+}
+
+function isStaleTemporaryProviderDisable(provider, record) {
+  if (provider !== "pollinations") {
+    return false;
+  }
+
+  return isTemporaryProviderBackoffError({
+    statusCode: 0,
+    message: record && record.lastError ? record.lastError : "",
+  });
 }
 
 function getNextUtcDayIso(date) {

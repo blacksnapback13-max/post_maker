@@ -1,9 +1,16 @@
 # Changelog
 
+## 1.2.3 - 2026-05-16
+
+- Исправлен production-баг, из-за которого временная очередь Pollinations (`Queue full`) ошибочно блокировала провайдер на сутки.
+- Добавлены короткие повторные попытки Pollinations перед переходом к следующему провайдеру.
+- Локальный SVG fallback выключен по умолчанию и включается только новым явным флагом `ALLOW_LOCAL_SVG_FALLBACK=true`, чтобы старые env-переменные Render не возвращали слабые SVG-фоны.
+- При падении генерации интерфейс оставляет предыдущий нормальный фон и показывает предупреждение вместо записи локального fallback в историю.
+
 ## 1.2.2 - 2026-05-16
 
 - Добавлен маршрутизатор качественных image-провайдеров с дневными лимитами и архивом `data/image-usage.json`.
-- Цепочка генерации расширена до `gemini -> cloudflare -> huggingface -> qwen -> pollinations -> local`.
+- Цепочка генерации расширена до `gemini -> cloudflare -> huggingface -> qwen -> pollinations`.
 - Добавлены optional-провайдеры: Cloudflare Workers AI Flux, Hugging Face Flux/Qwen и Qwen Image через DashScope.
 - Qwen/DashScope выключен по умолчанию и включается только через `DASHSCOPE_IMAGE_ENABLED=true`, чтобы не уйти в платный режим случайно.
 - Добавлен endpoint `/api/image-usage` для проверки дневного расхода и заблокированных по квоте провайдеров.

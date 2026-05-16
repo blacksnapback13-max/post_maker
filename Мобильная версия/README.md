@@ -33,8 +33,8 @@
   - расположение текста;
   - прозрачность текста;
   - силу обводки;
-- делать fallback на локальный спокойный фон, если AI временно недоступен;
-- возвращать локальный SVG fallback-фон через API, если Gemini image quota недоступна;
+- оставлять предыдущий нормальный фон, если AI временно недоступен;
+- не показывать локальный SVG fallback как успешную AI-генерацию;
 - генерировать новые варианты фона без смены текста.
 - экспортировать текущий постер в социальные размеры: Instagram 4:5, Instagram square, Stories/Reels 9:16, YouTube/Telegram 16:9, Facebook/Link 1200x630, Pinterest 2:3.
 
@@ -56,13 +56,14 @@
 - по умолчанию используется `gemini-3.1-flash-image-preview` - это Nano Banana 2;
 - если хотите использовать классический Nano Banana, укажите `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`;
 - для image-качества включен 2K-режим: `GEMINI_IMAGE_SIZE=2K`;
-- если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations,local`;
+- если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations`;
 - дневные лимиты и ошибки image-провайдеров пишутся в `data/image-usage.json`; посмотреть текущий день можно через `/api/image-usage`;
+- локальный SVG fallback в production выключен: `ALLOW_LOCAL_SVG_FALLBACK=false`;
 - Qwen/DashScope отключен по умолчанию, включайте только при уверенности, что используется бесплатная квота: `DASHSCOPE_IMAGE_ENABLED=true`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
 - fallback для текста: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;
 - fallback для изображения: `GEMINI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image`;
-- если ключ не задан или API недоступно, приложение использует локальный фон как запасной вариант.
+- если все AI-провайдеры недоступны, приложение оставляет предыдущий нормальный фон и показывает предупреждение.
 
 ## Структура
 

@@ -78,13 +78,14 @@
 - по умолчанию используется `gemini-3.1-flash-image-preview` - это Nano Banana 2;
 - если хотите использовать классический Nano Banana, укажите `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`;
 - для image-качества включен 2K-режим: `GEMINI_IMAGE_SIZE=2K`;
-- если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations,local`;
+- если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations`;
 - дневные лимиты и ошибки image-провайдеров пишутся в `data/image-usage.json`; посмотреть текущий день можно через `/api/image-usage`;
+- локальный SVG fallback в production выключен: `ALLOW_LOCAL_SVG_FALLBACK=false`;
 - Qwen/DashScope отключен по умолчанию, включайте только при уверенности, что используется бесплатная квота: `DASHSCOPE_IMAGE_ENABLED=true`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
 - для перегруженной текстовой модели есть fallback: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;
 - для перегруженной image-модели есть fallback: `GEMINI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image`;
-- если ключ не задан или API недоступно, приложение использует локальный фон как запасной вариант.
+- если все AI-провайдеры недоступны, приложение оставляет предыдущий нормальный фон и показывает предупреждение.
 
 ## Интернет-поиск по теме
 

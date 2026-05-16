@@ -137,7 +137,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.2");
+    assert.equal(configResult.payload.version, "1.2.3");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -149,7 +149,7 @@ async function main() {
 
     const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
     assert.equal(imageUsageResult.response.status, 200);
-    assert.equal(imageUsageResult.payload.version, "1.2.2");
+    assert.equal(imageUsageResult.payload.version, "1.2.3");
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
     pass("/api/image-usage exposes daily image provider archive");
@@ -269,7 +269,7 @@ async function main() {
         mimeType: backgroundResult.payload.mimeType,
         warning: backgroundResult.payload.warning,
       }));
-      assert.match(backgroundResult.payload.model, /gemini|pollinations/u);
+      assert.match(backgroundResult.payload.model, /gemini|pollinations|cloudflare|huggingface|qwen/u);
       assert.match(backgroundResult.payload.prompt, /glitch-art/u);
       assert.match(backgroundResult.payload.prompt, /city/u);
       pass("/api/generate-background returns an image and preserves selected visual style");

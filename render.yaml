@@ -20,7 +20,7 @@ services:
       - key: GEMINI_TEXT_MODEL
         value: gemini-2.5-flash
       - key: AI_IMAGE_PROVIDER_ORDER
-        value: gemini,cloudflare,huggingface,qwen,pollinations,local
+        value: gemini,cloudflare,huggingface,qwen,pollinations
       - key: IMAGE_PROVIDER_TIMEOUT_MS
         value: "90000"
       - key: GEMINI_IMAGE_DAILY_LIMIT
@@ -55,12 +55,16 @@ services:
         value: flux
       - key: POLLINATIONS_TIMEOUT_MS
         value: "60000"
+      - key: POLLINATIONS_RETRY_ATTEMPTS
+        value: "3"
+      - key: POLLINATIONS_RETRY_DELAY_MS
+        value: "4500"
       - key: POLLINATIONS_IMAGE_DAILY_LIMIT
         value: "50"
       - key: POLLINATIONS_API_KEY
         sync: false
-      - key: LOCAL_IMAGE_FALLBACK_ENABLED
-        value: "true"
+      - key: ALLOW_LOCAL_SVG_FALLBACK
+        value: "false"
       - key: AI_KEYS_POLICY
         value: free-tier-only
       - key: AI_FREE_MODELS_ONLY
