@@ -76,6 +76,10 @@ textarea {
   position: relative;
   z-index: 1;
   max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .hero-copy::after {
@@ -111,6 +115,21 @@ textarea {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: var(--accent);
+}
+
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(67, 107, 92, 0.1);
+  border: 1px solid rgba(67, 107, 92, 0.18);
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .hero-brand-mark {

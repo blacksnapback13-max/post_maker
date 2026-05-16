@@ -137,11 +137,15 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.provider, "gemini");
+    assert.equal(configResult.payload.version, "1.2.1");
+    assert.equal(configResult.payload.provider, "multi");
+    assert.equal(typeof configResult.payload.textEnabled, "boolean");
+    assert.ok(Array.isArray(configResult.payload.imageProviders));
     assert.equal(typeof configResult.payload.googleSearchEnabled, "boolean");
     assert.equal(configResult.payload.freeModelsOnly, true);
     assert.equal(configResult.payload.aiPolicy.openRouter.modelAllowed, true);
-    pass("/api/config exposes Gemini, free-only AI policy, image, and search capability flags");
+    assert.ok(configResult.payload.aiPolicy.pollinations.configured);
+    pass("/api/config exposes version, free-only AI policy, image providers, and search capability flags");
 
     const desktopResponse = await fetch(baseUrl + "/desktop/");
     assert.equal(desktopResponse.status, 200);
@@ -252,6 +256,13 @@ async function main() {
       });
       assert.equal(backgroundResult.response.status, 200, JSON.stringify(backgroundResult.payload));
       assert.match(backgroundResult.payload.imageDataUrl, /^data:image\//u);
+      assert.notEqual(backgroundResult.payload.provider, "local-fallback", JSON.stringify({
+        provider: backgroundResult.payload.provider,
+        model: backgroundResult.payload.model,
+        mimeType: backgroundResult.payload.mimeType,
+        warning: backgroundResult.payload.warning,
+      }));
+      assert.match(backgroundResult.payload.model, /gemini|pollinations/u);
       assert.match(backgroundResult.payload.prompt, /glitch-art/u);
       assert.match(backgroundResult.payload.prompt, /city/u);
       pass("/api/generate-background returns an image and preserves selected visual style");

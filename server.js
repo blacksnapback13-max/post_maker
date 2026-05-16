@@ -13,17 +13,23 @@ const DESKTOP_VIEW = "desktop";
 const MOBILE_VIEW = "mobile";
 const DESKTOP_BASE_PATH = "/desktop";
 const MOBILE_BASE_PATH = "/mobile";
+const PACKAGE_PATH = path.join(APP_ROOT, "package.json");
 
 loadEnvFile(ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.1";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
 const DEFAULT_TEXT_FALLBACK_MODELS = "gemini-2.5-flash-lite,gemini-3.1-flash-lite";
 const DEFAULT_IMAGE_FALLBACK_MODELS = "gemini-2.5-flash-image";
 const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
+const DEFAULT_IMAGE_PROVIDER_ORDER = process.env.AI_IMAGE_PROVIDER_ORDER || "gemini,pollinations,local";
+const DEFAULT_POLLINATIONS_BASE_URL = process.env.POLLINATIONS_BASE_URL || "https://image.pollinations.ai";
+const DEFAULT_POLLINATIONS_IMAGE_MODEL = process.env.POLLINATIONS_IMAGE_MODEL || "flux";
+const DEFAULT_POLLINATIONS_TIMEOUT_MS = Number(process.env.POLLINATIONS_TIMEOUT_MS || 60000);
 const SERVER_STARTED_AT = new Date().toISOString();
 
 let latestJob = {
@@ -465,11 +471,14 @@ function buildStatusPayload() {
   return {
     ok: true,
     service: "post-maker",
+    version: APP_VERSION,
     status: "online",
     startedAt: SERVER_STARTED_AT,
     uptimeSeconds: Math.round(process.uptime()),
-    provider: "gemini",
-    imageEnabled: Boolean(process.env.GEMINI_API_KEY),
+    provider: "multi",
+    textEnabled: Boolean(process.env.GEMINI_API_KEY),
+    imageEnabled: hasAiImageProvider(),
+    imageProviders: getEnabledImageProviders(),
     model: getImageModel(),
     textModel: getTextModel(),
     freeModelsOnly: isFreeAiPolicyEnabled(),
@@ -495,15 +504,18 @@ function createServer() {
 
       if (request.method === "GET" && requestUrl.pathname === "/api/config") {
         return sendJson(response, 200, {
+          version: APP_VERSION,
           available: true,
-          imageEnabled: Boolean(process.env.GEMINI_API_KEY),
+          textEnabled: Boolean(process.env.GEMINI_API_KEY),
+          imageEnabled: hasAiImageProvider(),
+          imageProviders: getEnabledImageProviders(),
           model: getImageModel(),
           textModel: getTextModel(),
           freeModelsOnly: isFreeAiPolicyEnabled(),
           aiPolicy: getAiPolicySummary(),
           googleSearchEnabled: isGoogleSearchGroundingEnabled(),
           searchTextModel: getSearchTextModel(),
-          provider: "gemini",
+          provider: "multi",
         });
       }
 
@@ -605,26 +617,16 @@ function createServer() {
       if (request.method === "POST" && requestUrl.pathname === "/api/generate-background") {
         const body = await readJsonBody(request);
 
-        if (!process.env.GEMINI_API_KEY) {
-          return sendJson(response, 503, {
-            error: "GEMINI_API_KEY не задан. Добавьте его в .env и перезапустите сервер.",
-          });
-        }
-
         const payload = await runTrackedJob("Генерация фона", async function (job) {
           updateJob(job, 18, "Проверяю reference image");
           const referenceImage = normalizeReferenceImagePayload(body.referenceImage);
           updateJob(job, 35, "Собираю промпт для фона");
-          const prompt = buildGeminiPrompt(Object.assign({}, body, { referenceImage: referenceImage }));
+          const promptInput = Object.assign({}, body, { referenceImage: referenceImage });
+          const prompt = buildGeminiPrompt(promptInput);
           const model = getImageModel();
-          updateJob(job, 58, "Генерирую изображение");
-          let image = null;
-          try {
-            image = await requestGeminiImage(prompt, model, referenceImage);
-          } catch (error) {
-            updateJob(job, 74, "Gemini недоступен, собираю локальный fallback-фон");
-            image = buildFallbackBackgroundImage(body, prompt, error);
-          }
+          const image = await requestBackgroundImage(promptInput, prompt, model, referenceImage, function (progress, title) {
+            updateJob(job, progress, title);
+          });
           updateJob(job, 90, "Готовлю изображение для интерфейса");
           return {
             provider: image.provider || "gemini",
@@ -854,7 +856,65 @@ function delay(milliseconds) {
   });
 }
 
-async function requestGeminiImage(prompt, model, referenceImage) {
+async function requestBackgroundImage(input, prompt, model, referenceImage, onProgress) {
+  const providers = getEnabledImageProviders();
+  const errors = [];
+
+  for (const provider of providers) {
+    if (provider === "gemini") {
+      if (!process.env.GEMINI_API_KEY) {
+        errors.push(new Error("Gemini key is not configured."));
+        continue;
+      }
+
+      try {
+        if (onProgress) onProgress(56, "Генерирую изображение через Gemini");
+        return await requestGeminiImage(prompt, model, referenceImage, input);
+      } catch (error) {
+        errors.push(error);
+        continue;
+      }
+    }
+
+    if (provider === "pollinations") {
+      if (referenceImage) {
+        errors.push(new Error("Pollinations fallback skipped because a reference image was attached."));
+        continue;
+      }
+
+      try {
+        if (onProgress) onProgress(70, "Gemini недоступен, пробую бесплатный Pollinations/Flux");
+        return await requestPollinationsImage(input, prompt);
+      } catch (error) {
+        errors.push(error);
+        continue;
+      }
+    }
+
+    if (provider === "local") {
+      if (onProgress) onProgress(80, "AI-провайдеры недоступны, собираю локальный fallback-фон");
+      return buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+    }
+  }
+
+  return buildFallbackBackgroundImage(input, prompt, combineProviderErrors(errors));
+}
+
+function combineProviderErrors(errors) {
+  const messages = (Array.isArray(errors) ? errors : [])
+    .map(function (error) {
+      return error && error.message ? error.message : "";
+    })
+    .filter(Boolean);
+
+  if (!messages.length) {
+    return new Error("AI image providers are unavailable.");
+  }
+
+  return new Error(messages.slice(0, 3).join(" | "));
+}
+
+async function requestGeminiImage(prompt, model, referenceImage, input) {
   const parts = [];
   if (referenceImage) {
     parts.push({
@@ -877,19 +937,13 @@ async function requestGeminiImage(prompt, model, referenceImage) {
       "https://generativelanguage.googleapis.com/v1beta/models/" +
       encodeURIComponent(candidateModel) +
       ":generateContent";
-    const imageConfig = { aspectRatio: "4:5" };
-    if (candidateModel !== "gemini-2.5-flash-image") {
-      imageConfig.imageSize = "2K";
-    }
     const apiResult = await requestGeminiApi(endpoint, {
       contents: [
         {
           parts: parts,
         },
       ],
-      generationConfig: {
-        imageConfig: imageConfig,
-      },
+      generationConfig: buildGeminiImageGenerationConfig(candidateModel, input),
     });
     response = apiResult.response;
     payload = apiResult.payload;
@@ -914,10 +968,188 @@ async function requestGeminiImage(prompt, model, referenceImage) {
   }
 
   return {
+    provider: "gemini",
     model: usedModel,
     mimeType: inline.mimeType || "image/png",
     dataUrl: "data:" + (inline.mimeType || "image/png") + ";base64," + inline.data,
   };
+}
+
+function buildGeminiImageGenerationConfig(model, input) {
+  const imageConfig = {
+    aspectRatio: getGeminiAspectRatio(input && input.posterSettings && input.posterSettings.format),
+  };
+
+  if (model !== "gemini-2.5-flash-image") {
+    imageConfig.imageSize = process.env.GEMINI_IMAGE_SIZE || "2K";
+  }
+
+  return {
+    responseModalities: ["IMAGE"],
+    imageConfig: imageConfig,
+  };
+}
+
+function getGeminiAspectRatio(formatId) {
+  const ratios = {
+    portrait_4_5: "4:5",
+    story_9_16: "9:16",
+    square_1_1: "1:1",
+    landscape_16_9: "16:9",
+    facebook_link_1200_630: "16:9",
+    pinterest_2_3: "2:3",
+  };
+
+  return ratios[String(formatId || "")] || ratios.portrait_4_5;
+}
+
+async function requestPollinationsImage(input, prompt) {
+  const imagePrompt = buildPollinationsPrompt(input, prompt);
+  const dimensions = getPollinationsImageDimensions(input && input.posterSettings && input.posterSettings.format);
+  const seed = getImageSeed(input);
+  const baseUrl = normalizeBaseUrl(process.env.POLLINATIONS_BASE_URL || DEFAULT_POLLINATIONS_BASE_URL);
+  const url = new URL(getPollinationsImagePath(baseUrl, imagePrompt), baseUrl);
+  url.searchParams.set("model", getPollinationsImageModel());
+  url.searchParams.set("width", String(dimensions.width));
+  url.searchParams.set("height", String(dimensions.height));
+  url.searchParams.set("seed", String(seed));
+  url.searchParams.set("nologo", "true");
+  url.searchParams.set("private", "true");
+  url.searchParams.set("safe", "true");
+  url.searchParams.set("enhance", "true");
+
+  if (process.env.POLLINATIONS_API_KEY) {
+    url.searchParams.set("key", process.env.POLLINATIONS_API_KEY);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(function () {
+    controller.abort();
+  }, Math.max(8000, DEFAULT_POLLINATIONS_TIMEOUT_MS || 22000));
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "image/png,image/jpeg,image/webp,*/*",
+        "User-Agent": "shtunda13-post-maker/" + APP_VERSION,
+      },
+      signal: controller.signal,
+    });
+  } catch (error) {
+    throw new Error(
+      error && error.name === "AbortError"
+        ? "Pollinations image request timed out."
+        : error && error.message
+          ? error.message
+          : "Pollinations image request failed."
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    throw new Error("Pollinations image API returned HTTP " + response.status + ".");
+  }
+
+  const mimeType = String(response.headers.get("content-type") || "image/jpeg").split(";")[0].trim();
+  if (!mimeType.startsWith("image/")) {
+    throw new Error("Pollinations did not return an image.");
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) {
+    throw new Error("Pollinations returned an empty image.");
+  }
+
+  if (buffer.length > 18_000_000) {
+    throw new Error("Pollinations image is too large.");
+  }
+
+  return {
+    provider: "pollinations",
+    model: "pollinations/" + getPollinationsImageModel(),
+    prompt: imagePrompt,
+    mimeType: mimeType,
+    dataUrl: "data:" + mimeType + ";base64," + buffer.toString("base64"),
+  };
+}
+
+function normalizeBaseUrl(value) {
+  return String(value || DEFAULT_POLLINATIONS_BASE_URL).replace(/\/+$/u, "");
+}
+
+function getPollinationsImagePath(baseUrl, prompt) {
+  const encodedPrompt = encodeURIComponent(prompt);
+  return String(baseUrl || "").includes("image.pollinations.ai")
+    ? "/prompt/" + encodedPrompt
+    : "/image/" + encodedPrompt;
+}
+
+function buildPollinationsPrompt(input, prompt) {
+  const settings = input && input.posterSettings ? input.posterSettings : {};
+  const topic = cleanText(input && input.topic);
+  const reference = cleanText(input && input.reference);
+  const verseFocus = cleanText(input && input.verseFocus);
+  const postText = cleanText(input && input.postText);
+  const tags = Array.isArray(input && input.tags) ? input.tags.map(cleanText).filter(Boolean) : [];
+  const subject = String(settings.subject || "landscape");
+  const visualStyleId = String(settings.visualStyle || "natural");
+  const formatId = String(settings.format || "portrait_4_5");
+  const layoutPrompt = layoutGuides[String(settings.layout || "top")] || layoutGuides.top;
+  const subjectSafety = buildSubjectSafetyGuidance(subject);
+  const profile = selectMoodProfile(topic, verseFocus, tags);
+  const seed = getImageSeed(input);
+  const scene = pickSubjectScene(subject, profile, seed + 13);
+  const lighting = pickBySeed(profile.lightings, seed + 23);
+  const palette = pickBySeed(profile.palettes, seed + 31);
+  const artStyle = posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural;
+
+  return shortenText([
+    "Premium high-quality Christian social media background only, no text.",
+    "Theme: " + topic + ".",
+    reference ? "Scripture reference mood: " + reference + "." : "",
+    "Spiritual emphasis: " + shortenText(verseFocus || postText, 160) + ".",
+    "Subject: " + scene + ".",
+    "Style: " + artStyle + ".",
+    "Format: " + (posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5) + ".",
+    "Lighting: " + lighting + ".",
+    "Palette: " + palette + ".",
+    "Composition: elegant editorial depth, strong focal hierarchy, natural texture, clean negative space, " + layoutPrompt + ".",
+    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution.",
+    "Safety: " + subjectSafety + ".",
+    "Strictly no letters, no words, no captions, no typography, no watermark, no logo, no signage, no scripture text.",
+    "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
+    "Base prompt context: " + shortenText(prompt, 420),
+  ].filter(Boolean).join(" "), 1800);
+}
+
+function getPollinationsImageDimensions(formatId) {
+  const formats = {
+    portrait_4_5: { width: 1024, height: 1280 },
+    story_9_16: { width: 720, height: 1280 },
+    square_1_1: { width: 1280, height: 1280 },
+    landscape_16_9: { width: 1280, height: 720 },
+    facebook_link_1200_630: { width: 1200, height: 630 },
+    pinterest_2_3: { width: 853, height: 1280 },
+  };
+
+  return formats[String(formatId || "")] || formats.portrait_4_5;
+}
+
+function getImageSeed(input) {
+  const settings = input && input.posterSettings ? input.posterSettings : {};
+  return Math.abs(hashString([
+    cleanText(input && input.topic),
+    cleanText(input && input.reference),
+    cleanText(input && input.verseText),
+    cleanText(input && input.verseFocus),
+    String(settings.subject || "landscape"),
+    String(settings.visualStyle || "natural"),
+    String(settings.format || "portrait_4_5"),
+    String(input && input.variant ? input.variant : 0),
+  ].join("|"))) % 2147483647;
 }
 
 function normalizeReferenceImagePayload(referenceImage) {
@@ -1116,6 +1348,7 @@ function buildGeminiPrompt(input) {
     "Color palette: " + palette + ".",
     "Mood: " + mood + ".",
     "Composition: " + composition + ".",
+    "Quality bar: professional editorial background, high-resolution, layered foreground/midground/background depth, intentional focal hierarchy, rich but restrained detail, natural light behavior, crisp surfaces, no muddy AI blur, no low-effort gradient-only backdrop.",
     "Typography support: " + typographyHint + ".",
     "Layout guidance: " + layoutPrompt + ".",
     hasReferenceImage
@@ -1181,6 +1414,8 @@ function getFallbackImageFormat(formatId) {
     story_9_16: { width: 1080, height: 1920 },
     square_1_1: { width: 1080, height: 1080 },
     landscape_16_9: { width: 1920, height: 1080 },
+    facebook_link_1200_630: { width: 1200, height: 630 },
+    pinterest_2_3: { width: 1000, height: 1500 },
   };
 
   return formats[formatId] || formats.portrait_4_5;
@@ -1845,8 +2080,71 @@ function loadEnvFile(filePath) {
   });
 }
 
+function readPackageVersion(filePath) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return cleanText(parsed && parsed.version);
+  } catch {
+    return "";
+  }
+}
+
 function getImageModel() {
   return process.env.GEMINI_IMAGE_MODEL || DEFAULT_IMAGE_MODEL;
+}
+
+function getPollinationsImageModel() {
+  return process.env.POLLINATIONS_IMAGE_MODEL || DEFAULT_POLLINATIONS_IMAGE_MODEL;
+}
+
+function getImageProviderOrder() {
+  return splitModelList(process.env.AI_IMAGE_PROVIDER_ORDER || DEFAULT_IMAGE_PROVIDER_ORDER);
+}
+
+function isGeminiImageProviderAvailable() {
+  return Boolean(process.env.GEMINI_API_KEY);
+}
+
+function isPollinationsImageProviderAvailable() {
+  return readBooleanEnv("POLLINATIONS_IMAGE_ENABLED") !== false;
+}
+
+function isLocalImageFallbackEnabled() {
+  return readBooleanEnv("LOCAL_IMAGE_FALLBACK_ENABLED") !== false;
+}
+
+function getEnabledImageProviders() {
+  const providers = [];
+  const configured = getImageProviderOrder();
+  const order = configured.length ? configured : ["gemini", "pollinations", "local"];
+
+  order.forEach(function (provider) {
+    const normalized = String(provider || "").trim().toLowerCase();
+
+    if (normalized === "gemini" && isGeminiImageProviderAvailable()) {
+      providers.push("gemini");
+    }
+
+    if (normalized === "pollinations" && isPollinationsImageProviderAvailable()) {
+      providers.push("pollinations");
+    }
+
+    if (normalized === "local" && isLocalImageFallbackEnabled()) {
+      providers.push("local");
+    }
+  });
+
+  if (!providers.includes("local") && isLocalImageFallbackEnabled()) {
+    providers.push("local");
+  }
+
+  return Array.from(new Set(providers));
+}
+
+function hasAiImageProvider() {
+  return getEnabledImageProviders().some(function (provider) {
+    return provider !== "local";
+  });
 }
 
 function getTextModel() {
@@ -1900,11 +2198,18 @@ function getAiPolicySummary() {
     freeOnly: isFreeAiPolicyEnabled(),
     paidToolsDisabled: readBooleanEnv("DISABLE_PAID_AI_TOOLS") !== false,
     providerOrder: ["gemini", "groq", "openrouter"],
+    imageProviderOrder: getEnabledImageProviders(),
     gemini: {
       configured: Boolean(process.env.GEMINI_API_KEY),
       freeTierOnly: readBooleanEnv("GEMINI_FREE_TIER_ONLY") !== false,
       textModel: getTextModel(),
       imageModel: getImageModel(),
+    },
+    pollinations: {
+      configured: isPollinationsImageProviderAvailable(),
+      keyConfigured: Boolean(process.env.POLLINATIONS_API_KEY),
+      model: getPollinationsImageModel(),
+      freeLightUseOnly: true,
     },
     groq: {
       configured: Boolean(process.env.GROQ_API_KEY),

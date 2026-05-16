@@ -77,6 +77,8 @@
 - OpenRouter допускается только через `OPENROUTER_MODEL=openrouter/free` или модели с суффиксом `:free`;
 - по умолчанию используется `gemini-3.1-flash-image-preview` - это Nano Banana 2;
 - если хотите использовать классический Nano Banana, укажите `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`;
+- для image-качества включен 2K-режим: `GEMINI_IMAGE_SIZE=2K`;
+- если Gemini image-квота недоступна, сервер пробует бесплатный fallback `Pollinations/Flux`: `AI_IMAGE_PROVIDER_ORDER=gemini,pollinations,local`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
 - для перегруженной текстовой модели есть fallback: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;
 - для перегруженной image-модели есть fallback: `GEMINI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image`;

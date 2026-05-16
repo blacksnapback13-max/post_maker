@@ -15,8 +15,22 @@ services:
         sync: false
       - key: GEMINI_IMAGE_MODEL
         value: gemini-3.1-flash-image-preview
+      - key: GEMINI_IMAGE_SIZE
+        value: 2K
       - key: GEMINI_TEXT_MODEL
         value: gemini-2.5-flash
+      - key: AI_IMAGE_PROVIDER_ORDER
+        value: gemini,pollinations,local
+      - key: POLLINATIONS_IMAGE_ENABLED
+        value: "true"
+      - key: POLLINATIONS_BASE_URL
+        value: https://image.pollinations.ai
+      - key: POLLINATIONS_IMAGE_MODEL
+        value: flux
+      - key: POLLINATIONS_TIMEOUT_MS
+        value: "60000"
+      - key: POLLINATIONS_API_KEY
+        sync: false
       - key: AI_KEYS_POLICY
         value: free-tier-only
       - key: AI_FREE_MODELS_ONLY

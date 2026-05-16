@@ -1916,6 +1916,7 @@
     textPanel: document.querySelector(".text-panel"),
     posterPanel: document.querySelector(".poster-panel"),
     heroKicker: document.getElementById("hero-kicker"),
+    appVersionBadge: document.getElementById("app-version-badge"),
     heroTitle: document.getElementById("hero-title"),
     heroDescription: document.getElementById("hero-description"),
     heroCardTitle: document.getElementById("hero-card-title"),
@@ -2550,7 +2551,7 @@
   async function requestScriptureSuggestionsFromServer(topic) {
     const config = await loadServerConfig();
 
-    if (!config.available || !config.imageEnabled) {
+    if (!config.available || !isTextGenerationEnabled(config)) {
       throw new Error("suggestions-unavailable");
     }
 
@@ -2921,7 +2922,7 @@
       throw new Error(t("serverUnavailable"));
     }
 
-    if (!config.imageEnabled) {
+    if (!isTextGenerationEnabled(config)) {
       throw new Error(t("missingGeminiKey"));
     }
 
@@ -3279,7 +3280,27 @@
       return "Nano Banana";
     }
 
+    if (String(model || "").startsWith("pollinations/")) {
+      return "Pollinations " + String(model).split("/").pop().toUpperCase();
+    }
+
     return model || "AI-модель";
+  }
+
+  function friendlyImageProviderName(provider) {
+    if (provider === "gemini") {
+      return friendlyModelName("gemini-3.1-flash-image-preview");
+    }
+
+    if (provider === "pollinations") {
+      return "Pollinations Flux";
+    }
+
+    if (provider === "local") {
+      return "локальный fallback";
+    }
+
+    return provider || "AI-модель";
   }
 
   function buildFallbackStatus(error) {
@@ -3535,6 +3556,7 @@
       })
       .then(function (config) {
         state.serverConfig = config;
+        updateAppVersionBadge(config);
         setPosterStatus(describeServerState(config), config.imageEnabled ? "ready" : "warning");
         return config;
       })
@@ -3546,6 +3568,7 @@
         };
 
         state.serverConfig = fallbackConfig;
+        updateAppVersionBadge(fallbackConfig);
         setPosterStatus(describeServerState(fallbackConfig), "warning");
         return fallbackConfig;
       })
@@ -3554,6 +3577,28 @@
       });
 
     return state.serverConfigPromise;
+  }
+
+  function updateAppVersionBadge(config) {
+    if (!elements.appVersionBadge) {
+      return;
+    }
+
+    const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.1";
+    elements.appVersionBadge.textContent = "v" + version;
+  }
+
+  function isTextGenerationEnabled(config) {
+    if (!config || !config.available) {
+      return false;
+    }
+
+    if (config.textEnabled === false) {
+      return false;
+    }
+
+    return Boolean(config.textEnabled || config.imageEnabled);
   }
 
   function describeServerState(config) {
@@ -3566,13 +3611,36 @@
       }[state.language] || "AI-фон недоступен из этого запуска. Откройте приложение через node server.js.";
     }
 
+    const imageProviders = Array.isArray(config.imageProviders) ? config.imageProviders : [];
+    const providerLabel = imageProviders.length
+      ? imageProviders.map(friendlyImageProviderName).join(" + ")
+      : friendlyModelName(config.model);
+
+    if (!isTextGenerationEnabled(config) && !config.imageEnabled) {
+      return {
+        ru: "Сервер запущен, но AI-ключи не найдены. Добавьте бесплатный GEMINI_API_KEY или включите Pollinations для AI-фона.",
+        uk: "Сервер запущено, але AI-ключі не знайдено. Додайте безкоштовний GEMINI_API_KEY або увімкніть Pollinations для AI-фону.",
+        pl: "Serwer działa, ale nie znaleziono kluczy AI. Dodaj darmowy GEMINI_API_KEY albo włącz Pollinations dla tła AI.",
+        tr: "Sunucu çalışıyor, ancak AI anahtarları bulunamadı. Ücretsiz GEMINI_API_KEY ekleyin veya AI arka planı için Pollinations'ı açın.",
+      }[state.language] || "Сервер запущен, но AI-ключи не найдены. Добавьте бесплатный GEMINI_API_KEY или включите Pollinations для AI-фона.";
+    }
+
+    if (!isTextGenerationEnabled(config)) {
+      return {
+        ru: "AI-фон включен: " + providerLabel + ". Для AI-текста добавьте бесплатный GEMINI_API_KEY.",
+        uk: "AI-фон увімкнено: " + providerLabel + ". Для AI-тексту додайте безкоштовний GEMINI_API_KEY.",
+        pl: "Tło AI jest włączone: " + providerLabel + ". Do tekstu AI dodaj darmowy GEMINI_API_KEY.",
+        tr: "AI arka planı açık: " + providerLabel + ". AI metni için ücretsiz GEMINI_API_KEY ekleyin.",
+      }[state.language] || "AI-фон включен: " + providerLabel + ". Для AI-текста добавьте бесплатный GEMINI_API_KEY.";
+    }
+
     if (!config.imageEnabled) {
       return {
-        ru: "Сервер запущен, но ключ Gemini не найден. Добавьте GEMINI_API_KEY в .env, чтобы включить Nano Banana.",
-        uk: "Сервер запущено, але ключ Gemini не знайдено. Додайте GEMINI_API_KEY у .env, щоб увімкнути Nano Banana.",
-        pl: "Serwer działa, ale nie znaleziono klucza Gemini. Dodaj GEMINI_API_KEY do .env, aby włączyć Nano Banana.",
-        tr: "Sunucu çalışıyor, ancak Gemini anahtarı bulunamadı. Nano Banana'yı açmak için .env dosyasına GEMINI_API_KEY ekleyin.",
-      }[state.language] || "Сервер запущен, но ключ Gemini не найден. Добавьте GEMINI_API_KEY в .env, чтобы включить Nano Banana.";
+        ru: "AI-текст включен, но AI-фон недоступен. Проверьте бесплатные image-провайдеры.",
+        uk: "AI-текст увімкнено, але AI-фон недоступний. Перевірте безкоштовні image-провайдери.",
+        pl: "Tekst AI jest włączony, ale tło AI jest niedostępne. Sprawdź darmowych dostawców obrazów.",
+        tr: "AI metni açık, ancak AI arka planı kullanılamıyor. Ücretsiz görsel sağlayıcılarını kontrol edin.",
+      }[state.language] || "AI-текст включен, но AI-фон недоступен. Проверьте бесплатные image-провайдеры.";
     }
 
     const searchNote = config.googleSearchEnabled
@@ -3585,11 +3653,11 @@
       : "";
 
     return {
-      ru: "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически." + searchNote,
-      uk: "AI-фон увімкнено: " + friendlyModelName(config.model) + ". Після вибору вірша фон генеруватиметься автоматично." + searchNote,
-      pl: "Tło AI jest włączone: " + friendlyModelName(config.model) + ". Po wybraniu wersetu tło będzie generowane automatycznie." + searchNote,
-      tr: "AI arka planı açık: " + friendlyModelName(config.model) + ". Ayet seçildikten sonra arka plan otomatik oluşturulacak." + searchNote,
-    }[state.language] || "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически." + searchNote;
+      ru: "AI-фон включен: " + providerLabel + ". После выбора стиха фон будет генерироваться автоматически." + searchNote,
+      uk: "AI-фон увімкнено: " + providerLabel + ". Після вибору вірша фон генеруватиметься автоматично." + searchNote,
+      pl: "Tło AI jest włączone: " + providerLabel + ". Po wybraniu wersetu tło będzie generowane automatycznie." + searchNote,
+      tr: "AI arka planı açık: " + providerLabel + ". Ayet seçildikten sonra arka plan otomatik oluşturulacak." + searchNote,
+    }[state.language] || "AI-фон включен: " + providerLabel + ". После выбора стиха фон будет генерироваться автоматически." + searchNote;
   }
 
   function drawBackground(context, scene, palette) {
@@ -4245,6 +4313,7 @@
     document.documentElement.lang = state.language;
     document.title = t("appTitle");
     elements.heroKicker.textContent = t("heroKicker");
+    updateAppVersionBadge(state.serverConfig || {});
     elements.heroTitle.textContent = t("heroTitle");
     elements.heroDescription.textContent = t("heroDescription");
     elements.heroCardTitle.textContent = t("heroCardTitle");
