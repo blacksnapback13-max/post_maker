@@ -518,6 +518,10 @@ body > .generation-overlay {
   width: min(1080px, calc(100vw - 32px));
 }
 
+.history-modal {
+  width: min(1120px, calc(100vw - 32px));
+}
+
 .modal-head {
   display: flex;
   justify-content: space-between;
@@ -542,6 +546,91 @@ body > .generation-overlay {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+}
+
+.history-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.history-empty {
+  margin: 0;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(67, 107, 92, 0.2);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.history-card {
+  display: grid;
+  grid-template-columns: minmax(130px, 190px) 1fr;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(67, 107, 92, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 241, 232, 0.96)),
+    rgba(255, 255, 255, 0.82);
+}
+
+.history-preview {
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(67, 107, 92, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  text-align: center;
+  padding: 12px;
+}
+
+.history-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history-body {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.history-body h3,
+.history-body p {
+  margin: 0;
+}
+
+.history-body h3 {
+  color: var(--accent-strong);
+  font-size: 1.05rem;
+}
+
+.history-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.history-excerpt {
+  color: var(--muted);
+  line-height: 1.58;
+  white-space: pre-wrap;
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .support-card {
@@ -837,6 +926,14 @@ body > .generation-overlay {
     grid-template-columns: 1fr;
   }
 
+  .history-card {
+    grid-template-columns: 1fr;
+  }
+
+  .history-preview {
+    max-width: 260px;
+  }
+
   .hero-copy,
   .hero-card,
   .panel,
@@ -1062,6 +1159,7 @@ body > .generation-overlay {
 .mobile-layout .modal-dialog,
 .mobile-layout .compact-modal,
 .mobile-layout .settings-modal,
+.mobile-layout .history-modal,
 .mobile-layout .support-modal {
   width: min(100%, 460px);
   max-height: calc(100vh - 16px);

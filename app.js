@@ -1,6 +1,10 @@
 "use strict";
 
 (function () {
+  const HISTORY_STORAGE_KEY = "shtunda13_postmaker_generation_history_v1";
+  const HISTORY_LIMIT = 18;
+  const HISTORY_PREVIEW_WIDTH = 420;
+
   const scriptureLibrary = [
     {
       id: "gen-2-24",
@@ -1179,6 +1183,17 @@
     { id: "story_9_16", width: 1080, height: 1920 },
     { id: "square_1_1", width: 1080, height: 1080 },
     { id: "landscape_16_9", width: 1920, height: 1080 },
+    { id: "facebook_link_1200_630", width: 1200, height: 630 },
+    { id: "pinterest_2_3", width: 1000, height: 1500 },
+  ];
+
+  const exportPresetOptions = [
+    { id: "instagram_feed", formatId: "portrait_4_5", platform: "Instagram", size: "1080×1350" },
+    { id: "instagram_square", formatId: "square_1_1", platform: "Instagram", size: "1080×1080" },
+    { id: "stories_reels", formatId: "story_9_16", platform: "Stories / Reels", size: "1080×1920" },
+    { id: "youtube_community", formatId: "landscape_16_9", platform: "YouTube / Telegram", size: "1920×1080" },
+    { id: "facebook_link", formatId: "facebook_link_1200_630", platform: "Facebook / Link", size: "1200×630" },
+    { id: "pinterest_pin", formatId: "pinterest_2_3", platform: "Pinterest", size: "1000×1500" },
   ];
 
   const typographyOptions = [
@@ -1248,6 +1263,8 @@
       newPoster: "Новый фон",
       generatingPoster: "Генерирую...",
       downloadPng: "Скачать PNG",
+      exportPresetsButton: "Экспорт",
+      historyButton: "История",
       scriptureModalEyebrow: "Шаг 1.5",
       scriptureModalTitle: "Выберите место Писания",
       scriptureModalTopicPrefix: 'Тема: "',
@@ -1345,10 +1362,32 @@
       configRequestFailed: "Сервер не ответил на запрос конфигурации.",
       openViaServer: "Откройте приложение через node server.js.",
       addGeminiToEnv: "Добавьте GEMINI_API_KEY в файл .env.",
+      scriptureResearchPrefix: "AI-поиск:",
+      scriptureResearchSourcesPrefix: "источники",
+      scriptureResearchQueriesPrefix: "запросы",
       generatingScripturesOverlay: "Подождите, идет подбор мест Писания",
       scriptureAiFocusFallback: "Этот текст раскрывает тему в свете Божьей истины и послушания Христу.",
       generatingPostOverlay: "Подождите, идет генерация поста",
       generatingPosterOverlay: "Подождите, идет генерация картинки",
+      exportModalEyebrow: "Экспорт",
+      exportModalTitle: "Пресеты для соцсетей",
+      exportModalSubtitle: "Скачайте текущий постер в нужном размере без повторной AI-генерации.",
+      exportPreparing: "Готовлю экспорт в выбранном размере.",
+      exportReady: "Экспорт сохранен. Текущий постер восстановлен.",
+      historyModalEyebrow: "История",
+      historyModalTitle: "Сгенерированные посты и фоны",
+      historyModalSubtitle: "История хранится локально в этом браузере и не отправляется на сервер.",
+      historyEmpty: "История пока пустая. Сгенерируйте пост и фон, чтобы они появились здесь.",
+      historyRestore: "Вернуть",
+      historyCopy: "Скопировать",
+      historyDownload: "Скачать фон",
+      historyDelete: "Удалить",
+      historyClear: "Очистить историю",
+      historyPostLabel: "Пост",
+      historyPosterMissing: "Фон еще не сохранен.",
+      historyRestoredStatus: "Запись из истории восстановлена.",
+      historyCopiedStatus: "Текст из истории скопирован.",
+      historyClearedStatus: "История очищена.",
     },
     uk: {
       heroKicker: "Мінізастосунок для християнських дописів від команди Shtunda13",
@@ -1385,6 +1424,8 @@
       newPoster: "Новий фон",
       generatingPoster: "Генерую...",
       downloadPng: "Завантажити PNG",
+      exportPresetsButton: "Експорт",
+      historyButton: "Історія",
       scriptureModalEyebrow: "Крок 1.5",
       scriptureModalTitle: "Виберіть місце Писання",
       scriptureModalTopicPrefix: 'Тема: "',
@@ -1482,10 +1523,32 @@
       configRequestFailed: "Сервер не відповів на запит конфігурації.",
       openViaServer: "Відкрийте застосунок через node server.js.",
       addGeminiToEnv: "Додайте GEMINI_API_KEY у файл .env.",
+      scriptureResearchPrefix: "AI-пошук:",
+      scriptureResearchSourcesPrefix: "джерела",
+      scriptureResearchQueriesPrefix: "запити",
       generatingScripturesOverlay: "Зачекайте, триває добір місць Писання",
       scriptureAiFocusFallback: "Цей текст розкриває тему у світлі Божої істини й послуху Христу.",
       generatingPostOverlay: "Зачекайте, триває генерація допису",
       generatingPosterOverlay: "Зачекайте, триває генерація картинки",
+      exportModalEyebrow: "Експорт",
+      exportModalTitle: "Пресети для соцмереж",
+      exportModalSubtitle: "Завантажте поточний постер у потрібному розмірі без повторної AI-генерації.",
+      exportPreparing: "Готую експорт у вибраному розмірі.",
+      exportReady: "Експорт збережено. Поточний постер відновлено.",
+      historyModalEyebrow: "Історія",
+      historyModalTitle: "Згенеровані дописи й фони",
+      historyModalSubtitle: "Історія зберігається локально в цьому браузері й не надсилається на сервер.",
+      historyEmpty: "Історія поки порожня. Згенеруйте допис і фон, щоб вони з’явилися тут.",
+      historyRestore: "Повернути",
+      historyCopy: "Скопіювати",
+      historyDownload: "Завантажити фон",
+      historyDelete: "Видалити",
+      historyClear: "Очистити історію",
+      historyPostLabel: "Допис",
+      historyPosterMissing: "Фон ще не збережено.",
+      historyRestoredStatus: "Запис з історії відновлено.",
+      historyCopiedStatus: "Текст з історії скопійовано.",
+      historyClearedStatus: "Історію очищено.",
     },
     pl: {
       heroKicker: "Miniaplikacja do chrześcijańskich postów od zespołu Shtunda13",
@@ -1522,6 +1585,8 @@
       newPoster: "Nowe tło",
       generatingPoster: "Generuję...",
       downloadPng: "Pobierz PNG",
+      exportPresetsButton: "Eksport",
+      historyButton: "Historia",
       scriptureModalEyebrow: "Krok 1.5",
       scriptureModalTitle: "Wybierz fragment Pisma",
       scriptureModalTopicPrefix: 'Temat: "',
@@ -1619,10 +1684,32 @@
       configRequestFailed: "Serwer nie odpowiedział na żądanie konfiguracji.",
       openViaServer: "Otwórz aplikację przez node server.js.",
       addGeminiToEnv: "Dodaj GEMINI_API_KEY do pliku .env.",
+      scriptureResearchPrefix: "Wyszukiwanie AI:",
+      scriptureResearchSourcesPrefix: "źródła",
+      scriptureResearchQueriesPrefix: "zapytania",
       generatingScripturesOverlay: "Poczekaj, trwa dobieranie fragmentów Pisma",
       scriptureAiFocusFallback: "Ten tekst ukazuje temat w świetle Bożej prawdy i posłuszeństwa Chrystusowi.",
       generatingPostOverlay: "Poczekaj, trwa generowanie posta",
       generatingPosterOverlay: "Poczekaj, trwa generowanie grafiki",
+      exportModalEyebrow: "Eksport",
+      exportModalTitle: "Presety dla social media",
+      exportModalSubtitle: "Pobierz aktualny plakat w wybranym rozmiarze bez ponownej generacji AI.",
+      exportPreparing: "Przygotowuję eksport w wybranym rozmiarze.",
+      exportReady: "Eksport zapisany. Aktualny plakat został przywrócony.",
+      historyModalEyebrow: "Historia",
+      historyModalTitle: "Wygenerowane posty i tła",
+      historyModalSubtitle: "Historia jest zapisywana lokalnie w tej przeglądarce i nie trafia na serwer.",
+      historyEmpty: "Historia jest jeszcze pusta. Wygeneruj post i tło, aby pojawiły się tutaj.",
+      historyRestore: "Przywróć",
+      historyCopy: "Kopiuj",
+      historyDownload: "Pobierz tło",
+      historyDelete: "Usuń",
+      historyClear: "Wyczyść historię",
+      historyPostLabel: "Post",
+      historyPosterMissing: "Tło nie zostało jeszcze zapisane.",
+      historyRestoredStatus: "Wpis z historii został przywrócony.",
+      historyCopiedStatus: "Tekst z historii został skopiowany.",
+      historyClearedStatus: "Historia została wyczyszczona.",
     },
   };
 
@@ -1661,6 +1748,8 @@
     newPoster: "Yeni arka plan",
     generatingPoster: "Oluşturuluyor...",
     downloadPng: "PNG indir",
+    exportPresetsButton: "Dışa aktar",
+    historyButton: "Geçmiş",
     scriptureModalEyebrow: "Adım 1.5",
     scriptureModalTitle: "Kutsal Yazı seçin",
     scriptureModalTopicPrefix: 'Konu: "',
@@ -1758,10 +1847,32 @@
     configRequestFailed: "Sunucu yapılandırma isteğine yanıt vermedi.",
     openViaServer: "Uygulamayı node server.js üzerinden açın.",
     addGeminiToEnv: "GEMINI_API_KEY değerini .env dosyasına ekleyin.",
+    scriptureResearchPrefix: "AI araması:",
+    scriptureResearchSourcesPrefix: "kaynaklar",
+    scriptureResearchQueriesPrefix: "sorgular",
     generatingScripturesOverlay: "Lütfen bekleyin, Kutsal Yazı bölümleri hazırlanıyor",
     scriptureAiFocusFallback: "Bu metin konuyu Tanrı'nın gerçeği ve Mesih'e itaat ışığında açar.",
     generatingPostOverlay: "Lütfen bekleyin, paylaşım metni oluşturuluyor",
     generatingPosterOverlay: "Lütfen bekleyin, paylaşım görseli oluşturuluyor",
+    exportModalEyebrow: "Dışa aktar",
+    exportModalTitle: "Sosyal medya presetleri",
+    exportModalSubtitle: "Mevcut posteri yeniden AI üretimi yapmadan seçilen boyutta indirin.",
+    exportPreparing: "Seçilen boyutta dışa aktarım hazırlanıyor.",
+    exportReady: "Dışa aktarım kaydedildi. Mevcut poster geri yüklendi.",
+    historyModalEyebrow: "Geçmiş",
+    historyModalTitle: "Oluşturulan paylaşımlar ve arka planlar",
+    historyModalSubtitle: "Geçmiş yalnızca bu tarayıcıda yerel olarak saklanır ve sunucuya gönderilmez.",
+    historyEmpty: "Geçmiş henüz boş. Burada görünmesi için bir paylaşım ve arka plan oluşturun.",
+    historyRestore: "Geri yükle",
+    historyCopy: "Kopyala",
+    historyDownload: "Arka planı indir",
+    historyDelete: "Sil",
+    historyClear: "Geçmişi temizle",
+    historyPostLabel: "Paylaşım",
+    historyPosterMissing: "Arka plan henüz kaydedilmedi.",
+    historyRestoredStatus: "Geçmiş kaydı geri yüklendi.",
+    historyCopiedStatus: "Geçmişteki metin kopyalandı.",
+    historyClearedStatus: "Geçmiş temizlendi.",
   });
 
   const state = {
@@ -1772,6 +1883,9 @@
     topic: "",
     suggestions: [],
     suggestionReasons: {},
+    researchSources: [],
+    searchQueries: [],
+    topicResearch: null,
     selectedVerse: null,
     generatedPost: "",
     localizedVerseText: "",
@@ -1784,12 +1898,15 @@
     backgroundModel: "",
     backgroundPrompt: "",
     backgroundPending: false,
+    exportPending: false,
     serverConfig: null,
     serverConfigPromise: null,
     renderToken: 0,
     posterSettings: getDefaultPosterSettings(),
     referenceImage: null,
     logoImage: null,
+    generationHistory: loadGenerationHistory(),
+    currentHistoryId: "",
     topicRotation: loadTopicRotationState(),
     topicTranslationToken: 0,
   };
@@ -1825,11 +1942,13 @@
     postStyleBtn: document.getElementById("post-style-btn"),
     emojiToggleBtn: document.getElementById("emoji-toggle-btn"),
     regeneratePostBtn: document.getElementById("regenerate-post-btn"),
+    historyBtn: document.getElementById("history-btn"),
     postOptionsSummary: document.getElementById("post-options-summary"),
     postStatus: document.getElementById("post-status"),
     postOutput: document.getElementById("post-output"),
     copyPostBtn: document.getElementById("copy-post-btn"),
     downloadBtn: document.getElementById("download-btn"),
+    exportPresetsBtn: document.getElementById("export-presets-btn"),
     referenceUploadBtn: document.getElementById("reference-upload-btn"),
     referenceUploadInput: document.getElementById("reference-upload-input"),
     logoInput: document.getElementById("poster-logo-input"),
@@ -1871,6 +1990,18 @@
     postStyleModalTitle: document.getElementById("post-style-modal-title"),
     postStyleModalSubtitle: document.getElementById("post-style-modal-subtitle"),
     postStyleGrid: document.getElementById("post-style-grid"),
+    historyModal: document.getElementById("history-modal"),
+    historyModalEyebrow: document.getElementById("history-modal-eyebrow"),
+    historyModalTitle: document.getElementById("history-modal-title"),
+    historyModalSubtitle: document.getElementById("history-modal-subtitle"),
+    historyClearBtn: document.getElementById("history-clear-btn"),
+    historyEmpty: document.getElementById("history-empty"),
+    historyList: document.getElementById("history-list"),
+    exportPresetsModal: document.getElementById("export-presets-modal"),
+    exportModalEyebrow: document.getElementById("export-modal-eyebrow"),
+    exportModalTitle: document.getElementById("export-modal-title"),
+    exportModalSubtitle: document.getElementById("export-modal-subtitle"),
+    exportPresetGrid: document.getElementById("export-preset-grid"),
     posterSettingsModal: document.getElementById("poster-settings-modal"),
     posterSettingsEyebrow: document.getElementById("poster-settings-eyebrow"),
     posterSettingsTitle: document.getElementById("poster-settings-title"),
@@ -1924,6 +2055,8 @@
     renderLanguageOptions();
     renderScriptureModeOptions();
     renderPostStyleOptions();
+    renderExportPresetOptions();
+    renderHistoryList();
     populatePosterSettingSelects();
     applyTranslations();
     drawPlaceholderPoster();
@@ -1945,6 +2078,10 @@
     elements.postStyleBtn.addEventListener("click", function () {
       openModal(elements.postStyleModal);
     });
+    elements.historyBtn.addEventListener("click", function () {
+      renderHistoryList();
+      openModal(elements.historyModal);
+    });
     elements.emojiToggleBtn.addEventListener("click", toggleEmojiMode);
     elements.posterSettingsBtn.addEventListener("click", function () {
       openModal(elements.posterSettingsModal);
@@ -1957,6 +2094,10 @@
     });
     elements.copyPostBtn.addEventListener("click", copyPost);
     elements.downloadBtn.addEventListener("click", downloadPoster);
+    elements.exportPresetsBtn.addEventListener("click", function () {
+      renderExportPresetOptions();
+      openModal(elements.exportPresetsModal);
+    });
     elements.referenceUploadBtn.addEventListener("click", openReferenceUploadDialog);
     elements.referenceUploadInput.addEventListener("change", handleReferenceUpload);
     elements.logoInput.addEventListener("change", handleLogoUpload);
@@ -1966,6 +2107,7 @@
     });
     elements.posterSettingsForm.addEventListener("submit", handlePosterSettingsSubmit);
     elements.posterSettingsResetBtn.addEventListener("click", resetPosterSettings);
+    elements.historyClearBtn.addEventListener("click", clearGenerationHistory);
     elements.posterReferenceUploadBtn.addEventListener("click", openReferenceUploadDialog);
     elements.posterReferenceClearBtn.addEventListener("click", clearReferenceImage);
     elements.posterLogoUploadBtn.addEventListener("click", openLogoUploadDialog);
@@ -2005,6 +2147,9 @@
     state.generatedPost = "";
     state.suggestions = [];
     state.suggestionReasons = {};
+    state.researchSources = [];
+    state.searchQueries = [];
+    state.topicResearch = null;
 
     resetGeneratedOutput(topic);
     renderScriptureModal();
@@ -2243,6 +2388,7 @@
   }
 
   function renderScriptureModal() {
+    const sourceSummary = buildResearchSourceSummary();
     elements.modalSubtitle.textContent =
       t("scriptureModalTopicPrefix") +
       state.topic +
@@ -2251,7 +2397,8 @@
       t("scriptureModalModePrefix") +
       " " +
       getScriptureMatchModeLabel(state.scriptureMatchMode) +
-      ".";
+      "." +
+      (sourceSummary ? " " + sourceSummary : "");
 
     elements.scriptureGrid.innerHTML = "";
 
@@ -2287,6 +2434,34 @@
 
       elements.scriptureGrid.appendChild(button);
     });
+  }
+
+  function buildResearchSourceSummary() {
+    const sourceTitles = (state.researchSources || [])
+      .map(function (source) {
+        return cleanDisplayText(source && source.title);
+      })
+      .filter(Boolean)
+      .slice(0, 3);
+    const queries = (state.searchQueries || [])
+      .map(cleanDisplayText)
+      .filter(Boolean)
+      .slice(0, 2);
+    const parts = [];
+
+    if (sourceTitles.length) {
+      parts.push(t("scriptureResearchSourcesPrefix") + ": " + sourceTitles.join(", "));
+    }
+
+    if (queries.length) {
+      parts.push(t("scriptureResearchQueriesPrefix") + ": " + queries.join(" | "));
+    }
+
+    if (!parts.length) {
+      return "";
+    }
+
+    return t("scriptureResearchPrefix") + " " + parts.join(". ") + ".";
   }
 
   async function applySelectedVerse(verse) {
@@ -2330,17 +2505,46 @@
         throw new Error("empty-ai-suggestions");
       }
 
-      state.suggestions = aiSuggestions.slice(0, 8);
-      state.suggestionReasons = payload.reasons || {};
+      const localSuggestions = getSuggestedScripturesLocal(topic);
+      state.suggestions = mergeScriptureSuggestions(aiSuggestions, localSuggestions.verses).slice(0, 8);
+      state.suggestionReasons = Object.assign({}, localSuggestions.reasons, payload.reasons || {});
+      state.researchSources = Array.isArray(payload.researchSources) ? payload.researchSources : [];
+      state.searchQueries = Array.isArray(payload.searchQueries) ? payload.searchQueries : [];
+      state.topicResearch = payload.topicResearch || null;
       renderScriptureModal();
     } catch {
       const localSuggestions = getSuggestedScripturesLocal(topic);
       state.suggestions = localSuggestions.verses;
       state.suggestionReasons = localSuggestions.reasons;
+      state.researchSources = [];
+      state.searchQueries = [];
+      state.topicResearch = null;
       renderScriptureModal();
     } finally {
       hideGenerationOverlay();
     }
+  }
+
+  function mergeScriptureSuggestions(primarySuggestions, fallbackSuggestions) {
+    const seen = new Set();
+    const merged = [];
+
+    [primarySuggestions || [], fallbackSuggestions || []].forEach(function (items) {
+      items.forEach(function (verse) {
+        const reference = cleanDisplayText(verse && verse.reference);
+        const text = cleanDisplayText(verse && verse.text);
+        const key = normalize(reference || text);
+
+        if (!key || seen.has(key)) {
+          return;
+        }
+
+        seen.add(key);
+        merged.push(verse);
+      });
+    });
+
+    return merged;
   }
 
   async function requestScriptureSuggestionsFromServer(topic) {
@@ -2371,6 +2575,9 @@
       suggestions: Array.isArray(payload.suggestions) ? payload.suggestions : [],
       ids: Array.isArray(payload.ids) ? payload.ids : [],
       reasons: payload.reasons && typeof payload.reasons === "object" ? payload.reasons : {},
+      researchSources: Array.isArray(payload.researchSources) ? payload.researchSources : [],
+      searchQueries: Array.isArray(payload.searchQueries) ? payload.searchQueries : [],
+      topicResearch: payload.topicResearch && typeof payload.topicResearch === "object" ? payload.topicResearch : null,
     };
   }
 
@@ -2519,6 +2726,7 @@
       renderSelectedVerse();
       renderPost();
       setPostStatus(t("postReady"), "ready");
+      saveCurrentPostToHistory(generated.provider || "gemini");
     } catch (error) {
       state.generatedPost = buildPost(state.topic, state.selectedVerse);
       state.localizedVerseText = getLocalizedVerseText(state.selectedVerse);
@@ -2527,6 +2735,7 @@
       renderSelectedVerse();
       renderPost();
       setPostStatus(t("postFallback") + " " + (error && error.message ? error.message : ""), "warning");
+      saveCurrentPostToHistory("local-fallback");
     } finally {
       state.postPending = false;
       updatePostButtons(false);
@@ -2538,6 +2747,171 @@
       drawWaitingPoster(state.topic, state.localizedReference, t("posterPreparing"));
       await generatePosterBackground();
     }
+  }
+
+  function saveCurrentPostToHistory(provider) {
+    if (!state.selectedVerse || !state.generatedPost) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const record = {
+      id: createHistoryId(),
+      createdAt: now,
+      updatedAt: now,
+      topic: state.topic,
+      reference: state.localizedReference || state.selectedVerse.reference,
+      verseText: state.localizedVerseText || state.selectedVerse.text,
+      verseFocus: state.selectedVerse.focus || "",
+      verseId: state.selectedVerse.id || "",
+      tags: Array.isArray(state.selectedVerse.tags) ? state.selectedVerse.tags.slice(0, 8) : [],
+      post: state.generatedPost,
+      postStyle: state.postStyle,
+      language: state.language,
+      postProvider: provider || "",
+      posterProvider: "",
+      posterModel: "",
+      posterFormat: state.posterSettings.format,
+      posterPreview: "",
+    };
+
+    state.currentHistoryId = record.id;
+    state.generationHistory = [record].concat(state.generationHistory).slice(0, HISTORY_LIMIT);
+    saveGenerationHistory();
+    renderHistoryList();
+  }
+
+  function saveCurrentPosterToHistory(provider, model) {
+    if (!state.selectedVerse || !state.generatedPost) {
+      return;
+    }
+
+    const preview = createPosterHistoryPreview();
+    const now = new Date().toISOString();
+    let record = state.generationHistory.find(function (item) {
+      return item.id === state.currentHistoryId;
+    });
+
+    if (!record) {
+      saveCurrentPostToHistory("local");
+      record = state.generationHistory.find(function (item) {
+        return item.id === state.currentHistoryId;
+      });
+    }
+
+    if (!record) {
+      return;
+    }
+
+    record.updatedAt = now;
+    record.posterProvider = provider || record.posterProvider || "";
+    record.posterModel = model || record.posterModel || "";
+    record.posterFormat = state.posterSettings.format;
+    record.posterPreview = preview || record.posterPreview || "";
+    saveGenerationHistory();
+    renderHistoryList();
+  }
+
+  function createPosterHistoryPreview() {
+    try {
+      const ratio = elements.canvas.height / elements.canvas.width || 1.25;
+      const previewCanvas = document.createElement("canvas");
+      previewCanvas.width = HISTORY_PREVIEW_WIDTH;
+      previewCanvas.height = Math.round(HISTORY_PREVIEW_WIDTH * ratio);
+      const previewContext = previewCanvas.getContext("2d");
+      previewContext.drawImage(elements.canvas, 0, 0, previewCanvas.width, previewCanvas.height);
+      return previewCanvas.toDataURL("image/jpeg", 0.78);
+    } catch {
+      return "";
+    }
+  }
+
+  async function restoreHistoryRecord(recordId) {
+    const record = state.generationHistory.find(function (item) {
+      return item.id === recordId;
+    });
+
+    if (!record) {
+      return;
+    }
+
+    state.currentHistoryId = record.id;
+    state.topic = record.topic;
+    state.language = record.language || state.language;
+    state.postStyle = record.postStyle || state.postStyle;
+    state.generatedPost = record.post;
+    state.localizedReference = record.reference;
+    state.localizedVerseText = record.verseText;
+    state.backgroundImageUrl = "";
+    state.backgroundSource = "history";
+    state.backgroundModel = record.posterModel || "history";
+    state.backgroundPrompt = "";
+    state.selectedVerse = {
+      id: record.verseId || record.id,
+      reference: record.reference,
+      text: record.verseText || record.post,
+      focus: record.verseFocus || "",
+      tags: Array.isArray(record.tags) ? record.tags : [],
+    };
+    state.posterSettings = Object.assign({}, state.posterSettings, {
+      format: record.posterFormat || state.posterSettings.format,
+    });
+
+    elements.topicInput.value = state.topic;
+    applyTranslations();
+    syncPosterSettingsForm();
+    syncPosterCanvasSize();
+    renderSelectedVerse();
+    renderPost();
+    updatePostButtons(false);
+    updatePosterButtons(false);
+    updateSummaryLabels();
+    closeModal(elements.historyModal);
+
+    if (record.posterPreview) {
+      await renderPosterSnapshot(record.posterPreview);
+    } else {
+      drawWaitingPoster(state.topic || t("placeholderTheme"), record.reference, t("posterWaiting"));
+    }
+
+    setPostStatus(t("historyRestoredStatus"), "ready");
+  }
+
+  async function renderPosterSnapshot(imageUrl) {
+    await warmPosterFonts();
+    const image = await loadImageAsset(imageUrl);
+    ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+    drawImageBackground(ctx, image, elements.canvas.width, elements.canvas.height);
+  }
+
+  function deleteHistoryRecord(recordId) {
+    state.generationHistory = state.generationHistory.filter(function (item) {
+      return item.id !== recordId;
+    });
+    if (state.currentHistoryId === recordId) {
+      state.currentHistoryId = "";
+    }
+    saveGenerationHistory();
+    renderHistoryList();
+  }
+
+  function clearGenerationHistory() {
+    state.generationHistory = [];
+    state.currentHistoryId = "";
+    saveGenerationHistory();
+    renderHistoryList();
+    setPostStatus(t("historyClearedStatus"), "ready");
+  }
+
+  function downloadHistoryPoster(record) {
+    if (!record.posterPreview) {
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = record.posterPreview;
+    link.download = [slugify(record.topic || record.reference), "history"].filter(Boolean).join("-") + ".jpg";
+    link.click();
   }
 
   async function requestPostFromServer() {
@@ -2606,6 +2980,7 @@
       state.backgroundPrompt = aiBackground.prompt;
 
       await renderPosterFromImage(aiBackground.imageDataUrl);
+      saveCurrentPosterToHistory(aiBackground.provider || "gemini", aiBackground.model || "");
 
       state.backgroundPending = false;
       updatePosterButtons(false);
@@ -2625,7 +3000,8 @@
       state.backgroundPending = false;
       state.backgroundImageUrl = "";
       state.backgroundSource = "fallback";
-      renderPosterFallback();
+      await renderPosterFallback();
+      saveCurrentPosterToHistory("local-fallback", "");
       updatePosterButtons(false);
       setPosterStatus(buildFallbackStatus(error), "warning");
     } finally {
@@ -3199,12 +3575,21 @@
       }[state.language] || "Сервер запущен, но ключ Gemini не найден. Добавьте GEMINI_API_KEY в .env, чтобы включить Nano Banana.";
     }
 
+    const searchNote = config.googleSearchEnabled
+      ? {
+          ru: " Подбор тем может использовать web-поиск Gemini.",
+          uk: " Добір тем може використовувати web-пошук Gemini.",
+          pl: " Dobór tematów może używać wyszukiwania web Gemini.",
+          tr: " Konu seçimi Gemini web aramasını kullanabilir.",
+        }[state.language] || " Подбор тем может использовать web-поиск Gemini."
+      : "";
+
     return {
-      ru: "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически.",
-      uk: "AI-фон увімкнено: " + friendlyModelName(config.model) + ". Після вибору вірша фон генеруватиметься автоматично.",
-      pl: "Tło AI jest włączone: " + friendlyModelName(config.model) + ". Po wybraniu wersetu tło będzie generowane automatycznie.",
-      tr: "AI arka planı açık: " + friendlyModelName(config.model) + ". Ayet seçildikten sonra arka plan otomatik oluşturulacak.",
-    }[state.language] || "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически.";
+      ru: "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически." + searchNote,
+      uk: "AI-фон увімкнено: " + friendlyModelName(config.model) + ". Після вибору вірша фон генеруватиметься автоматично." + searchNote,
+      pl: "Tło AI jest włączone: " + friendlyModelName(config.model) + ". Po wybraniu wersetu tło będzie generowane automatycznie." + searchNote,
+      tr: "AI arka planı açık: " + friendlyModelName(config.model) + ". Ayet seçildikten sonra arka plan otomatik oluşturulacak." + searchNote,
+    }[state.language] || "AI-фон включен: " + friendlyModelName(config.model) + ". После выбора стиха фон будет генерироваться автоматически." + searchNote;
   }
 
   function drawBackground(context, scene, palette) {
@@ -3586,12 +3971,7 @@
       return;
     }
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(state.generatedPost).then(showCopySuccess, fallbackCopyPost);
-      return;
-    }
-
-    fallbackCopyPost();
+    copyTextToClipboard(state.generatedPost, showCopySuccess, fallbackCopyPost);
   }
 
   function downloadPoster() {
@@ -3599,11 +3979,105 @@
       return;
     }
 
-    const fileSlug = slugify(state.topic || state.selectedVerse.reference);
+    downloadCurrentCanvas(slugify(state.topic || state.selectedVerse.reference) + ".png");
+  }
+
+  function downloadCurrentCanvas(filename) {
     const link = document.createElement("a");
     link.href = elements.canvas.toDataURL("image/png");
-    link.download = fileSlug + ".png";
+    link.download = filename;
     link.click();
+  }
+
+  async function exportPosterPreset(presetId) {
+    if (!state.selectedVerse || state.backgroundPending || state.exportPending) {
+      return;
+    }
+
+    const preset = getExportPreset(presetId);
+    if (!preset) {
+      return;
+    }
+
+    const originalSettings = Object.assign({}, state.posterSettings);
+    const exportFormat = getPosterFormat(preset.formatId);
+    state.exportPending = true;
+    closeModal(elements.exportPresetsModal);
+    setPosterStatus(t("exportPreparing"), "loading");
+    updatePosterButtons(true);
+
+    try {
+      state.posterSettings = Object.assign({}, state.posterSettings, { format: preset.formatId });
+      syncPosterSettingsForm();
+      syncPosterCanvasSize();
+
+      if (state.backgroundImageUrl) {
+        await renderPosterFromImage(state.backgroundImageUrl);
+      } else {
+        await renderPosterFallback();
+      }
+
+      const filename = [
+        slugify(state.topic || state.selectedVerse.reference),
+        slugify(preset.id),
+        String(exportFormat.width) + "x" + String(exportFormat.height),
+      ].filter(Boolean).join("-") + ".png";
+      downloadCurrentCanvas(filename);
+    } finally {
+      state.posterSettings = originalSettings;
+      syncPosterSettingsForm();
+      syncPosterCanvasSize();
+      updateSummaryLabels();
+
+      if (state.backgroundImageUrl) {
+        await renderPosterFromImage(state.backgroundImageUrl).catch(function () {
+          renderPosterFallback();
+        });
+      } else {
+        await renderPosterFallback();
+      }
+
+      state.exportPending = false;
+      updatePosterButtons(false);
+      setPosterStatus(t("exportReady"), "ready");
+    }
+  }
+
+  function copyTextToClipboard(text, onSuccess, onFallback) {
+    if (!text) {
+      return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onSuccess, function () {
+        fallbackCopyText(text);
+        if (typeof onFallback === "function") {
+          onFallback();
+        }
+      });
+      return;
+    }
+
+    fallbackCopyText(text);
+    if (typeof onFallback === "function") {
+      onFallback();
+    }
+  }
+
+  function fallbackCopyText(text) {
+    const helper = document.createElement("textarea");
+    helper.value = text;
+    helper.setAttribute("readonly", "true");
+    helper.style.position = "absolute";
+    helper.style.left = "-9999px";
+    document.body.appendChild(helper);
+    helper.select();
+
+    try {
+      document.execCommand("copy");
+    } finally {
+      document.body.removeChild(helper);
+    }
   }
 
   function openModal(modalElement) {
@@ -3717,6 +4191,8 @@
     state.backgroundModel = "";
     state.backgroundPrompt = "";
     state.backgroundPending = false;
+    state.exportPending = false;
+    state.currentHistoryId = "";
     state.renderToken += 1;
 
     elements.selectedVerse.classList.add("hidden");
@@ -3728,6 +4204,7 @@
     elements.regeneratePostBtn.disabled = true;
     elements.newPosterBtn.disabled = true;
     elements.newPosterBtn.textContent = t("newPoster");
+    elements.exportPresetsBtn.disabled = true;
     elements.downloadBtn.disabled = true;
     drawWaitingPoster(topic || t("placeholderTheme"), t("placeholderReference"), t("posterWaiting"));
     setPostStatus("", "info");
@@ -3792,9 +4269,11 @@
     elements.postStyleBtn.textContent = t("postStyleButton");
     updateEmojiButton();
     elements.regeneratePostBtn.textContent = t("regeneratePost");
+    elements.historyBtn.textContent = t("historyButton");
     elements.referenceUploadBtn.textContent = t("referenceUploadButton");
     elements.posterSettingsBtn.textContent = t("posterSettingsButton");
     elements.newPosterBtn.textContent = state.backgroundPending ? t("generatingPoster") : t("newPoster");
+    elements.exportPresetsBtn.textContent = t("exportPresetsButton");
     elements.downloadBtn.textContent = t("downloadPng");
     elements.scriptureModalEyebrow.textContent = t("scriptureModalEyebrow");
     elements.scriptureModalTitle.textContent = t("scriptureModalTitle");
@@ -3817,6 +4296,14 @@
     elements.postStyleModalEyebrow.textContent = t("postStyleModalEyebrow");
     elements.postStyleModalTitle.textContent = t("postStyleModalTitle");
     elements.postStyleModalSubtitle.textContent = t("postStyleModalSubtitle");
+    elements.historyModalEyebrow.textContent = t("historyModalEyebrow");
+    elements.historyModalTitle.textContent = t("historyModalTitle");
+    elements.historyModalSubtitle.textContent = t("historyModalSubtitle");
+    elements.historyClearBtn.textContent = t("historyClear");
+    elements.historyEmpty.textContent = t("historyEmpty");
+    elements.exportModalEyebrow.textContent = t("exportModalEyebrow");
+    elements.exportModalTitle.textContent = t("exportModalTitle");
+    elements.exportModalSubtitle.textContent = t("exportModalSubtitle");
     elements.posterSettingsEyebrow.textContent = t("posterSettingsEyebrow");
     elements.posterSettingsTitle.textContent = t("posterSettingsTitle");
     elements.posterSettingsSubtitle.textContent = t("posterSettingsSubtitle");
@@ -3842,6 +4329,8 @@
     renderLanguageOptions();
     renderScriptureModeOptions();
     renderPostStyleOptions();
+    renderExportPresetOptions();
+    renderHistoryList();
     populatePosterSettingSelects();
     updateSummaryLabels();
     updateAssetMetaLabels();
@@ -3905,6 +4394,106 @@
       });
       elements.postStyleGrid.appendChild(button);
     });
+  }
+
+  function renderExportPresetOptions() {
+    elements.exportPresetGrid.innerHTML = "";
+
+    exportPresetOptions.forEach(function (preset) {
+      const format = getPosterFormat(preset.formatId);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        "option-card" + (state.posterSettings.format === preset.formatId ? " is-selected" : "");
+      button.innerHTML =
+        "<strong>" +
+        escapeHtml(preset.platform) +
+        "</strong><p>" +
+        escapeHtml(getPosterFormatLabel(preset.formatId)) +
+        " • " +
+        escapeHtml(preset.size || format.width + "×" + format.height) +
+        "</p>";
+      button.addEventListener("click", function () {
+        void exportPosterPreset(preset.id);
+      });
+      elements.exportPresetGrid.appendChild(button);
+    });
+  }
+
+  function renderHistoryList() {
+    elements.historyList.innerHTML = "";
+    elements.historyEmpty.classList.toggle("hidden", state.generationHistory.length > 0);
+    elements.historyClearBtn.disabled = state.generationHistory.length === 0;
+
+    state.generationHistory.forEach(function (record) {
+      const item = document.createElement("article");
+      item.className = "history-card";
+
+      const preview = document.createElement("div");
+      preview.className = "history-preview";
+
+      if (record.posterPreview) {
+        const image = document.createElement("img");
+        image.src = record.posterPreview;
+        image.alt = "";
+        preview.appendChild(image);
+      } else {
+        const placeholder = document.createElement("span");
+        placeholder.textContent = t("historyPosterMissing");
+        preview.appendChild(placeholder);
+      }
+
+      const body = document.createElement("div");
+      body.className = "history-body";
+
+      const meta = document.createElement("p");
+      meta.className = "history-meta";
+      meta.textContent = formatHistoryDate(record.createdAt) + " • " + cleanDisplayText(record.reference);
+
+      const title = document.createElement("h3");
+      title.textContent = cleanDisplayText(record.topic) || cleanDisplayText(record.reference);
+
+      const excerpt = document.createElement("p");
+      excerpt.className = "history-excerpt";
+      excerpt.textContent = shortenText(cleanDisplayText(record.post), 230);
+
+      const actions = document.createElement("div");
+      actions.className = "history-actions";
+      actions.appendChild(createHistoryActionButton(t("historyRestore"), function () {
+        void restoreHistoryRecord(record.id);
+      }));
+      actions.appendChild(createHistoryActionButton(t("historyCopy"), function () {
+        copyTextToClipboard(record.post || "", function () {
+          setPostStatus(t("historyCopiedStatus"), "ready");
+        }, function () {
+          setPostStatus(t("historyCopiedStatus"), "ready");
+        });
+      }));
+      actions.appendChild(createHistoryActionButton(t("historyDownload"), function () {
+        downloadHistoryPoster(record);
+      }, !record.posterPreview));
+      actions.appendChild(createHistoryActionButton(t("historyDelete"), function () {
+        deleteHistoryRecord(record.id);
+      }));
+
+      body.appendChild(meta);
+      body.appendChild(title);
+      body.appendChild(excerpt);
+      body.appendChild(actions);
+      item.appendChild(preview);
+      item.appendChild(body);
+      elements.historyList.appendChild(item);
+    });
+  }
+
+  function createHistoryActionButton(label, onClick, disabled) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost-btn compact-btn";
+    button.textContent = label;
+    button.disabled = Boolean(disabled);
+    button.addEventListener("click", onClick);
+    return button;
   }
 
   function populatePosterSettingSelects() {
@@ -4150,6 +4739,9 @@
     } else if (state.topic) {
       state.suggestions = [];
       state.suggestionReasons = {};
+      state.researchSources = [];
+      state.searchQueries = [];
+      state.topicResearch = null;
       renderScriptureModal();
       resetGeneratedOutput(state.topic);
       void enhanceScriptureSuggestions(state.topic);
@@ -4167,6 +4759,9 @@
     if (state.topic && !state.selectedVerse) {
       state.suggestions = [];
       state.suggestionReasons = {};
+      state.researchSources = [];
+      state.searchQueries = [];
+      state.topicResearch = null;
       renderScriptureModal();
       void enhanceScriptureSuggestions(state.topic);
     }
@@ -4293,9 +4888,11 @@
   }
 
   function updatePosterButtons(isBusy) {
+    const locked = isBusy || state.exportPending;
     elements.posterSettingsBtn.disabled = false;
-    elements.newPosterBtn.disabled = !state.selectedVerse || isBusy;
-    elements.downloadBtn.disabled = !state.selectedVerse || isBusy;
+    elements.newPosterBtn.disabled = !state.selectedVerse || locked;
+    elements.exportPresetsBtn.disabled = !state.selectedVerse || locked;
+    elements.downloadBtn.disabled = !state.selectedVerse || locked;
     elements.newPosterBtn.textContent = isBusy ? t("generatingPoster") : t("newPoster");
   }
 
@@ -4353,6 +4950,12 @@
         return option.id === formatId;
       }) || posterFormatOptions[0]
     );
+  }
+
+  function getExportPreset(presetId) {
+    return exportPresetOptions.find(function (preset) {
+      return preset.id === presetId;
+    });
   }
 
   function getScriptureMatchModeLabel(modeId) {
@@ -4510,24 +5113,32 @@
         story_9_16: "Stories / Reels 9:16",
         square_1_1: "Квадрат 1:1",
         landscape_16_9: "Широкий 16:9",
+        facebook_link_1200_630: "Facebook / Link 1200×630",
+        pinterest_2_3: "Pinterest 2:3",
       },
       uk: {
         portrait_4_5: "Instagram 4:5",
         story_9_16: "Stories / Reels 9:16",
         square_1_1: "Квадрат 1:1",
         landscape_16_9: "Широкий 16:9",
+        facebook_link_1200_630: "Facebook / Link 1200×630",
+        pinterest_2_3: "Pinterest 2:3",
       },
       pl: {
         portrait_4_5: "Instagram 4:5",
         story_9_16: "Stories / Reels 9:16",
         square_1_1: "Kwadrat 1:1",
         landscape_16_9: "Szeroki 16:9",
+        facebook_link_1200_630: "Facebook / Link 1200×630",
+        pinterest_2_3: "Pinterest 2:3",
       },
       tr: {
         portrait_4_5: "Instagram 4:5",
         story_9_16: "Stories / Reels 9:16",
         square_1_1: "Kare 1:1",
         landscape_16_9: "Geniş 16:9",
+        facebook_link_1200_630: "Facebook / Link 1200×630",
+        pinterest_2_3: "Pinterest 2:3",
       },
     };
 
@@ -6116,6 +6727,109 @@
     } catch {
       // Ignore storage issues and keep the in-memory rotation.
     }
+  }
+
+  function loadGenerationHistory() {
+    try {
+      if (!window.localStorage) {
+        return [];
+      }
+
+      const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.map(normalizeHistoryRecord).filter(Boolean).slice(0, HISTORY_LIMIT);
+    } catch {
+      return [];
+    }
+  }
+
+  function saveGenerationHistory() {
+    const normalized = state.generationHistory
+      .map(normalizeHistoryRecord)
+      .filter(Boolean)
+      .slice(0, HISTORY_LIMIT);
+    state.generationHistory = normalized;
+
+    try {
+      if (!window.localStorage) {
+        return;
+      }
+
+      window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(normalized));
+    } catch {
+      try {
+        const compact = normalized.map(function (record, index) {
+          if (index < 6) {
+            return record;
+          }
+          return Object.assign({}, record, { posterPreview: "" });
+        });
+        window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(compact));
+        state.generationHistory = compact;
+      } catch {
+        // Keep in-memory history when browser storage quota is full.
+      }
+    }
+  }
+
+  function normalizeHistoryRecord(record) {
+    if (!record || typeof record !== "object") {
+      return null;
+    }
+
+    const post = cleanDisplayText(record.post);
+    const topic = cleanDisplayText(record.topic);
+    const reference = cleanDisplayText(record.reference);
+
+    if (!post || !reference) {
+      return null;
+    }
+
+    return {
+      id: cleanDisplayText(record.id) || createHistoryId(),
+      createdAt: cleanDisplayText(record.createdAt) || new Date().toISOString(),
+      updatedAt: cleanDisplayText(record.updatedAt) || cleanDisplayText(record.createdAt) || new Date().toISOString(),
+      topic: topic,
+      reference: reference,
+      verseText: cleanDisplayText(record.verseText),
+      verseFocus: cleanDisplayText(record.verseFocus),
+      verseId: cleanDisplayText(record.verseId),
+      tags: Array.isArray(record.tags) ? record.tags.map(cleanDisplayText).filter(Boolean).slice(0, 8) : [],
+      post: post,
+      postStyle: cleanDisplayText(record.postStyle) || "inspiring",
+      language: cleanDisplayText(record.language) || "ru",
+      postProvider: cleanDisplayText(record.postProvider),
+      posterProvider: cleanDisplayText(record.posterProvider),
+      posterModel: cleanDisplayText(record.posterModel),
+      posterFormat: cleanDisplayText(record.posterFormat) || "portrait_4_5",
+      posterPreview: typeof record.posterPreview === "string" ? record.posterPreview : "",
+    };
+  }
+
+  function createHistoryId() {
+    return "history-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  }
+
+  function formatHistoryDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleString(state.language === "ru" ? "ru-RU" : undefined, {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   function createEmptyTopicRotationState() {

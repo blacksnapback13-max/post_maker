@@ -20,6 +20,20 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
+const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
+const DEFAULT_TEXT_FALLBACK_MODELS = "gemini-2.5-flash-lite,gemini-3.1-flash-lite";
+const DEFAULT_IMAGE_FALLBACK_MODELS = "gemini-2.5-flash-image";
+const DEFAULT_OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
+const SERVER_STARTED_AT = new Date().toISOString();
+
+let latestJob = {
+  id: "idle",
+  status: "idle",
+  title: "Нет активной задачи",
+  progress: 0,
+  createdAt: SERVER_STARTED_AT,
+  updatedAt: SERVER_STARTED_AT,
+};
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -156,6 +170,36 @@ const storytellingGuides = {
   poetic:
     "open with an image or emotional scene that feels true to ordinary life; weave the verse through it; close with memorable, worshipful resolve",
 };
+
+const postStyleDifferentiators = {
+  soft:
+    "Use a pastoral letter shape: gentle address, one tender tension, one clear Scripture comfort, one small obedient step. Avoid slogans and pressure.",
+  inspiring:
+    "Use a challenge-and-response shape: strong opening tension, Scripture as courage, energetic hope, clear action step. Make the cadence forward-moving.",
+  conservative:
+    "Use a compact exposition shape: state the issue soberly, explain the verse, name doctrine, call for ordered obedience. Avoid trendy phrases.",
+  modern:
+    "Use a crisp social-post shape: short lines, direct language, concrete everyday pressure, practical response. Avoid old sermon phrasing.",
+  historical:
+    "Use a classic Protestant sermon turn: human condition, Scripture's judgment, Christ-centered grace, earnest appeal to conscience.",
+  pastoral:
+    "Use a shepherding shape: name the burden, slow the reader down, apply the verse to conscience, offer prayerful guidance.",
+  evangelistic:
+    "Use a gospel-invitation shape: expose the heart issue, present Christ and grace, call for repentance and faith without manipulation.",
+  meditative:
+    "Use a contemplative shape: quiet opening, slow reflection on the verse, self-examination, prayerful obedience. Keep the pace unhurried.",
+  poetic:
+    "Use an image-led shape: vivid but sober metaphor, lyrical transitions, Scripture as light, worshipful final resolve. Avoid vague prettiness.",
+};
+
+const postVariantAngles = [
+  "Change the opening image and paragraph rhythm from previous attempts; do not reuse generic phrasing.",
+  "Focus on the hidden heart motive behind the topic and make the application more concrete.",
+  "Start from an everyday pressure point, then turn sharply to the verse and a practical response.",
+  "Make the post more theologically explicit while keeping it readable for social media.",
+  "Use a fresh pastoral angle and different hashtags from a typical first draft.",
+  "Make the final call to action distinct, specific, and grounded in the selected verse.",
+];
 
 const topicLensGuides = [
   {
@@ -326,6 +370,10 @@ const posterFormatGuides = {
     "square 1:1 Instagram format, 1080 by 1080 composition, balanced centered crop with calm margins",
   landscape_16_9:
     "wide 16:9 format, 1920 by 1080 composition, horizontal cinematic crop with text-safe central area",
+  facebook_link_1200_630:
+    "wide 1200 by 630 social link preview format, low-height horizontal crop with very clear central text-safe area",
+  pinterest_2_3:
+    "vertical Pinterest 2:3 format, 1000 by 1500 composition, tall editorial crop with strong top-to-bottom rhythm",
 };
 
 const layoutGuides = {
@@ -334,10 +382,116 @@ const layoutGuides = {
   bottom: "leave the lower half especially readable and uncluttered for typography, with more visual detail higher up",
 };
 
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function clampProgress(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+}
+
+function createTrackedJob(title) {
+  const now = nowIso();
+  const job = {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    status: "running",
+    state: "running",
+    title,
+    name: title,
+    progress: 1,
+    createdAt: now,
+    updatedAt: now,
+  };
+  latestJob = job;
+  return job;
+}
+
+function updateJob(job, progress, title) {
+  if (!job) return;
+  const nextProgress = clampProgress(progress);
+  if (nextProgress !== null) job.progress = nextProgress;
+  if (title) {
+    job.title = title;
+    job.name = title;
+  }
+  job.updatedAt = nowIso();
+  latestJob = Object.assign({}, job);
+}
+
+function completeJob(job, title) {
+  if (!job) return;
+  job.status = "completed";
+  job.state = "completed";
+  job.progress = 100;
+  if (title) {
+    job.title = title;
+    job.name = title;
+  }
+  job.completedAt = nowIso();
+  job.updatedAt = job.completedAt;
+  latestJob = Object.assign({}, job);
+}
+
+function failJob(job, error) {
+  if (!job) return;
+  const message = error && error.message ? error.message : "Ошибка выполнения задачи";
+  job.status = "failed";
+  job.state = "failed";
+  job.progress = 100;
+  job.title = message;
+  job.name = message;
+  job.error = message;
+  job.completedAt = nowIso();
+  job.updatedAt = job.completedAt;
+  latestJob = Object.assign({}, job);
+}
+
+async function runTrackedJob(title, runner) {
+  const job = createTrackedJob(title);
+  try {
+    const result = await runner(job);
+    completeJob(job, `${title} готово`);
+    return result;
+  } catch (error) {
+    failJob(job, error);
+    throw error;
+  }
+}
+
+function buildStatusPayload() {
+  return {
+    ok: true,
+    service: "post-maker",
+    status: "online",
+    startedAt: SERVER_STARTED_AT,
+    uptimeSeconds: Math.round(process.uptime()),
+    provider: "gemini",
+    imageEnabled: Boolean(process.env.GEMINI_API_KEY),
+    model: getImageModel(),
+    textModel: getTextModel(),
+    freeModelsOnly: isFreeAiPolicyEnabled(),
+    aiPolicy: getAiPolicySummary(),
+    job: latestJob,
+    task: latestJob,
+    updatedAt: nowIso(),
+  };
+}
+
 function createServer() {
   return http.createServer(async function (request, response) {
     try {
       const requestUrl = new URL(request.url || "/", "http://localhost");
+
+      if (request.method === "GET" && requestUrl.pathname === "/api/status") {
+        return sendJson(response, 200, buildStatusPayload());
+      }
+
+      if (request.method === "GET" && requestUrl.pathname === "/api/jobs/latest") {
+        return sendJson(response, 200, { job: latestJob });
+      }
 
       if (request.method === "GET" && requestUrl.pathname === "/api/config") {
         return sendJson(response, 200, {
@@ -345,6 +499,10 @@ function createServer() {
           imageEnabled: Boolean(process.env.GEMINI_API_KEY),
           model: getImageModel(),
           textModel: getTextModel(),
+          freeModelsOnly: isFreeAiPolicyEnabled(),
+          aiPolicy: getAiPolicySummary(),
+          googleSearchEnabled: isGoogleSearchGroundingEnabled(),
+          searchTextModel: getSearchTextModel(),
           provider: "gemini",
         });
       }
@@ -358,19 +516,25 @@ function createServer() {
           });
         }
 
-        const prompt = buildPostPrompt(body);
-        const generated = await requestGeminiJson(prompt, getTextModel());
-        const normalized = normalizeGeneratedPost(generated, body);
-
-        return sendJson(response, 200, {
-          provider: "gemini",
-          model: getTextModel(),
-          prompt: prompt,
-          post: normalized.post,
-          hashtags: normalized.hashtags,
-          verseText: normalized.verseText,
-          reference: normalized.reference,
+        const payload = await runTrackedJob("Генерация поста", async function (job) {
+          updateJob(job, 20, "Собираю промпт для текста");
+          const prompt = buildPostPrompt(body);
+          updateJob(job, 45, "Жду ответ Gemini");
+          const generated = await requestGeminiJson(prompt, getTextModel());
+          updateJob(job, 80, "Нормализую пост и хэштеги");
+          const normalized = normalizeGeneratedPost(generated, body);
+          return {
+            provider: "gemini",
+            model: generated.__model || getTextModel(),
+            prompt: prompt,
+            post: normalized.post,
+            hashtags: normalized.hashtags,
+            verseText: normalized.verseText,
+            reference: normalized.reference,
+          };
         });
+
+        return sendJson(response, 200, payload);
       }
 
       if (request.method === "POST" && requestUrl.pathname === "/api/suggest-scriptures") {
@@ -382,18 +546,33 @@ function createServer() {
           });
         }
 
-        const prompt = buildScriptureSuggestionPrompt(body);
-        const generated = await requestGeminiJson(prompt, getTextModel(), { temperature: 0.65 });
-        const normalized = normalizeSuggestedScriptures(generated, body);
-
-        return sendJson(response, 200, {
-          provider: "gemini",
-          model: getTextModel(),
-          prompt: prompt,
-          suggestions: normalized.suggestions,
-          ids: normalized.ids,
-          reasons: normalized.reasons,
+        const payload = await runTrackedJob("Подбор мест Писания", async function (job) {
+          updateJob(job, 20, "Готовлю список вариантов");
+          const prompt = buildScriptureSuggestionPrompt(body);
+          const useGoogleSearch = isGoogleSearchGroundingEnabled();
+          updateJob(job, 45, "Жду ответ Gemini");
+          const generated = await requestGeminiJson(prompt, getSearchTextModel(), {
+            temperature: useGoogleSearch ? 0.78 : 0.65,
+            googleSearch: useGoogleSearch,
+          });
+          updateJob(job, 82, "Привожу рекомендации к формату");
+          const normalized = normalizeSuggestedScriptures(generated, body);
+          const grounding = generated && generated.__groundingMetadata;
+          return {
+            provider: "gemini",
+            model: generated.__model || getSearchTextModel(),
+            prompt: prompt,
+            googleSearchEnabled: useGoogleSearch,
+            researchSources: extractGroundingSources(grounding),
+            searchQueries: extractGroundingQueries(grounding),
+            topicResearch: normalized.topicResearch,
+            suggestions: normalized.suggestions,
+            ids: normalized.ids,
+            reasons: normalized.reasons,
+          };
         });
+
+        return sendJson(response, 200, payload);
       }
 
       if (request.method === "POST" && requestUrl.pathname === "/api/translate-topic") {
@@ -405,16 +584,22 @@ function createServer() {
           });
         }
 
-        const prompt = buildTopicTranslationPrompt(body);
-        const generated = await requestGeminiJson(prompt, getTextModel(), { temperature: 0.2 });
-        const normalized = normalizeTranslatedTopic(generated, body);
-
-        return sendJson(response, 200, {
-          provider: "gemini",
-          model: getTextModel(),
-          prompt: prompt,
-          topic: normalized.topic,
+        const payload = await runTrackedJob("Перевод темы", async function (job) {
+          updateJob(job, 25, "Готовлю перевод темы");
+          const prompt = buildTopicTranslationPrompt(body);
+          updateJob(job, 55, "Жду ответ Gemini");
+          const generated = await requestGeminiJson(prompt, getTextModel(), { temperature: 0.2 });
+          updateJob(job, 86, "Проверяю формат перевода");
+          const normalized = normalizeTranslatedTopic(generated, body);
+          return {
+            provider: "gemini",
+            model: getTextModel(),
+            prompt: prompt,
+            topic: normalized.topic,
+          };
         });
+
+        return sendJson(response, 200, payload);
       }
 
       if (request.method === "POST" && requestUrl.pathname === "/api/generate-background") {
@@ -426,18 +611,32 @@ function createServer() {
           });
         }
 
-        const referenceImage = normalizeReferenceImagePayload(body.referenceImage);
-        const prompt = buildGeminiPrompt(Object.assign({}, body, { referenceImage: referenceImage }));
-        const model = getImageModel();
-        const image = await requestGeminiImage(prompt, model, referenceImage);
-
-        return sendJson(response, 200, {
-          provider: "gemini",
-          model: model,
-          prompt: prompt,
-          imageDataUrl: image.dataUrl,
-          mimeType: image.mimeType,
+        const payload = await runTrackedJob("Генерация фона", async function (job) {
+          updateJob(job, 18, "Проверяю reference image");
+          const referenceImage = normalizeReferenceImagePayload(body.referenceImage);
+          updateJob(job, 35, "Собираю промпт для фона");
+          const prompt = buildGeminiPrompt(Object.assign({}, body, { referenceImage: referenceImage }));
+          const model = getImageModel();
+          updateJob(job, 58, "Генерирую изображение");
+          let image = null;
+          try {
+            image = await requestGeminiImage(prompt, model, referenceImage);
+          } catch (error) {
+            updateJob(job, 74, "Gemini недоступен, собираю локальный fallback-фон");
+            image = buildFallbackBackgroundImage(body, prompt, error);
+          }
+          updateJob(job, 90, "Готовлю изображение для интерфейса");
+          return {
+            provider: image.provider || "gemini",
+            model: image.model || model,
+            prompt: prompt,
+            imageDataUrl: image.dataUrl,
+            mimeType: image.mimeType,
+            warning: image.warning || "",
+          };
         });
+
+        return sendJson(response, 200, payload);
       }
 
       if (request.method === "GET") {
@@ -509,34 +708,50 @@ function handleGetRequest(request, requestUrl, response) {
 }
 
 async function requestGeminiJson(prompt, model, options) {
-  const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(model) +
-    ":generateContent";
+  const useGoogleSearch = Boolean(options && options.googleSearch);
+  const generationConfig = {
+    temperature:
+      options && Number.isFinite(Number(options.temperature))
+        ? Number(options.temperature)
+        : 0.95,
+  };
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": process.env.GEMINI_API_KEY,
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: prompt }],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature:
-          options && Number.isFinite(Number(options.temperature))
-            ? Number(options.temperature)
-            : 0.95,
+  if (!useGoogleSearch) {
+    generationConfig.responseMimeType = "application/json";
+  }
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [{ text: prompt }],
       },
-    }),
-  });
+    ],
+    generationConfig: generationConfig,
+  };
 
-  const payload = await response.json();
+  if (useGoogleSearch) {
+    requestBody.tools = [{ google_search: {} }];
+  }
+
+  const modelCandidates = getGeminiModelCandidates(model, "GEMINI_TEXT_FALLBACK_MODELS", DEFAULT_TEXT_FALLBACK_MODELS);
+  let response = null;
+  let payload = null;
+  let usedModel = modelCandidates[0] || model;
+
+  for (const candidateModel of modelCandidates) {
+    usedModel = candidateModel;
+    const endpoint =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      encodeURIComponent(candidateModel) +
+      ":generateContent";
+    const apiResult = await requestGeminiApi(endpoint, requestBody);
+    response = apiResult.response;
+    payload = apiResult.payload;
+
+    if (response.ok || !isRetryableGeminiStatus(response.status)) {
+      break;
+    }
+  }
 
   if (!response.ok) {
     const message =
@@ -552,28 +767,94 @@ async function requestGeminiJson(prompt, model, options) {
     throw new Error("AI-модель не вернула текст для поста.");
   }
 
-  try {
-    return JSON.parse(rawText);
-  } catch {
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/u);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    throw new Error("AI-модель вернула текст в неожиданном формате.");
+  const parsed = parseJsonPayload(rawText);
+  const groundingMetadata = extractGroundingMetadata(payload);
+
+  if (parsed && typeof parsed === "object") {
+    Object.defineProperty(parsed, "__groundingMetadata", {
+      value: groundingMetadata,
+      enumerable: false,
+      configurable: true,
+    });
+    Object.defineProperty(parsed, "__model", {
+      value: usedModel,
+      enumerable: false,
+      configurable: true,
+    });
   }
+
+  return parsed;
+}
+
+async function requestGeminiApi(endpoint, body) {
+  const maxAttempts = 2;
+  let response = null;
+  let payload = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, 12000);
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      try {
+        payload = await response.json();
+      } catch {
+        payload = {};
+      }
+    } catch (error) {
+      response = {
+        ok: false,
+        status: 503,
+      };
+      payload = {
+        error: {
+          message:
+            error && error.name === "AbortError"
+              ? "Gemini API request timed out."
+              : error && error.message
+                ? error.message
+                : "Gemini API request failed.",
+        },
+      };
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (response.ok || !isRetryableGeminiStatus(response.status) || attempt === maxAttempts) {
+      break;
+    }
+
+    await delay(650 * attempt * attempt);
+  }
+
+  return {
+    response: response,
+    payload: payload || {},
+  };
+}
+
+function isRetryableGeminiStatus(statusCode) {
+  return statusCode === 429 || statusCode === 500 || statusCode === 502 || statusCode === 503 || statusCode === 504;
+}
+
+function delay(milliseconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, milliseconds);
+  });
 }
 
 async function requestGeminiImage(prompt, model, referenceImage) {
-  const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(model) +
-    ":generateContent";
-
-  const imageConfig = { aspectRatio: "4:5" };
-  if (model !== "gemini-2.5-flash-image") {
-    imageConfig.imageSize = "2K";
-  }
-
   const parts = [];
   if (referenceImage) {
     parts.push({
@@ -585,13 +866,22 @@ async function requestGeminiImage(prompt, model, referenceImage) {
   }
   parts.push({ text: prompt });
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": process.env.GEMINI_API_KEY,
-    },
-    body: JSON.stringify({
+  const modelCandidates = getGeminiModelCandidates(model, "GEMINI_IMAGE_FALLBACK_MODELS", DEFAULT_IMAGE_FALLBACK_MODELS);
+  let response = null;
+  let payload = null;
+  let usedModel = modelCandidates[0] || model;
+
+  for (const candidateModel of modelCandidates) {
+    usedModel = candidateModel;
+    const endpoint =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      encodeURIComponent(candidateModel) +
+      ":generateContent";
+    const imageConfig = { aspectRatio: "4:5" };
+    if (candidateModel !== "gemini-2.5-flash-image") {
+      imageConfig.imageSize = "2K";
+    }
+    const apiResult = await requestGeminiApi(endpoint, {
       contents: [
         {
           parts: parts,
@@ -600,10 +890,14 @@ async function requestGeminiImage(prompt, model, referenceImage) {
       generationConfig: {
         imageConfig: imageConfig,
       },
-    }),
-  });
+    });
+    response = apiResult.response;
+    payload = apiResult.payload;
 
-  const payload = await response.json();
+    if (response.ok || !isRetryableGeminiStatus(response.status)) {
+      break;
+    }
+  }
 
   if (!response.ok) {
     const message =
@@ -620,6 +914,7 @@ async function requestGeminiImage(prompt, model, referenceImage) {
   }
 
   return {
+    model: usedModel,
     mimeType: inline.mimeType || "image/png",
     dataUrl: "data:" + (inline.mimeType || "image/png") + ";base64," + inline.data,
   };
@@ -698,6 +993,69 @@ function extractTextPayload(payload) {
   return "";
 }
 
+function parseJsonPayload(rawText) {
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    const fencedMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/iu);
+    if (fencedMatch) {
+      return JSON.parse(fencedMatch[1].trim());
+    }
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/u);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    throw new Error("AI-модель вернула текст в неожиданном формате.");
+  }
+}
+
+function extractGroundingMetadata(payload) {
+  const candidates = Array.isArray(payload && payload.candidates) ? payload.candidates : [];
+  const candidate = candidates[0] || {};
+  return candidate.groundingMetadata || candidate.grounding_metadata || null;
+}
+
+function extractGroundingSources(metadata) {
+  const chunks = Array.isArray(metadata && metadata.groundingChunks)
+    ? metadata.groundingChunks
+    : Array.isArray(metadata && metadata.grounding_chunks)
+      ? metadata.grounding_chunks
+      : [];
+  const seen = new Set();
+  const sources = [];
+
+  chunks.forEach(function (chunk) {
+    const web = chunk && chunk.web ? chunk.web : {};
+    const uri = cleanText(web.uri || web.url);
+    const title = cleanText(web.title || uri);
+    const key = uri || title;
+
+    if (!key || seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    sources.push({
+      title: shortenText(title, 96),
+      url: uri,
+    });
+  });
+
+  return sources.slice(0, 6);
+}
+
+function extractGroundingQueries(metadata) {
+  const queries = Array.isArray(metadata && metadata.webSearchQueries)
+    ? metadata.webSearchQueries
+    : Array.isArray(metadata && metadata.web_search_queries)
+      ? metadata.web_search_queries
+      : [];
+
+  return queries.map(cleanText).filter(Boolean).slice(0, 6);
+}
+
 function buildGeminiPrompt(input) {
   const topic = cleanText(input.topic);
   const reference = cleanText(input.reference);
@@ -751,6 +1109,8 @@ function buildGeminiPrompt(input) {
     "Visual direction: " + scene + ".",
     "Visual style: " + artStyle + ".",
     "Subject-style lock: the selected subject must dominate the actual scene, and the selected visual style must change composition, materials, color behavior, camera language, and texture, not merely add a filter.",
+    "Style contrast requirement: make this look unmistakably like the selected visual style when compared against natural/editorial/cinematic/minimalist/painterly/vintage/dreamy/modernist/postmodern/glitch/luxury/analog alternatives.",
+    "The chosen style should change the image language at the concept level, including geometry, surface treatment, depth, and lighting behavior.",
     "Do not default back to a pastoral landscape when the selected subject is city, architecture, interior, people, abstract, texture, night, or street.",
     "Lighting: " + lighting + ".",
     "Color palette: " + palette + ".",
@@ -771,6 +1131,132 @@ function buildGeminiPrompt(input) {
   ].join(" ");
 }
 
+function buildFallbackBackgroundImage(input, prompt, error) {
+  const settings = input && input.posterSettings ? input.posterSettings : {};
+  const format = getFallbackImageFormat(String(settings.format || "portrait_4_5"));
+  const subject = String(settings.subject || "landscape");
+  const visualStyle = String(settings.visualStyle || "natural");
+  const variant = Number.isFinite(Number(input && input.variant)) ? Number(input.variant) : 0;
+  const seed = Math.abs(hashString([
+    cleanText(input && input.topic),
+    cleanText(input && input.reference),
+    subject,
+    visualStyle,
+    String(variant),
+  ].join("|")));
+  const palette = getFallbackImagePalette(subject, visualStyle, seed);
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + format.width + '" height="' + format.height + '" viewBox="0 0 ' + format.width + ' ' + format.height + '">',
+    "<defs>",
+    '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">',
+    '<stop offset="0%" stop-color="' + palette.top + '"/>',
+    '<stop offset="52%" stop-color="' + palette.mid + '"/>',
+    '<stop offset="100%" stop-color="' + palette.bottom + '"/>',
+    "</linearGradient>",
+    '<radialGradient id="glow" cx="' + (seed % 70 + 15) + '%" cy="' + (seed % 42 + 10) + '%" r="62%">',
+    '<stop offset="0%" stop-color="' + palette.glow + '" stop-opacity="0.62"/>',
+    '<stop offset="100%" stop-color="' + palette.glow + '" stop-opacity="0"/>',
+    "</radialGradient>",
+    "</defs>",
+    '<rect width="100%" height="100%" fill="url(#bg)"/>',
+    '<rect width="100%" height="100%" fill="url(#glow)"/>',
+    buildFallbackSubjectSvg(subject, visualStyle, format, palette, seed),
+    '<rect width="100%" height="100%" fill="' + palette.veil + '" opacity="0.18"/>',
+    "</svg>",
+  ].join("");
+
+  return {
+    provider: "local-fallback",
+    model: "local-svg-background",
+    prompt: prompt,
+    mimeType: "image/svg+xml",
+    dataUrl: "data:image/svg+xml;base64," + Buffer.from(svg, "utf8").toString("base64"),
+    warning: error && error.message ? error.message : "Gemini image generation unavailable.",
+  };
+}
+
+function getFallbackImageFormat(formatId) {
+  const formats = {
+    portrait_4_5: { width: 1080, height: 1350 },
+    story_9_16: { width: 1080, height: 1920 },
+    square_1_1: { width: 1080, height: 1080 },
+    landscape_16_9: { width: 1920, height: 1080 },
+  };
+
+  return formats[formatId] || formats.portrait_4_5;
+}
+
+function getFallbackImagePalette(subject, visualStyle, seed) {
+  const stylePalettes = {
+    glitch: ["#121826", "#243b67", "#03d5ff", "#ff4fd8", "rgba(255,255,255,0.06)"],
+    painterly: ["#2f3f38", "#7b8c61", "#d9c29a", "#fff0c9", "rgba(255,247,222,0.16)"],
+    vintage_film: ["#42372f", "#8e7359", "#d4ad72", "#ffe0a3", "rgba(70,45,20,0.12)"],
+    modernism: ["#203047", "#e2d6bd", "#d4513c", "#f6e7c8", "rgba(255,255,255,0.18)"],
+    postmodern: ["#17213a", "#58508d", "#ffb000", "#ff6361", "rgba(255,255,255,0.14)"],
+    luxury: ["#16191f", "#26332c", "#c9a968", "#fff1c8", "rgba(255,245,210,0.12)"],
+    analog: ["#303b35", "#8d9272", "#c7b99a", "#f6e8ce", "rgba(80,55,30,0.12)"],
+    minimalist: ["#d9e3df", "#f4eee3", "#9ab7b0", "#ffffff", "rgba(255,255,255,0.28)"],
+    cinematic: ["#132033", "#36526c", "#d59d59", "#ffe0a0", "rgba(10,20,35,0.10)"],
+    dreamy: ["#c9d7ec", "#dfcce8", "#f6dfd1", "#ffffff", "rgba(255,255,255,0.26)"],
+  };
+  const subjectPalettes = {
+    city: ["#182333", "#33485e", "#9fb9c8", "#f0d09a", "rgba(8,16,28,0.12)"],
+    sea: ["#123245", "#2f7185", "#b6e0d8", "#fff3d6", "rgba(255,255,255,0.14)"],
+    forest: ["#183326", "#476b48", "#9caf7b", "#f6e8c8", "rgba(12,35,22,0.12)"],
+    mountains: ["#223047", "#5d7188", "#c4c9c7", "#fff0c8", "rgba(20,35,55,0.10)"],
+    abstract: ["#20223b", "#5d6db4", "#d9a7c7", "#fff2cc", "rgba(255,255,255,0.16)"],
+    texture: ["#4b4338", "#a18f75", "#dac9aa", "#fff3d8", "rgba(88,55,20,0.10)"],
+    night: ["#090f1e", "#1d3152", "#5577a8", "#d6e9ff", "rgba(0,0,0,0.18)"],
+  };
+  const selected = stylePalettes[visualStyle] || subjectPalettes[subject] || ["#24344a", "#6c8e8a", "#d8c69a", "#fff0c8", "rgba(255,255,255,0.14)"];
+  const shift = seed % selected.length;
+  const rotated = selected.slice(shift).concat(selected.slice(0, shift));
+
+  return {
+    top: rotated[0],
+    mid: rotated[1],
+    bottom: rotated[2],
+    glow: rotated[3],
+    veil: rotated[4] || "rgba(255,255,255,0.12)",
+  };
+}
+
+function buildFallbackSubjectSvg(subject, visualStyle, format, palette, seed) {
+  const width = format.width;
+  const height = format.height;
+  const horizon = Math.round(height * (0.56 + (seed % 12) / 100));
+  const accent = visualStyle === "glitch" || visualStyle === "postmodern" || visualStyle === "modernism";
+  const opacity = accent ? "0.42" : "0.28";
+  const shapes = [];
+
+  if (subject === "city" || subject === "street" || subject === "architecture" || subject === "old_town") {
+    for (let index = 0; index < 14; index += 1) {
+      const buildingWidth = Math.round(width * (0.045 + ((seed + index) % 5) / 260));
+      const x = Math.round((width / 14) * index - buildingWidth * 0.2);
+      const buildingHeight = Math.round(height * (0.12 + ((seed + index * 7) % 18) / 100));
+      shapes.push('<rect x="' + x + '" y="' + (horizon - buildingHeight) + '" width="' + buildingWidth + '" height="' + buildingHeight + '" fill="' + palette.top + '" opacity="0.36"/>');
+    }
+    shapes.push('<rect x="0" y="' + horizon + '" width="' + width + '" height="' + Math.round(height * 0.16) + '" fill="' + palette.bottom + '" opacity="0.2"/>');
+  } else if (subject === "sea" || subject === "lake" || subject === "river" || subject === "rain") {
+    for (let index = 0; index < 5; index += 1) {
+      const y = Math.round(horizon + index * height * 0.06);
+      shapes.push('<path d="M0 ' + y + ' C ' + width * 0.25 + ' ' + (y - 34) + ', ' + width * 0.62 + ' ' + (y + 36) + ', ' + width + ' ' + (y - 8) + ' L ' + width + ' ' + (y + 58) + ' C ' + width * 0.64 + ' ' + (y + 86) + ', ' + width * 0.22 + ' ' + (y + 28) + ', 0 ' + (y + 70) + ' Z" fill="' + palette.mid + '" opacity="' + (0.18 + index * 0.035).toFixed(2) + '"/>');
+    }
+  } else if (subject === "abstract" || subject === "texture" || accent) {
+    for (let index = 0; index < 12; index += 1) {
+      const x = Math.round(((seed + index * 83) % width) - width * 0.12);
+      const y = Math.round(((seed + index * 137) % height) - height * 0.08);
+      const size = Math.round(width * (0.12 + ((seed + index) % 8) / 100));
+      shapes.push('<rect x="' + x + '" y="' + y + '" width="' + size + '" height="' + Math.round(size * 0.36) + '" rx="' + Math.round(size * 0.04) + '" fill="' + (index % 2 ? palette.glow : palette.mid) + '" opacity="' + opacity + '" transform="rotate(' + (((seed + index * 17) % 50) - 25) + ' ' + x + ' ' + y + ')"/>');
+    }
+  } else {
+    shapes.push('<path d="M0 ' + horizon + ' C ' + width * 0.24 + ' ' + (horizon - height * 0.12) + ', ' + width * 0.42 + ' ' + (horizon + height * 0.08) + ', ' + width + ' ' + (horizon - height * 0.08) + ' L ' + width + ' ' + height + ' L 0 ' + height + ' Z" fill="' + palette.mid + '" opacity="0.34"/>');
+    shapes.push('<path d="M0 ' + Math.round(horizon + height * 0.12) + ' C ' + width * 0.28 + ' ' + (horizon + height * 0.03) + ', ' + width * 0.56 + ' ' + (horizon + height * 0.18) + ', ' + width + ' ' + (horizon + height * 0.06) + ' L ' + width + ' ' + height + ' L 0 ' + height + ' Z" fill="' + palette.top + '" opacity="0.18"/>');
+  }
+
+  return shapes.join("");
+}
+
 function buildPostPrompt(input) {
   const topic = cleanText(input.topic);
   const reference = cleanText(input.reference);
@@ -780,8 +1266,10 @@ function buildPostPrompt(input) {
   const tags = Array.isArray(input.tags) ? input.tags.map(cleanText).filter(Boolean) : [];
   const language = resolveLanguage(input.language);
   const style = String(input.postStyle || "inspiring");
+  const variant = Number.isFinite(Number(input.variant)) ? Number(input.variant) : 0;
   const topicLens = buildTopicLens(topic, tags);
   const allowEmojis = Boolean(input.allowEmojis);
+  const variantAngle = pickBySeed(postVariantAngles, hashString([topic, reference, style, String(variant)].join("|")));
 
   return [
     "You are a Protestant evangelical content editor writing short theological social posts.",
@@ -791,6 +1279,10 @@ function buildPostPrompt(input) {
     "Do not sound sacramentalist, prosperity-focused, manipulative, universalist, or works-righteous.",
     "The tone style must be: " + (postStyleGuides[style] || postStyleGuides.inspiring) + ".",
     "Storytelling shape for this style: " + (storytellingGuides[style] || storytellingGuides.inspiring) + ".",
+    "Style differentiation requirement: " + (postStyleDifferentiators[style] || postStyleDifferentiators.inspiring),
+    "Regeneration variant #" + String(variant) + ": " + variantAngle,
+    "If the user changes style, the post must change structure, rhythm, opening, application, and call to action, not just word choice.",
+    "If this is a regeneration, produce a meaningfully new draft while keeping the same topic and verse.",
     'Topic: "' + topic + '".',
     'Verse reference: "' + reference + '".',
     'Verse text: "' + verseText + '".',
@@ -829,6 +1321,10 @@ function buildScriptureSuggestionPrompt(input) {
     "You are a Protestant biblical research editor for a Christian social post app.",
     "Write only in " + languageMeta[language].name + ".",
     "Your task is to research the whole Protestant Bible canon of 66 books and suggest up to 8 Bible passages for the exact user topic.",
+    "When web search is available, use it to ground the topic from trustworthy Protestant evangelical sources before selecting passages.",
+    "Prefer sources such as Ligonier, Desiring God, The Gospel Coalition, 9Marks, Crossway, BibleProject, GotQuestions, and relevant local-language evangelical Protestant resources.",
+    "Avoid Catholic, Orthodox, Mormon, Jehovah's Witnesses, prosperity-gospel, occult, or generic self-help sources as theological grounding.",
+    "Do not copy article wording. Synthesize the topic from scratch and then choose Bible passages.",
     "Do not use a fixed favorite list. Do not default to marriage, relationships, covenant, dating, family, or gender themes unless the topic explicitly asks for them.",
     "Stay inside the semantic boundaries of the topic. Do not broaden the topic into a different pastoral issue.",
     matchMode === "explicit"
@@ -841,7 +1337,11 @@ function buildScriptureSuggestionPrompt(input) {
     "If exact translation wording is uncertain, use a faithful traditional-style rendering rather than inventing a modern paraphrase.",
     "Do not fabricate references. Do not merge unrelated passages into one quote.",
     'Topic: "' + topic + '".',
-    "Return strict JSON only with one key: suggestions.",
+    "Return strict JSON only with keys: topicResearch, suggestions.",
+    "topicResearch must be an object with keys: summary, protestantAngle, cautions.",
+    "topicResearch.summary must summarize the specific user topic in one sentence.",
+    "topicResearch.protestantAngle must state the Protestant evangelical angle in one sentence.",
+    "topicResearch.cautions must be an array of 2 to 4 short boundaries to avoid weak or unsafe interpretation.",
     "suggestions must be an array of objects with keys: reference, text, tags, focus, rationale.",
     "reference must include book, chapter, and verse range.",
     "text must be the verse text, 1 to 4 verses maximum.",
@@ -877,6 +1377,9 @@ function normalizeSuggestedScriptures(generated, input) {
   const ids = [];
   const reasons = {};
   const seen = new Set();
+  const rawResearch = generated && generated.topicResearch && typeof generated.topicResearch === "object"
+    ? generated.topicResearch
+    : {};
 
   suggestions.forEach(function (entry, index) {
     if (!entry || typeof entry !== "object") {
@@ -932,6 +1435,13 @@ function normalizeSuggestedScriptures(generated, input) {
     suggestions: normalizedSuggestions.slice(0, 8),
     ids: ids.slice(0, 8),
     reasons: reasons,
+    topicResearch: {
+      summary: shortenText(cleanText(rawResearch.summary), 220),
+      protestantAngle: shortenText(cleanText(rawResearch.protestantAngle), 220),
+      cautions: Array.isArray(rawResearch.cautions)
+        ? rawResearch.cautions.map(cleanText).filter(Boolean).slice(0, 4)
+        : [],
+    },
   };
 }
 
@@ -1343,6 +1853,91 @@ function getTextModel() {
   return process.env.GEMINI_TEXT_MODEL || DEFAULT_TEXT_MODEL;
 }
 
+function getSearchTextModel() {
+  return process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_SEARCH_TEXT_MODEL;
+}
+
+function getGeminiModelCandidates(primaryModel, fallbackEnvName, defaultFallbackModels) {
+  const fallbackModels = splitModelList(process.env[fallbackEnvName] || defaultFallbackModels);
+  return Array.from(new Set([primaryModel].concat(fallbackModels).map(cleanText).filter(Boolean)));
+}
+
+function splitModelList(value) {
+  return String(value || "")
+    .split(",")
+    .map(cleanText)
+    .filter(Boolean);
+}
+
+function isGoogleSearchGroundingEnabled() {
+  const explicitFlag = readBooleanEnv("GEMINI_GOOGLE_SEARCH_ENABLED");
+  const paidToolsDisabled = readBooleanEnv("DISABLE_PAID_AI_TOOLS") === true;
+  const billingAllowed = readBooleanEnv("AI_BILLING_ALLOWED") === true;
+
+  if (isFreeAiPolicyEnabled()) {
+    return false;
+  }
+
+  if (explicitFlag === false) {
+    return false;
+  }
+
+  if (paidToolsDisabled && !billingAllowed) {
+    return false;
+  }
+
+  return explicitFlag === true && billingAllowed;
+}
+
+function isFreeAiPolicyEnabled() {
+  const explicit = readBooleanEnv("AI_FREE_MODELS_ONLY");
+  return explicit !== false;
+}
+
+function getAiPolicySummary() {
+  const openRouterModel = DEFAULT_OPENROUTER_MODEL;
+  return {
+    freeOnly: isFreeAiPolicyEnabled(),
+    paidToolsDisabled: readBooleanEnv("DISABLE_PAID_AI_TOOLS") !== false,
+    providerOrder: ["gemini", "groq", "openrouter"],
+    gemini: {
+      configured: Boolean(process.env.GEMINI_API_KEY),
+      freeTierOnly: readBooleanEnv("GEMINI_FREE_TIER_ONLY") !== false,
+      textModel: getTextModel(),
+      imageModel: getImageModel(),
+    },
+    groq: {
+      configured: Boolean(process.env.GROQ_API_KEY),
+      freePlanOnly: readBooleanEnv("GROQ_FREE_PLAN_ONLY") !== false,
+    },
+    openRouter: {
+      configured: Boolean(process.env.OPENROUTER_API_KEY),
+      model: openRouterModel,
+      freeModelsOnly: readBooleanEnv("OPENROUTER_FREE_MODELS_ONLY") !== false,
+      modelAllowed: isOpenRouterFreeModel(openRouterModel),
+    },
+  };
+}
+
+function isOpenRouterFreeModel(model) {
+  const normalized = String(model || "").trim().toLowerCase();
+  return normalized === "openrouter/free" || normalized.endsWith(":free");
+}
+
+function readBooleanEnv(name) {
+  const value = String(process.env[name] || "").trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(value)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(value)) {
+    return false;
+  }
+
+  return null;
+}
+
 function resolveLanguage(language) {
   return languageMeta[language] ? language : "ru";
 }
@@ -1419,5 +2014,7 @@ if (require.main === module) {
 
 module.exports = {
   buildGeminiPrompt,
+  buildPostPrompt,
+  buildScriptureSuggestionPrompt,
   createServer,
 };

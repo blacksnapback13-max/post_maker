@@ -1,0 +1,16 @@
+.env
+Мобильная версия/.env
+.post-maker-server.log
+.post-maker.pid
+Мобильная версия/.post-maker-mobile.log
+Мобильная версия/.post-maker-mobile.pid
+node_modules/
+.DS_Store
+deploy-package/
+post_maker_github_upload.zip
+
+# Local secrets and free AI API keys
+.env
+.env.*
+!.env.example
+!.env.free-ai.example

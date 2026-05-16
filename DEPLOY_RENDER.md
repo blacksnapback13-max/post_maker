@@ -9,12 +9,12 @@
 
 ## Что уже подготовлено в проекте
 
-- единый сервер [server.js](</Users/kirillsevcenko/Desktop/Пост мейкер/server.js>) для обеих версий;
+- единый сервер [server.js](</Volumes/T eror/AI/Apps/Пост мейкер/server.js>) для обеих версий;
 - маршруты:
   - `/` - автоопределение устройства;
   - `/desktop/` - desktop-версия;
   - `/mobile/` - мобильная версия;
-- blueprint [render.yaml](</Users/kirillsevcenko/Desktop/Пост мейкер/render.yaml>) для Render;
+- blueprint [render.yaml](</Volumes/T eror/AI/Apps/Пост мейкер/render.yaml>) для Render;
 - health check: `/api/config`.
 
 ## Перед публикацией

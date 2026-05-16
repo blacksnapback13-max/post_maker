@@ -1,12 +1,14 @@
 {
   "name": "post-maker",
-  "version": "0.2.0",
+  "version": "1.2.0",
   "private": true,
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check app.js && node --check \"Мобильная версия/app.js\""
+    "check": "node --check server.js && node --check app.js && node --check \"Мобильная версия/server.js\" && node --check \"Мобильная версия/app.js\" && node --check scripts/release-smoke-test.js && node --check scripts/ui-smoke-test.js",
+    "smoke": "node scripts/release-smoke-test.js",
+    "smoke:ui": "node scripts/ui-smoke-test.js"
   }
 }

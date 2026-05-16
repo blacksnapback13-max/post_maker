@@ -6,6 +6,8 @@
 - выбираете место Писания из предложенных карточек;
 - получаете готовый короткий пост;
 - скачиваете картинку поста в PNG;
+- экспортируете постер в пресеты под разные соцсети;
+- возвращаетесь к локальной истории созданных постов и фонов;
 - при наличии ключа Gemini фон генерируется через Nano Banana по теме и настроению стиха.
 
 ## Что уже умеет
@@ -17,8 +19,14 @@
 - переключать язык интерфейса, поста и постера: `русский`, `украинский`, `польский`;
 - переключать стиль подачи текста: `мягкий`, `вдохновляющий`, `консервативный`, `современный`, `исторический`;
 - перегенерировать текст поста без смены выбранного стиха;
+- хранить историю сгенерированных постов и фонов локально в браузере;
 - накладывать стих и тему на готовый постер;
 - генерировать AI-фон через Gemini Nano Banana;
+- удерживать выбранную пользовательскую тему в подборе Писания, тексте и постере;
+- менять стиль поста структурно: подача, ритм, вступление, применение и призыв меняются, а не просто перефразируются;
+- менять стиль картинки на уровне композиции, материала, света и визуального языка, а не фильтром;
+- добирать AI-рекомендации Писания локальными вариантами до 8 карточек без дублей;
+- переживать временные 429/5xx/timeout ошибки Gemini через retry, fallback-модели и локальный fallback-фон;
 - настраивать фон и постер через всплывающее окно:
   - сюжет фона;
   - художественный стиль;
@@ -28,14 +36,15 @@
   - силу обводки;
 - делать fallback на локальный спокойный фон, если AI временно недоступен;
 - генерировать новые варианты фона без смены текста.
+- экспортировать текущий постер в социальные размеры: Instagram 4:5, Instagram square, Stories/Reels 9:16, YouTube/Telegram 16:9, Facebook/Link 1200x630, Pinterest 2:3.
 
 ## Как запустить
 
-1. Скопируйте [.env.example](</Users/kirillsevcenko/Desktop/Пост мейкер/.env.example>) в `.env`.
+1. Скопируйте [.env.example](</Volumes/T eror/AI/Apps/Пост мейкер/.env.example>) в `.env`.
 2. Вставьте в `.env` свой `GEMINI_API_KEY`.
 3. При желании смените модель в `GEMINI_IMAGE_MODEL`.
 4. При желании смените текстовую модель в `GEMINI_TEXT_MODEL`.
-5. В корне проекта выполните `node server.js` или откройте ярлык [Запустить Пост мейкер.command](</Users/kirillsevcenko/Desktop/Пост мейкер/Запустить Пост мейкер.command>).
+5. В корне проекта выполните `node server.js` или откройте ярлык [Запустить Пост мейкер.command](</Volumes/T eror/AI/Apps/Пост мейкер/Запустить Пост мейкер.command>).
 6. Откройте [http://127.0.0.1:3000](http://127.0.0.1:3000).
 7. Выберите язык.
 8. Введите тему.
@@ -62,28 +71,57 @@
 
 ## Настройки модели
 
+- проект работает в режиме `free-tier-only`: `AI_FREE_MODELS_ONLY=true`, `AI_BILLING_ALLOWED=false`, `DISABLE_PAID_AI_TOOLS=true`;
+- Gemini остается базовым провайдером;
+- Groq зарезервирован под быстрые бесплатные сценарии;
+- OpenRouter допускается только через `OPENROUTER_MODEL=openrouter/free` или модели с суффиксом `:free`;
 - по умолчанию используется `gemini-3.1-flash-image-preview` - это Nano Banana 2;
 - если хотите использовать классический Nano Banana, укажите `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
+- для перегруженной текстовой модели есть fallback: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;
+- для перегруженной image-модели есть fallback: `GEMINI_IMAGE_FALLBACK_MODELS=gemini-2.5-flash-image`;
 - если ключ не задан или API недоступно, приложение использует локальный фон как запасной вариант.
+
+## Интернет-поиск по теме
+
+В v1.1 добавлена поддержка Gemini Google Search grounding для пользовательской темы и протестантских источников. В v1.2 free-only режим блокирует ее автоматически, потому что в официальной документации Gemini это billable tool.
+
+Для включения на сервере нужны оба флага:
+
+```env
+GEMINI_GOOGLE_SEARCH_ENABLED=true
+AI_BILLING_ALLOWED=true
+AI_FREE_MODELS_ONLY=false
+```
+
+Без этих флагов приложение все равно подбирает места Писания через Gemini и локально добивает список до 8 карточек.
+
+## Проверка перед релизом
+
+```bash
+npm run check
+npm run smoke -- --live-ai
+node scripts/ui-smoke-test.js --base http://127.0.0.1:3000 --cdp http://127.0.0.1:9222 --playwright-modules /path/to/node_modules
+```
+
+Последний UI smoke-test сохраняет отчет и скриншоты в [release-test-output](</Volumes/T eror/AI/Apps/Пост мейкер/release-test-output>).
 
 ## Структура
 
-- [index.html](/Users/kirillsevcenko/Desktop/Пост%20меи%CC%86кер/index.html) - интерфейс
-- [styles.css](/Users/kirillsevcenko/Desktop/Пост%20меи%CC%86кер/styles.css) - оформление
-- [app.js](/Users/kirillsevcenko/Desktop/Пост%20меи%CC%86кер/app.js) - логика интерфейса, текста и сборки постера
-- [server.js](</Users/kirillsevcenko/Desktop/Пост мейкер/server.js>) - локальный сервер и прокси к Gemini API
-- [Мобильная версия/index.html](</Users/kirillsevcenko/Desktop/Пост мейкер/Мобильная версия/index.html>) - мобильная версия интерфейса
-- [Мобильная версия/app.js](</Users/kirillsevcenko/Desktop/Пост мейкер/Мобильная версия/app.js>) - логика мобильного интерфейса
-- [.env.example](</Users/kirillsevcenko/Desktop/Пост мейкер/.env.example>) - пример конфигурации
-- [package.json](</Users/kirillsevcenko/Desktop/Пост мейкер/package.json>) - команды запуска и проверки
-- [render.yaml](</Users/kirillsevcenko/Desktop/Пост мейкер/render.yaml>) - конфиг деплоя в Render
-- [DEPLOY_RENDER.md](</Users/kirillsevcenko/Desktop/Пост мейкер/DEPLOY_RENDER.md>) - пошаговая инструкция публикации
+- [index.html](/Volumes/T eror/AI/Apps/Пост мейкер/index.html) - интерфейс
+- [styles.css](/Volumes/T eror/AI/Apps/Пост мейкер/styles.css) - оформление
+- [app.js](/Volumes/T eror/AI/Apps/Пост мейкер/app.js) - логика интерфейса, текста и сборки постера
+- [server.js](</Volumes/T eror/AI/Apps/Пост мейкер/server.js>) - локальный сервер и прокси к Gemini API
+- [Мобильная версия/index.html](</Volumes/T eror/AI/Apps/Пост мейкер/Мобильная версия/index.html>) - мобильная версия интерфейса
+- [Мобильная версия/app.js](</Volumes/T eror/AI/Apps/Пост мейкер/Мобильная версия/app.js>) - логика мобильного интерфейса
+- [.env.example](</Volumes/T eror/AI/Apps/Пост мейкер/.env.example>) - пример конфигурации
+- [CHANGELOG.md](</Volumes/T eror/AI/Apps/Пост мейкер/CHANGELOG.md>) - история версий проекта
+- [package.json](</Volumes/T eror/AI/Apps/Пост мейкер/package.json>) - команды запуска и проверки
+- [render.yaml](</Volumes/T eror/AI/Apps/Пост мейкер/render.yaml>) - конфиг деплоя в Render
+- [DEPLOY_RENDER.md](</Volumes/T eror/AI/Apps/Пост мейкер/DEPLOY_RENDER.md>) - пошаговая инструкция публикации
 
 ## Что можно добавить следующим шагом
 
-- сохранение истории созданных фонов и постов;
-- пресеты под отдельные соцсети и размеры постеров;
 - пользовательские наборы шрифтов и сохранение любимых настроек;
 - экспорт сразу в несколько форматов для соцсетей;
 - полноценную desktop-обертку через Electron или Tauri.

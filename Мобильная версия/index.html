@@ -122,6 +122,9 @@
               <button id="copy-post-btn" class="ghost-btn" disabled>
                 Скопировать
               </button>
+              <button id="history-btn" class="ghost-btn">
+                История
+              </button>
             </div>
           </div>
 
@@ -149,6 +152,9 @@
               </button>
               <button id="new-poster-btn" class="ghost-btn" disabled>
                 Новый фон
+              </button>
+              <button id="export-presets-btn" class="ghost-btn" disabled>
+                Экспорт
               </button>
               <button id="download-btn" class="primary-btn" disabled>
                 Скачать PNG
@@ -359,6 +365,62 @@
         </div>
 
         <div id="post-style-grid" class="option-grid"></div>
+      </div>
+    </div>
+
+    <div id="history-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="history-modal"></div>
+      <div class="modal-dialog history-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="history-modal-eyebrow" class="eyebrow">История</p>
+            <h2 id="history-modal-title">Сгенерированные посты и фоны</h2>
+            <p id="history-modal-subtitle" class="modal-subtitle">
+              История хранится локально в этом браузере и не отправляется на сервер.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="history-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="history-toolbar">
+          <button id="history-clear-btn" type="button" class="ghost-btn compact-btn">
+            Очистить историю
+          </button>
+        </div>
+        <p id="history-empty" class="history-empty">
+          История пока пустая. Сгенерируйте пост и фон, чтобы они появились здесь.
+        </p>
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
+
+    <div id="export-presets-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="export-presets-modal"></div>
+      <div class="modal-dialog compact-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="export-modal-eyebrow" class="eyebrow">Экспорт</p>
+            <h2 id="export-modal-title">Пресеты для соцсетей</h2>
+            <p id="export-modal-subtitle" class="modal-subtitle">
+              Скачайте текущий постер в нужном размере без повторной AI-генерации.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            data-modal-close="export-presets-modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div id="export-preset-grid" class="option-grid"></div>
       </div>
     </div>
 
