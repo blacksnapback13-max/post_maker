@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.6 - 2026-05-18
+
+- Pollinations/Diffusion prompts are now visual-only: no scripture, reference, text, logo, poster, or negative prompt wording is sent in the positive prompt.
+- The text/logo artifact ban stays in provider-level `negative` / `negative_prompt` parameters instead of being mixed into the main image prompt.
+- Added client-side canvas cleanup for Pollinations/Flux-style backgrounds: small fake lettering is softened before the real verse and reference are drawn.
+- Bumped visible app version and release smoke expectations to `1.2.6`.
+
 ## 1.2.5 - 2026-05-18
 
 - Убраны провоцирующие слова из image prompt: AI теперь просится делать только чистый `wordless background`, а не постер, цитатник или devotional graphic.

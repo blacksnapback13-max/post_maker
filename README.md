@@ -81,7 +81,7 @@
 - если Gemini image-квота недоступна, сервер идет по цепочке `AI_IMAGE_PROVIDER_ORDER=gemini,cloudflare,huggingface,qwen,pollinations`;
 - дневные лимиты и ошибки image-провайдеров пишутся в `data/image-usage.json`; посмотреть текущий день можно через `/api/image-usage`;
 - локальный SVG fallback в production выключен: `ALLOW_LOCAL_SVG_FALLBACK=false`;
-- Pollinations prompt enhancement выключен по умолчанию: `POLLINATIONS_ENHANCE_PROMPT=false`, чтобы модель не дорисовывала буквы, псевдотекст и постерные элементы внутри фона;
+- Pollinations prompt enhancement выключен по умолчанию: `POLLINATIONS_ENHANCE_PROMPT=false`, а positive prompt для diffusion-провайдеров остается только визуальным; дополнительно canvas мягко очищает такие фоны от мелких псевдобукв перед наложением стиха;
 - Qwen/DashScope отключен по умолчанию, включайте только при уверенности, что используется бесплатная квота: `DASHSCOPE_IMAGE_ENABLED=true`;
 - по умолчанию для текста используется `gemini-2.5-flash`;
 - для перегруженной текстовой модели есть fallback: `GEMINI_TEXT_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.1-flash-lite`;

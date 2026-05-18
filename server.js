@@ -20,7 +20,7 @@ loadEnvFile(ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.5";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.6";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
@@ -425,6 +425,21 @@ const layoutGuides = {
   top: "leave the upper half especially readable and calm for typography, while keeping detail lower in the scene",
   center: "leave the center area especially calm and uncluttered for typography",
   bottom: "leave the lower half especially readable and uncluttered for typography, with more visual detail higher up",
+};
+
+const diffusionFormatGuides = {
+  portrait_4_5: "vertical portrait crop with generous calm margins",
+  story_9_16: "tall vertical cinematic crop with spacious upper and lower breathing room",
+  square_1_1: "balanced square crop with calm margins",
+  landscape_16_9: "wide horizontal cinematic crop with smooth central breathing room",
+  facebook_link_1200_630: "wide low-height crop with clean central atmosphere",
+  pinterest_2_3: "tall editorial crop with strong vertical rhythm",
+};
+
+const diffusionLayoutGuides = {
+  top: "smooth atmospheric upper half, with richer natural detail lower in the scene",
+  center: "smooth uncluttered middle area with natural gradients and soft depth",
+  bottom: "smooth lower half, with richer visual detail higher in the scene",
 };
 
 
@@ -1495,36 +1510,61 @@ function buildHighQualityImagePrompt(input, prompt, maxLength) {
   const subject = String(settings.subject || "landscape");
   const visualStyleId = String(settings.visualStyle || "natural");
   const formatId = String(settings.format || "portrait_4_5");
-  const layoutPrompt = layoutGuides[String(settings.layout || "top")] || layoutGuides.top;
-  const subjectSafety = buildSubjectSafetyGuidance(subject);
+  const layoutPrompt = diffusionLayoutGuides[String(settings.layout || "top")] || diffusionLayoutGuides.top;
+  const subjectSafety = buildDiffusionSubjectGuidance(subject);
   const profile = selectMoodProfile(topic, verseFocus, tags);
   const seed = getImageSeed(input);
-  const scene = pickSubjectScene(subject, profile, seed + 13);
+  const scene = sanitizeDiffusionPromptSegment(pickSubjectScene(subject, profile, seed + 13));
   const lighting = pickBySeed(profile.lightings, seed + 23);
   const palette = pickBySeed(profile.palettes, seed + 31);
-  const artStyle = posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural;
+  const artStyle = sanitizeDiffusionPromptSegment(posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural);
 
   return shortenText([
-    "Clean wordless background image only. The app will add every word, verse reference, logo, and caption later on a separate canvas layer.",
-    "Do not create a poster, quote card, title card, flyer, book cover, album cover, devotional graphic, website, UI, sign, label, page, paper sheet, emblem, seal, badge, cross, or logo.",
-    "Absolute ban inside the generated image: no readable text, no fake text, no pseudo-letters, no glyph rows, no numbers, no watermark, no signature, no tiny caption marks.",
-    "Emotional theme only, do not render it as words: " + topic + ".",
-    "Mood anchor only, not text content: " + shortenText(verseFocus || profile.moods.join(", "), 120) + ".",
-    "Selected subject must be literal and dominant: " + subject + ". Render this as " + scene + ".",
-    "Selected style must be unmistakable: " + visualStyleId + ". Style guide: " + artStyle + ".",
-    "Format: " + (posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5) + ".",
+    "High-quality atmospheric environmental image, pure visual scene only.",
+    "Scene: " + scene + ".",
+    "Dominant subject: " + subject + ".",
+    "Mood: " + sanitizeDiffusionPromptSegment(profile.moods.join(", ")) + ".",
+    "Visual style: " + visualStyleId + ". Style guide: " + artStyle + ".",
+    "Crop: " + (diffusionFormatGuides[formatId] || diffusionFormatGuides.portrait_4_5) + ".",
     "Lighting: " + lighting + ".",
     "Palette: " + palette + ".",
-    "Composition: realistic environmental depth, strong natural focal hierarchy, clean negative space made only from sky, mist, water, field, wall, light, or texture; " + layoutPrompt + ".",
-    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, not a gradient, not simple geometric bars.",
-    "Safety: " + subjectSafety + ".",
-    "Negative prompt: " + IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT + ".",
+    "Composition: realistic environmental depth, strong natural focal hierarchy, calm open space made from sky, mist, water, field, wall, light, or texture; " + layoutPrompt + ".",
+    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, natural surfaces, not a simple gradient-only backdrop.",
+    "Subject handling: " + subjectSafety + ".",
     "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
   ].filter(Boolean).join(" "), maxLength || 1800);
 }
 
 function buildPollinationsPrompt(input, prompt) {
-  return buildHighQualityImagePrompt(input, prompt, 1800);
+  return buildHighQualityImagePrompt(input, prompt, 1200);
+}
+
+function sanitizeDiffusionPromptSegment(value) {
+  return cleanText(value)
+    .replace(/\b(text|typography|letters?|words?|numbers?|glyphs?|caption|title|subtitle|scripture|verse|reference|logo|watermark|signature|stamp|seal|badge|cross|poster|flyer|signage|signs?|label|paper|page|screen|website|ui)\b/giu, "open space")
+    .replace(/\b(quote card|book cover|album cover|religious symbol)\b/giu, "open space")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function buildDiffusionSubjectGuidance(subject) {
+  const peopleSubjects = new Set(["people", "couple"]);
+  const citySubjects = new Set(["city", "old_town", "street", "architecture", "interior"]);
+  const abstractSubjects = new Set(["abstract", "texture"]);
+
+  if (peopleSubjects.has(subject)) {
+    return "anonymous distant figures, tasteful posture, calm environment, uncluttered frame";
+  }
+
+  if (citySubjects.has(subject)) {
+    return "elegant uncluttered architecture, refined atmosphere, clean surfaces";
+  }
+
+  if (abstractSubjects.has(subject)) {
+    return "atmospheric shapes, soft light, refined texture, balanced visual rhythm";
+  }
+
+  return "natural calm environment, uncluttered foreground, balanced depth";
 }
 
 function getPollinationsImageDimensions(formatId) {

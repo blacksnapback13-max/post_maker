@@ -3081,7 +3081,9 @@
     const posterTheme = getPosterTheme();
 
     ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-    drawImageBackground(ctx, image, elements.canvas.width, elements.canvas.height);
+    drawImageBackground(ctx, image, elements.canvas.width, elements.canvas.height, {
+      sanitizeTextArtifacts: shouldSanitizeImageBackground(),
+    });
     drawLightOverlay(ctx, posterTheme);
     drawPosterText(ctx, {
       topic: "",
@@ -3270,7 +3272,7 @@
     drawPosterLogo(ctx, state.logoImage, state.posterSettings);
   }
 
-  function drawImageBackground(context, image, targetWidth, targetHeight) {
+  function drawImageBackground(context, image, targetWidth, targetHeight, options) {
     const imageRatio = image.width / image.height;
     const targetRatio = targetWidth / targetHeight;
     let drawWidth = targetWidth;
@@ -3289,6 +3291,82 @@
     }
 
     context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+
+    if (options && options.sanitizeTextArtifacts) {
+      scrubBackgroundTextArtifacts(context, image, targetWidth, targetHeight);
+    }
+  }
+
+  function shouldSanitizeImageBackground() {
+    const source = String(state.backgroundSource || "").toLowerCase();
+    const model = String(state.backgroundModel || "").toLowerCase();
+    return (
+      source === "pollinations" ||
+      source === "huggingface" ||
+      source === "cloudflare" ||
+      source === "qwen" ||
+      model.includes("pollinations/") ||
+      model.includes("flux") ||
+      model.includes("schnell") ||
+      model.includes("qwen")
+    );
+  }
+
+  function scrubBackgroundTextArtifacts(context, image, targetWidth, targetHeight) {
+    const softened = createSoftenedBackgroundCanvas(image, targetWidth, targetHeight);
+    if (!softened) {
+      return;
+    }
+
+    context.save();
+    context.globalAlpha = 0.34;
+    context.drawImage(softened, 0, 0, targetWidth, targetHeight);
+    context.restore();
+
+    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.27, targetWidth * 0.44, targetHeight * 0.24, 0.92);
+    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.54, targetWidth * 0.36, targetHeight * 0.24, 0.86);
+    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.76, targetWidth * 0.34, targetHeight * 0.18, 0.74);
+  }
+
+  function createSoftenedBackgroundCanvas(image, targetWidth, targetHeight) {
+    const smallCanvas = document.createElement("canvas");
+    const softCanvas = document.createElement("canvas");
+    const smallWidth = Math.max(64, Math.round(targetWidth / 12));
+    const smallHeight = Math.max(64, Math.round(targetHeight / 12));
+    smallCanvas.width = smallWidth;
+    smallCanvas.height = smallHeight;
+    softCanvas.width = targetWidth;
+    softCanvas.height = targetHeight;
+
+    const smallContext = smallCanvas.getContext("2d");
+    const softContext = softCanvas.getContext("2d");
+    if (!smallContext || !softContext) {
+      return null;
+    }
+
+    smallContext.imageSmoothingEnabled = true;
+    smallContext.imageSmoothingQuality = "high";
+    drawImageBackground(smallContext, image, smallWidth, smallHeight);
+    softContext.imageSmoothingEnabled = true;
+    softContext.imageSmoothingQuality = "high";
+    softContext.drawImage(smallCanvas, 0, 0, targetWidth, targetHeight);
+    return softCanvas;
+  }
+
+  function drawSoftArtifactPatch(context, softened, centerX, centerY, radiusX, radiusY, alpha) {
+    context.save();
+    context.beginPath();
+    context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+    context.clip();
+    context.globalAlpha = alpha;
+    context.drawImage(softened, 0, 0, context.canvas.width, context.canvas.height);
+
+    const mist = context.createRadialGradient(centerX, centerY, Math.max(8, radiusX * 0.1), centerX, centerY, radiusX);
+    mist.addColorStop(0, "rgba(236, 243, 236, 0.18)");
+    mist.addColorStop(1, "rgba(236, 243, 236, 0)");
+    context.fillStyle = mist;
+    context.fillRect(centerX - radiusX, centerY - radiusY, radiusX * 2, radiusY * 2);
+    context.restore();
   }
 
   function setPosterStatus(message, tone) {
@@ -3630,7 +3708,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.5";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.6";
     elements.appVersionBadge.textContent = "v" + version;
   }
 
