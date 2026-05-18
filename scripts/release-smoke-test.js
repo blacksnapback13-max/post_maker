@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const {
   buildGeminiPrompt,
+  buildPollinationsPrompt,
   buildPostPrompt,
   buildScriptureSuggestionPrompt,
   createServer,
@@ -151,7 +152,32 @@ async function main() {
   assert.match(imagePrompt, /selected subject must dominate/u);
   assert.match(imagePrompt, /not merely add a filter/u);
   assert.match(imagePrompt, /Do not default back to a pastoral landscape/u);
+  assert.match(imagePrompt, /wordless background image/u);
+  assert.match(imagePrompt, /Negative prompt:/u);
+  assert.doesNotMatch(imagePrompt, /Christian social media|Typography support/u);
   pass("image prompt locks subject and visual style beyond filters");
+
+  const pollinationsPrompt = buildPollinationsPrompt({
+    topic: sampleTopic,
+    reference: sampleVerse.reference,
+    verseText: sampleVerse.verseText,
+    verseFocus: sampleVerse.verseFocus,
+    tags: sampleVerse.tags,
+    language: "uk",
+    postStyle: "pastoral",
+    variant: 5,
+    posterSettings: {
+      format: "portrait_4_5",
+      subject: "meadow",
+      visualStyle: "natural",
+      layout: "top",
+    },
+  }, imagePrompt);
+  assert.match(pollinationsPrompt, /Clean wordless background image only/u);
+  assert.match(pollinationsPrompt, /no fake text/u);
+  assert.match(pollinationsPrompt, /Negative prompt:/u);
+  assert.doesNotMatch(pollinationsPrompt, /Base prompt context|Scripture reference mood|Christian social media/u);
+  pass("pollinations prompt avoids poster wording and text artifacts");
 
   const server = createServer();
   server.listen(0, "127.0.0.1");
@@ -167,7 +193,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.4");
+    assert.equal(configResult.payload.version, "1.2.5");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -179,7 +205,7 @@ async function main() {
 
     const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
     assert.equal(imageUsageResult.response.status, 200);
-    assert.equal(imageUsageResult.payload.version, "1.2.4");
+    assert.equal(imageUsageResult.payload.version, "1.2.5");
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
     pass("/api/image-usage exposes daily image provider archive");

@@ -3630,7 +3630,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.4";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.5";
     elements.appVersionBadge.textContent = "v" + version;
   }
 

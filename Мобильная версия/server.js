@@ -17,7 +17,7 @@ loadEnvFile(PARENT_ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || "127.0.0.1";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.4";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.5";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
@@ -35,6 +35,37 @@ const DEFAULT_POLLINATIONS_TIMEOUT_MS = Number(process.env.POLLINATIONS_TIMEOUT_
 const DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS = Number(process.env.IMAGE_PROVIDER_TIMEOUT_MS || 90000);
 const DEFAULT_POLLINATIONS_RETRY_ATTEMPTS = Number(process.env.POLLINATIONS_RETRY_ATTEMPTS || 3);
 const DEFAULT_POLLINATIONS_RETRY_DELAY_MS = Number(process.env.POLLINATIONS_RETRY_DELAY_MS || 4500);
+const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
+  "text",
+  "letters",
+  "words",
+  "numbers",
+  "glyphs",
+  "fake typography",
+  "gibberish writing",
+  "caption",
+  "title",
+  "subtitle",
+  "scripture reference",
+  "logo",
+  "watermark",
+  "signature",
+  "stamp",
+  "seal",
+  "badge",
+  "cross",
+  "religious symbol",
+  "poster",
+  "quote card",
+  "flyer",
+  "book cover",
+  "album cover",
+  "sign",
+  "label",
+  "paper",
+  "page",
+  "screen",
+].join(", ");
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -960,6 +991,7 @@ async function requestHuggingFaceImage(input, prompt) {
       inputs: imagePrompt,
       parameters: {
         seed: getImageSeed(input),
+        negative_prompt: IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT,
         num_inference_steps: Math.max(4, Math.min(8, Number(process.env.HUGGINGFACE_IMAGE_STEPS || 8))),
       },
       options: {
@@ -1014,6 +1046,7 @@ async function requestDashscopeQwenImage(input, prompt) {
       },
       parameters: {
         seed: getImageSeed(input),
+        negative_prompt: IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT,
       },
     }),
   }, DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS);
@@ -1069,7 +1102,8 @@ async function requestPollinationsImage(input, prompt) {
     url.searchParams.set("nologo", "true");
     url.searchParams.set("private", "true");
     url.searchParams.set("safe", "true");
-    if (pollinationsModel !== "turbo") {
+    url.searchParams.set("negative", IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT);
+    if (pollinationsModel !== "turbo" && readBooleanEnv("POLLINATIONS_ENHANCE_PROMPT") === true) {
       url.searchParams.set("enhance", "true");
     }
 
@@ -1255,9 +1289,7 @@ function getPollinationsImagePath(baseUrl, prompt) {
 function buildHighQualityImagePrompt(input, prompt, maxLength) {
   const settings = input && input.posterSettings ? input.posterSettings : {};
   const topic = cleanText(input && input.topic);
-  const reference = cleanText(input && input.reference);
   const verseFocus = cleanText(input && input.verseFocus);
-  const postText = cleanText(input && input.postText);
   const tags = Array.isArray(input && input.tags) ? input.tags.map(cleanText).filter(Boolean) : [];
   const subject = String(settings.subject || "landscape");
   const visualStyleId = String(settings.visualStyle || "natural");
@@ -1272,21 +1304,21 @@ function buildHighQualityImagePrompt(input, prompt, maxLength) {
   const artStyle = posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural;
 
   return shortenText([
-    "Premium high-quality Christian social media background only, no text.",
-    "Theme: " + topic + ".",
-    reference ? "Scripture reference mood: " + reference + "." : "",
-    "Spiritual emphasis: " + shortenText(verseFocus || postText, 160) + ".",
+    "Clean wordless background image only. The app will add every word, verse reference, logo, and caption later on a separate canvas layer.",
+    "Do not create a poster, quote card, title card, flyer, book cover, album cover, devotional graphic, website, UI, sign, label, page, paper sheet, emblem, seal, badge, cross, or logo.",
+    "Absolute ban inside the generated image: no readable text, no fake text, no pseudo-letters, no glyph rows, no numbers, no watermark, no signature, no tiny caption marks.",
+    "Emotional theme only, do not render it as words: " + topic + ".",
+    "Mood anchor only, not text content: " + shortenText(verseFocus || profile.moods.join(", "), 120) + ".",
     "Selected subject must be literal and dominant: " + subject + ". Render this as " + scene + ".",
     "Selected style must be unmistakable: " + visualStyleId + ". Style guide: " + artStyle + ".",
     "Format: " + (posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5) + ".",
     "Lighting: " + lighting + ".",
     "Palette: " + palette + ".",
-    "Composition: elegant editorial depth, strong focal hierarchy, natural texture, clean negative space, " + layoutPrompt + ".",
+    "Composition: realistic environmental depth, strong natural focal hierarchy, clean negative space made only from sky, mist, water, field, wall, light, or texture; " + layoutPrompt + ".",
     "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, not a gradient, not simple geometric bars.",
     "Safety: " + subjectSafety + ".",
-    "Strictly no letters, no words, no captions, no typography, no watermark, no logo, no signage, no scripture text.",
+    "Negative prompt: " + IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT + ".",
     "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
-    "Base prompt context: " + shortenText(prompt, 420),
   ].filter(Boolean).join(" "), maxLength || 1800);
 }
 
@@ -1494,18 +1526,17 @@ function buildGeminiPrompt(input) {
   const artStyle = posterVisualStyleGuides[visualStyleId] || posterVisualStyleGuides.natural;
   const formatPrompt = posterFormatGuides[formatId] || posterFormatGuides.portrait_4_5;
   const layoutPrompt = layoutGuides[String(settings.layout || "top")] || layoutGuides.top;
-  const typographyHint = buildTypographyHint(settings);
   const subjectSafety = buildSubjectSafetyGuidance(subject);
   const hasReferenceImage = Boolean(input.referenceImage && input.referenceImage.data);
 
   return [
-    "Create a high-quality background image for a Christian social media post.",
+    "Create a clean high-quality wordless background image only.",
     "Image format: " + formatPrompt + ".",
-    "Generate a pure background scene only, not a finished poster, quote card, book cover, flyer, title card, or social media template.",
-    "Keep the composition suitable for later overlay text added by the app, but do not render any text in the image itself.",
-    "Do not use any readable or unreadable letters, numbers, glyphs, captions, scripture references, verse fragments, logos, monograms, signage, book covers, paper scraps, screens, watermarks, or faux-typography textures anywhere in the image.",
-    'Theme context: "' + topic + '".',
-    'Spiritual emphasis: "' + shortenText(verseFocus || postText, 220) + '".',
+    "The app will add the verse, reference, and logo later on a separate canvas layer; the generated image itself must stay completely free of text and symbols.",
+    "Do not create a finished poster, quote card, book cover, flyer, title card, album cover, devotional graphic, social media template, website, UI screen, label, sign, page, paper sheet, emblem, seal, badge, cross, or logo.",
+    "Absolute ban: no readable letters, no unreadable pseudo-letters, no numbers, no glyphs, no caption-like marks, no scripture references, no verse fragments, no monograms, no signage, no watermarks, no signatures, no faux-typography textures.",
+    'Theme mood only, do not render as words: "' + topic + '".',
+    'Spiritual mood anchor only, not visible text: "' + shortenText(verseFocus || postText, 180) + '".',
     "Post tone: " + (postStyleGuides[postStyle] || postStyleGuides.inspiring) + ".",
     "Visual direction: " + scene + ".",
     "Visual style: " + artStyle + ".",
@@ -1517,18 +1548,17 @@ function buildGeminiPrompt(input) {
     "Color palette: " + palette + ".",
     "Mood: " + mood + ".",
     "Composition: " + composition + ".",
-    "Quality bar: professional editorial background, high-resolution, layered foreground/midground/background depth, intentional focal hierarchy, rich but restrained detail, natural light behavior, crisp surfaces, no muddy AI blur, no low-effort gradient-only backdrop.",
-    "Typography support: " + typographyHint + ".",
+    "Quality bar: professional editorial background, high-resolution, layered foreground/midground/background depth, intentional focal hierarchy, rich but restrained detail, natural light behavior, crisp surfaces, no muddy AI blur, no low-effort gradient-only backdrop, no AI text artifacts.",
     "Layout guidance: " + layoutPrompt + ".",
     hasReferenceImage
       ? "A user reference image is attached. Use it as inspiration for composition, atmosphere, palette, and visual motifs while still creating a fresh original background for this verse. Do not copy any text, logos, watermarks, or brand elements from the reference."
       : "No reference image is attached, so derive the visual completely from the prompt itself.",
     "Variation cue: " + variation + ".",
     "Make this generation visibly different from prior variants by changing camera distance, scene structure, focal plane, and atmospheric treatment while preserving readability for overlay text.",
-    "Use imagery that faithfully matches the selected subject and still feels suitable for a Christian post.",
+    "Use imagery that faithfully matches the selected subject and feels calm, reverent, and suitable for a later text overlay without containing religious symbols or writing.",
     "Subject guardrails: " + subjectSafety + ".",
-    "Absolutely no text, no letters, no verses, no references, no font names, and no typography inside the image.",
-    "Keep the intended text area calm, softly lit, elegant, and uncluttered so overlay text can be placed on top later.",
+    "Negative prompt: " + IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT + ".",
+    "Keep the intended text area calm, softly lit, elegant, and uncluttered using only natural background detail.",
     "The result should feel peaceful, reverent, emotionally aligned with the post, and beautiful without looking generic.",
   ].join(" ");
 }
@@ -2751,6 +2781,7 @@ if (require.main === module) {
 
 module.exports = {
   buildGeminiPrompt,
+  buildPollinationsPrompt,
   buildPostPrompt,
   buildScriptureSuggestionPrompt,
   createServer,
