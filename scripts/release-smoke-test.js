@@ -176,7 +176,8 @@ async function main() {
   }, imagePrompt);
   assert.match(pollinationsPrompt, /High-quality atmospheric environmental image/u);
   assert.match(pollinationsPrompt, /Dominant subject: meadow/u);
-  assert.match(pollinationsPrompt, /smooth atmospheric upper half/u);
+  assert.match(pollinationsPrompt, /upper half remains a real part of the scene/u);
+  assert.match(pollinationsPrompt, /Do not add a frosted-glass panel/u);
   assert.doesNotMatch(pollinationsPrompt, /\b(text|typography|letters?|words?|glyphs?|caption|scripture|verse|reference|logo|watermark|poster|flyer|signage)\b/iu);
   assert.doesNotMatch(pollinationsPrompt, /Base prompt context|Scripture reference mood|Christian social media|Negative prompt:/u);
   pass("pollinations prompt stays visual-only and keeps artifact bans out of the positive prompt");
@@ -202,7 +203,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.7");
+    assert.equal(configResult.payload.version, "1.2.8");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -214,7 +215,7 @@ async function main() {
 
     const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
     assert.equal(imageUsageResult.response.status, 200);
-    assert.equal(imageUsageResult.payload.version, "1.2.7");
+    assert.equal(imageUsageResult.payload.version, "1.2.8");
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
     pass("/api/image-usage exposes daily image provider archive");

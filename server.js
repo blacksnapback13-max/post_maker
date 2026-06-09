@@ -156,18 +156,18 @@ const moodProfiles = [
 ];
 
 const variationPool = [
-  "emphasize open negative space in the center",
+  "change the viewpoint and foreground-midground structure without creating a blank center patch",
   "make the horizon a little higher and the foreground softer",
   "use slightly more atmospheric haze and depth",
   "lean into a more cinematic but still realistic composition",
-  "make the composition more minimal and editorial",
+  "make the composition more minimal and editorial while preserving natural detail across the whole frame",
   "add a delicate sense of fresh air after rain",
 ];
 
 const compositionPool = [
-  "portrait 4:5 composition with generous quiet space in the center for typography",
-  "editorial poster layout with soft central negative space and calm visual rhythm",
-  "balanced landscape composition that leaves the main center area uncluttered for text overlay",
+  "portrait 4:5 environmental composition with natural detail across the full frame",
+  "editorial image composition with organic foreground, midground, and background depth",
+  "balanced landscape composition with no artificial blank center zone, frame, haze patch, or center blur",
 ];
 
 const languageMeta = {
@@ -279,14 +279,14 @@ const topicLensGuides = [
 
 const posterSubjectGuides = {
   landscape: [
-    "a peaceful wide landscape with natural depth and uncluttered center",
-    "an open scenic horizon with quiet atmosphere and room for text",
+    "a peaceful wide landscape with natural depth across the full frame",
+    "an open scenic horizon with quiet atmosphere and organic full-frame detail",
     "a serene panoramic nature setting with calm balance",
   ],
   sea: [
     "a calm sea coast with spacious sky and gentle waves",
     "a tranquil ocean horizon with soft motion and open air",
-    "a peaceful shoreline with elegant light and negative space",
+    "a peaceful shoreline with elegant light and natural coastal depth",
   ],
   forest: [
     "a quiet forest path with airy light and subtle depth",
@@ -294,19 +294,19 @@ const posterSubjectGuides = {
     "a serene forest scene with gentle light between trees",
   ],
   mountains: [
-    "a mountain overlook with open space and contemplative distance",
+    "a mountain overlook with wide natural distance and contemplative depth",
     "a layered mountain valley with clean air and calm grandeur",
     "a peaceful alpine scene with structured depth and soft light",
   ],
   meadow: [
     "a sunlit meadow with soft grass, quiet movement, and open composition",
-    "a calm field landscape with warm air and uncluttered center",
+    "a calm field landscape with warm air and natural full-frame texture",
     "a gentle meadow horizon with elegant natural softness",
   ],
   sunrise: [
     "a quiet sunrise scene with luminous horizon and calm atmosphere",
     "a dawn landscape with hopeful light and soft pastel air",
-    "an early morning horizon with subtle glow and spacious center",
+    "an early morning horizon with subtle glow and natural depth through the frame",
   ],
   sunset: [
     "a calm sunset horizon with layered warm light and open sky",
@@ -314,7 +314,7 @@ const posterSubjectGuides = {
   ],
   sky: [
     "a spacious sky with elegant cloud formations and open breathing room",
-    "a soft atmospheric cloudscape with minimal lower detail and clear text space",
+    "a soft atmospheric cloudscape with natural cloud detail and no blank title zone",
   ],
   lake: [
     "a still lake with reflective water and quiet morning light",
@@ -322,14 +322,14 @@ const posterSubjectGuides = {
   ],
   river: [
     "a calm river scene with flowing water and contemplative depth",
-    "a serene riverside landscape with soft natural rhythm and uncluttered center",
+    "a serene riverside landscape with soft natural rhythm and consistent detail",
   ],
   desert: [
     "a refined desert landscape with wind-shaped dunes and quiet light",
     "a spacious desert horizon with soft sand tones and peaceful stillness",
   ],
   flowers: [
-    "a delicate floral landscape with airy blossoms and elegant negative space",
+    "a delicate floral landscape with airy blossoms and organic full-frame detail",
     "a peaceful garden scene with soft flowers, light haze, and refined balance",
   ],
   rain: [
@@ -337,28 +337,28 @@ const posterSubjectGuides = {
     "a gentle fog-and-rain landscape with poetic depth and subdued motion",
   ],
   city: [
-    "a calm modern city skyline with atmospheric light and clean open space for typography",
-    "an elegant urban horizon with soft haze, reflective surfaces, and uncluttered central space",
+    "a calm modern city skyline with atmospheric light and natural urban depth",
+    "an elegant urban horizon with soft haze, reflective surfaces, and consistent central detail",
   ],
   old_town: [
     "a peaceful old town street with timeless architecture and gentle light",
     "a historic city view with warm stone tones, calm atmosphere, and open composition",
   ],
   street: [
-    "a quiet city street with soft evening light, shallow detail, and room for text",
+    "a quiet city street with soft evening light and coherent perspective detail",
     "an atmospheric street scene with refined perspective and restrained visual clutter",
   ],
   architecture: [
     "a minimalist architectural scene with clean lines, symmetry, and premium calm",
-    "an elegant building composition with geometric order and open negative space",
+    "an elegant building composition with geometric order and natural material detail",
   ],
   interior: [
     "a serene interior with soft natural light, clean surfaces, and contemplative mood",
-    "a calm room scene with warm textures and generous uncluttered space for typography",
+    "a calm room scene with warm textures and coherent full-frame detail",
   ],
   people: [
     "a tasteful scene with one or two anonymous people in a calm environment, small in frame, elegant and reverent",
-    "an atmospheric human-centered scene with distant figures, soft light, and clear empty space for text",
+    "an atmospheric human-centered scene with distant figures, soft light, and natural environmental detail",
   ],
   couple: [
     "a tasteful scene with an anonymous couple seen from afar, gentle posture, and peaceful atmosphere",
@@ -369,12 +369,12 @@ const posterSubjectGuides = {
     "a quiet travel landscape with a road, distant horizon, and reflective mood",
   ],
   night: [
-    "a calm night scene with soft city or landscape lights and readable dark negative space",
+    "a calm night scene with soft city or landscape lights and natural dark detail",
     "a moonlit or evening atmosphere with restrained glow and contemplative stillness",
   ],
   abstract: [
     "an abstract atmospheric composition with light, gradients, and spiritual calm",
-    "a non-literal visual field of luminous shapes and soft depth suitable for typography",
+    "a non-literal visual field of luminous shapes and soft depth without blank caption areas",
   ],
   texture: [
     "a refined texture-based background with light, grain, paper, and subtle motion",
@@ -386,11 +386,11 @@ const posterVisualStyleGuides = {
   natural:
     "true-to-life photography, natural lens perspective, believable materials, soft documentary atmosphere, no surreal effects",
   editorial:
-    "premium magazine editorial photography, deliberate art direction, refined styling, polished layout-like negative space",
+    "premium magazine editorial photography, deliberate art direction, refined styling, polished full-frame composition",
   cinematic:
     "cinematic film still, dramatic depth, motivated light, anamorphic atmosphere, strong foreground-background separation",
   minimalist:
-    "minimalist art direction, large quiet surfaces, reduced objects, restrained palette, strong negative space and calm geometry",
+    "minimalist art direction, reduced objects, restrained palette, calm geometry, natural detail without empty center panels",
   painterly:
     "fine-art painting language, visible brush texture, layered color transitions, handcrafted atmosphere, not photorealistic",
   vintage_film:
@@ -417,32 +417,32 @@ const posterFormatGuides = {
   square_1_1:
     "square 1:1 Instagram format, 1080 by 1080 composition, balanced centered crop with calm margins",
   landscape_16_9:
-    "wide 16:9 format, 1920 by 1080 composition, horizontal cinematic crop with text-safe central area",
+    "wide 16:9 format, 1920 by 1080 composition, horizontal cinematic crop with coherent full-frame detail",
   facebook_link_1200_630:
-    "wide 1200 by 630 social link preview format, low-height horizontal crop with very clear central text-safe area",
+    "wide 1200 by 630 social link preview format, low-height horizontal crop with no artificial center panel",
   pinterest_2_3:
     "vertical Pinterest 2:3 format, 1000 by 1500 composition, tall editorial crop with strong top-to-bottom rhythm",
 };
 
 const layoutGuides = {
-  top: "leave the upper half especially readable and calm for typography, while keeping detail lower in the scene",
-  center: "leave the center area especially calm and uncluttered for typography",
-  bottom: "leave the lower half especially readable and uncluttered for typography, with more visual detail higher up",
+  top: "keep the upper half part of the same natural scene, without any blank or blurred upper panel",
+  center: "keep the center part of the same natural scene, without any blurred central patch",
+  bottom: "keep the lower half part of the same natural scene, without any blank or blurred lower panel",
 };
 
 const diffusionFormatGuides = {
-  portrait_4_5: "vertical portrait crop with generous calm margins",
+  portrait_4_5: "vertical portrait crop with coherent natural detail from edge to edge",
   story_9_16: "tall vertical cinematic crop with spacious upper and lower breathing room",
-  square_1_1: "balanced square crop with calm margins",
-  landscape_16_9: "wide horizontal cinematic crop with smooth central breathing room",
-  facebook_link_1200_630: "wide low-height crop with clean central atmosphere",
+  square_1_1: "balanced square crop with coherent natural detail from edge to edge",
+  landscape_16_9: "wide horizontal cinematic crop with natural central detail",
+  facebook_link_1200_630: "wide low-height crop with no blank central atmosphere panel",
   pinterest_2_3: "tall editorial crop with strong vertical rhythm",
 };
 
 const diffusionLayoutGuides = {
-  top: "smooth atmospheric upper half, with richer natural detail lower in the scene",
-  center: "smooth uncluttered middle area with natural gradients and soft depth",
-  bottom: "smooth lower half, with richer visual detail higher in the scene",
+  top: "upper half remains a real part of the scene, not a smoothed blank panel",
+  center: "middle area remains a real part of the scene, not a smoothed blank panel",
+  bottom: "lower half remains a real part of the scene, not a smoothed blank panel",
 };
 
 
@@ -1571,8 +1571,9 @@ function buildHighQualityImagePrompt(input, prompt, maxLength) {
     "Crop: " + (diffusionFormatGuides[formatId] || diffusionFormatGuides.portrait_4_5) + ".",
     "Lighting: " + lighting + ".",
     "Palette: " + palette + ".",
-    "Composition: realistic environmental depth, strong natural focal hierarchy, calm open space made from sky, mist, water, field, wall, light, or texture; " + layoutPrompt + ".",
+    "Composition: realistic environmental depth, strong natural focal hierarchy, coherent full-frame detail; " + layoutPrompt + ".",
     "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, natural surfaces, not a simple gradient-only backdrop.",
+    "Do not add a frosted-glass panel, blurred center, misty blank area, soft rectangle, duplicated-image frame, vignette frame, or artificial clarity patch.",
     "Subject handling: " + subjectSafety + ".",
     "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
   ].filter(Boolean).join(" "), maxLength || 1800);
@@ -1584,8 +1585,8 @@ function buildPollinationsPrompt(input, prompt) {
 
 function sanitizeDiffusionPromptSegment(value) {
   return cleanText(value)
-    .replace(/\b(text|typography|letters?|words?|numbers?|glyphs?|caption|title|subtitle|scripture|verse|reference|logo|watermark|signature|stamp|seal|badge|cross|poster|flyer|signage|signs?|label|paper|page|screen|website|ui)\b/giu, "open space")
-    .replace(/\b(quote card|book cover|album cover|religious symbol)\b/giu, "open space")
+    .replace(/\b(text|typography|letters?|words?|numbers?|glyphs?|caption|title|subtitle|scripture|verse|reference|logo|watermark|signature|stamp|seal|badge|cross|poster|flyer|signage|signs?|label|paper|page|screen|website|ui)\b/giu, "natural visual detail")
+    .replace(/\b(quote card|book cover|album cover|religious symbol)\b/giu, "natural visual detail")
     .replace(/\s+/gu, " ")
     .trim();
 }
@@ -1816,7 +1817,7 @@ function buildGeminiPrompt(input) {
   return [
     "Create a clean high-quality wordless background image only.",
     "Image format: " + formatPrompt + ".",
-    "The app will add the verse, reference, and logo later on a separate canvas layer; the generated image itself must stay completely free of text and symbols.",
+    "Generate only the background scene; the image itself must stay completely free of lettering, numbers, symbols, logos, marks, and writing.",
     "Do not create a finished poster, quote card, book cover, flyer, title card, album cover, devotional graphic, social media template, website, UI screen, label, sign, page, paper sheet, emblem, seal, badge, cross, or logo.",
     "Absolute ban: no readable letters, no unreadable pseudo-letters, no numbers, no glyphs, no caption-like marks, no scripture references, no verse fragments, no monograms, no signage, no watermarks, no signatures, no faux-typography textures.",
     'Theme mood only, do not render as words: "' + topic + '".',
@@ -1838,11 +1839,11 @@ function buildGeminiPrompt(input) {
       ? "A user reference image is attached. Use it as inspiration for composition, atmosphere, palette, and visual motifs while still creating a fresh original background for this verse. Do not copy any text, logos, watermarks, or brand elements from the reference."
       : "No reference image is attached, so derive the visual completely from the prompt itself.",
     "Variation cue: " + variation + ".",
-    "Make this generation visibly different from prior variants by changing camera distance, scene structure, focal plane, and atmospheric treatment while preserving readability for overlay text.",
-    "Use imagery that faithfully matches the selected subject and feels calm, reverent, and suitable for a later text overlay without containing religious symbols or writing.",
+    "Make this generation visibly different from prior variants by changing camera distance, scene structure, focal plane, and atmospheric treatment while keeping the scene natural across the full frame.",
+    "Use imagery that faithfully matches the selected subject and feels calm, reverent, and complete as a clean background without containing religious symbols or writing.",
     "Subject guardrails: " + subjectSafety + ".",
     "Negative prompt: " + IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT + ".",
-    "Keep the intended text area calm, softly lit, elegant, and uncluttered using only natural background detail.",
+    "Do not reserve or paint any special blank panel, center haze, or soft rectangular zone; generate a complete scene with natural detail throughout.",
     "The result should feel peaceful, reverent, emotionally aligned with the post, and beautiful without looking generic.",
   ].join(" ");
 }
@@ -2429,13 +2430,13 @@ function buildTypographyHint(settings) {
   };
 
   return (
-    "Preserve a calm, high-contrast negative space for a later " +
+    "Create a coherent full-frame background compatible with " +
     (typographyGuides[typography] || typographyGuides.noto_serif) +
-    ", with text opacity around " +
+    ", with foreground lettering opacity around " +
     textOpacity +
     "%, and outline strength around " +
     strokeStrength +
-    "%. The image itself must contain no rendered letters or typography."
+    "%. The image itself must contain no rendered letters, writing, blank panel, or blurred clarity patch."
   );
 }
 

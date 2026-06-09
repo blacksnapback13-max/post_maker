@@ -3081,10 +3081,7 @@
     const posterTheme = getPosterTheme();
 
     ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-    drawImageBackground(ctx, image, elements.canvas.width, elements.canvas.height, {
-      sanitizeTextArtifacts: shouldSanitizeImageBackground(),
-    });
-    drawLightOverlay(ctx, posterTheme);
+    drawImageBackground(ctx, image, elements.canvas.width, elements.canvas.height);
     drawPosterText(ctx, {
       topic: "",
       reference: state.localizedReference || state.selectedVerse.reference,
@@ -3106,7 +3103,6 @@
 
     ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
     drawBackground(ctx, scene, posterTheme);
-    drawLightOverlay(ctx, posterTheme);
     drawPosterText(ctx, {
       topic: "",
       reference: state.localizedReference || state.selectedVerse.reference,
@@ -3237,7 +3233,6 @@
 
     ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
     drawBackground(ctx, "sunrise", palette);
-    drawLightOverlay(ctx, palette);
     drawPosterText(ctx, {
       topic: "",
       reference: t("placeholderReference"),
@@ -3260,7 +3255,6 @@
 
     ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
     drawBackground(ctx, "sea", palette);
-    drawLightOverlay(ctx, palette);
     drawPosterText(ctx, {
       topic: "",
       reference: reference || t("placeholderReference"),
@@ -3272,7 +3266,7 @@
     drawPosterLogo(ctx, state.logoImage, state.posterSettings);
   }
 
-  function drawImageBackground(context, image, targetWidth, targetHeight, options) {
+  function drawImageBackground(context, image, targetWidth, targetHeight) {
     const imageRatio = image.width / image.height;
     const targetRatio = targetWidth / targetHeight;
     let drawWidth = targetWidth;
@@ -3291,82 +3285,6 @@
     }
 
     context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
-
-    if (options && options.sanitizeTextArtifacts) {
-      scrubBackgroundTextArtifacts(context, image, targetWidth, targetHeight);
-    }
-  }
-
-  function shouldSanitizeImageBackground() {
-    const source = String(state.backgroundSource || "").toLowerCase();
-    const model = String(state.backgroundModel || "").toLowerCase();
-    return (
-      source === "pollinations" ||
-      source === "huggingface" ||
-      source === "cloudflare" ||
-      source === "qwen" ||
-      model.includes("pollinations/") ||
-      model.includes("flux") ||
-      model.includes("schnell") ||
-      model.includes("qwen")
-    );
-  }
-
-  function scrubBackgroundTextArtifacts(context, image, targetWidth, targetHeight) {
-    const softened = createSoftenedBackgroundCanvas(image, targetWidth, targetHeight);
-    if (!softened) {
-      return;
-    }
-
-    context.save();
-    context.globalAlpha = 0.34;
-    context.drawImage(softened, 0, 0, targetWidth, targetHeight);
-    context.restore();
-
-    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.27, targetWidth * 0.44, targetHeight * 0.24, 0.92);
-    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.54, targetWidth * 0.36, targetHeight * 0.24, 0.86);
-    drawSoftArtifactPatch(context, softened, targetWidth * 0.5, targetHeight * 0.76, targetWidth * 0.34, targetHeight * 0.18, 0.74);
-  }
-
-  function createSoftenedBackgroundCanvas(image, targetWidth, targetHeight) {
-    const smallCanvas = document.createElement("canvas");
-    const softCanvas = document.createElement("canvas");
-    const smallWidth = Math.max(64, Math.round(targetWidth / 12));
-    const smallHeight = Math.max(64, Math.round(targetHeight / 12));
-    smallCanvas.width = smallWidth;
-    smallCanvas.height = smallHeight;
-    softCanvas.width = targetWidth;
-    softCanvas.height = targetHeight;
-
-    const smallContext = smallCanvas.getContext("2d");
-    const softContext = softCanvas.getContext("2d");
-    if (!smallContext || !softContext) {
-      return null;
-    }
-
-    smallContext.imageSmoothingEnabled = true;
-    smallContext.imageSmoothingQuality = "high";
-    drawImageBackground(smallContext, image, smallWidth, smallHeight);
-    softContext.imageSmoothingEnabled = true;
-    softContext.imageSmoothingQuality = "high";
-    softContext.drawImage(smallCanvas, 0, 0, targetWidth, targetHeight);
-    return softCanvas;
-  }
-
-  function drawSoftArtifactPatch(context, softened, centerX, centerY, radiusX, radiusY, alpha) {
-    context.save();
-    context.beginPath();
-    context.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
-    context.clip();
-    context.globalAlpha = alpha;
-    context.drawImage(softened, 0, 0, context.canvas.width, context.canvas.height);
-
-    const mist = context.createRadialGradient(centerX, centerY, Math.max(8, radiusX * 0.1), centerX, centerY, radiusX);
-    mist.addColorStop(0, "rgba(236, 243, 236, 0.18)");
-    mist.addColorStop(1, "rgba(236, 243, 236, 0)");
-    context.fillStyle = mist;
-    context.fillRect(centerX - radiusX, centerY - radiusY, radiusX * 2, radiusY * 2);
-    context.restore();
   }
 
   function setPosterStatus(message, tone) {
@@ -3727,7 +3645,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.7";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.8";
     elements.appVersionBadge.textContent = "v" + version;
   }
 
@@ -3928,27 +3846,6 @@
     context.fill();
   }
 
-  function drawLightOverlay(context, palette) {
-    const width = elements.canvas.width;
-    const height = elements.canvas.height;
-    const overlay = context.createLinearGradient(0, 0, 0, height);
-    overlay.addColorStop(0, "rgba(14, 20, 18, 0.36)");
-    overlay.addColorStop(0.26, "rgba(14, 20, 18, 0.08)");
-    overlay.addColorStop(0.58, "rgba(255, 255, 255, 0.02)");
-    overlay.addColorStop(1, "rgba(12, 16, 15, 0.32)");
-
-    context.fillStyle = overlay;
-    context.fillRect(0, 0, width, height);
-
-    const topGlow = context.createRadialGradient(width * 0.5, 160, 20, width * 0.5, 160, 320);
-    topGlow.addColorStop(0, "rgba(255,255,255,0.18)");
-    topGlow.addColorStop(1, "rgba(255,255,255,0)");
-    context.fillStyle = topGlow;
-    context.beginPath();
-    context.arc(width * 0.5, 160, 320, 0, Math.PI * 2);
-    context.fill();
-  }
-
   function drawPosterLogo(context, logoAsset, settings) {
     if (!logoAsset || !logoAsset.image) {
       return;
@@ -4003,11 +3900,12 @@
     const settings = data.settings || state.posterSettings;
     const typographyPreset = getTypographyPreset(settings.typography);
     const layoutPreset = getLayoutPreset(settings.layout, data.placeholder);
-    const layoutMode = String(settings.layout || "top");
+    const layoutMode = String(settings.layout || "center");
     const hasTopic = Boolean(data.topic && data.topic.trim());
     const baseContentStartY = hasTopic
       ? layoutPreset.verseStartY
       : layoutPreset.verseStartY - layoutPreset.topiclessOffset;
+    const textMaxWidth = Math.min(layoutPreset.verseMaxWidth, width * 0.76);
     const textOpacity = clamp((settings.textOpacity || 92) / 100, 0.55, 1);
     const strokeStrength = clamp((settings.strokeStrength || 68) / 100, 0, 1);
     const fillColor = "rgba(22, 20, 18, " + textOpacity.toFixed(2) + ")";
@@ -4016,58 +3914,112 @@
     context.save();
     context.textAlign = "center";
     context.lineJoin = "round";
+    context.textBaseline = "alphabetic";
     context.fillStyle = fillColor;
     context.strokeStyle = strokeColor;
 
     if (hasTopic) {
       context.font = typographyPreset.topicFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.topic, width / 2, layoutPreset.topicY);
+      strokeFillText(context, data.topic, width / 2, layoutPreset.topicY, { backdrop: true });
     }
 
     if (data.placeholder && data.message) {
-      context.font = typographyPreset.placeholderFont;
-      const messageLines = buildWrappedLines(context, data.message, layoutPreset.verseMaxWidth);
-      const messageBlockHeight =
-        Math.max(0, (messageLines.length - 1) * layoutPreset.verseLineHeight) + layoutPreset.referenceGap;
-      const contentStartY = resolveContentStartY(layoutMode, baseContentStartY, layoutPreset, messageBlockHeight);
+      const messageLayout = buildAdaptivePosterTextLayout(context, {
+        text: data.message,
+        textFont: typographyPreset.placeholderFont,
+        referenceFont: typographyPreset.referenceFont,
+        maxWidth: textMaxWidth,
+        lineHeight: layoutPreset.verseLineHeight,
+        referenceGap: layoutPreset.referenceGap,
+        maxLines: 3,
+        maxBlockRatio: 0.3,
+      });
+      const contentStartY = resolveContentStartY(layoutMode, baseContentStartY, layoutPreset, messageLayout.blockHeight);
+      context.font = messageLayout.textFont;
       context.lineWidth = 8 + strokeStrength * 8;
-      const messageMetrics = drawWrappedText(
+      const messageMetrics = drawPreparedTextLines(
         context,
-        data.message,
+        messageLayout.lines,
         width / 2,
         contentStartY,
-        layoutPreset.verseMaxWidth,
-        layoutPreset.verseLineHeight,
+        messageLayout.lineHeight,
         true
       );
 
-      context.font = typographyPreset.referenceFont;
+      context.font = messageLayout.referenceFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.reference, width / 2, messageMetrics.endY + layoutPreset.referenceGap);
+      strokeFillText(context, data.reference, width / 2, messageMetrics.endY + messageLayout.referenceGap, {
+        backdrop: true,
+      });
     } else {
-      context.font = typographyPreset.verseFont;
-      const verseLines = buildWrappedLines(context, data.verseText, layoutPreset.verseMaxWidth);
-      const verseBlockHeight =
-        Math.max(0, (verseLines.length - 1) * layoutPreset.verseLineHeight) + layoutPreset.referenceGap;
-      const contentStartY = resolveContentStartY(layoutMode, baseContentStartY, layoutPreset, verseBlockHeight);
+      const verseLayout = buildAdaptivePosterTextLayout(context, {
+        text: data.verseText,
+        textFont: typographyPreset.verseFont,
+        referenceFont: typographyPreset.referenceFont,
+        maxWidth: textMaxWidth,
+        lineHeight: layoutPreset.verseLineHeight,
+        referenceGap: layoutPreset.referenceGap,
+        maxLines: 4,
+        maxBlockRatio: 0.34,
+      });
+      const contentStartY = resolveContentStartY(layoutMode, baseContentStartY, layoutPreset, verseLayout.blockHeight);
+      context.font = verseLayout.textFont;
       context.lineWidth = 8 + strokeStrength * 10;
-      const verseMetrics = drawWrappedText(
+      const verseMetrics = drawPreparedTextLines(
         context,
-        data.verseText,
+        verseLayout.lines,
         width / 2,
         contentStartY,
-        layoutPreset.verseMaxWidth,
-        layoutPreset.verseLineHeight,
+        verseLayout.lineHeight,
         true
       );
 
-      context.font = typographyPreset.referenceFont;
+      context.font = verseLayout.referenceFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.reference, width / 2, verseMetrics.endY + layoutPreset.referenceGap);
+      strokeFillText(context, data.reference, width / 2, verseMetrics.endY + verseLayout.referenceGap, {
+        backdrop: true,
+      });
     }
 
     context.restore();
+  }
+
+  function buildAdaptivePosterTextLayout(context, options) {
+    const maxBlockHeight = elements.canvas.height * (options.maxBlockRatio || 0.34);
+    let factor = 1;
+    let selected = null;
+
+    while (factor >= 0.62) {
+      const textFont = scaleCanvasFont(options.textFont, factor);
+      const referenceFactor = clamp(0.72 + factor * 0.24, 0.72, 0.96);
+      const referenceFont = scaleCanvasFont(options.referenceFont, referenceFactor);
+      const lineHeight = options.lineHeight * clamp(0.76 + factor * 0.22, 0.76, 0.98);
+      const referenceGap = options.referenceGap * clamp(0.66 + factor * 0.18, 0.66, 0.84);
+
+      context.font = textFont;
+      const lines = buildWrappedLines(context, options.text, options.maxWidth);
+      const referenceSize = getCanvasFontSize(referenceFont);
+      const blockHeight =
+        Math.max(0, (lines.length - 1) * lineHeight) + referenceGap + referenceSize * 0.9;
+
+      selected = {
+        lines: lines,
+        textFont: textFont,
+        referenceFont: referenceFont,
+        lineHeight: lineHeight,
+        referenceGap: referenceGap,
+        blockHeight: blockHeight,
+      };
+
+      if (lines.length <= (options.maxLines || 4) && blockHeight <= maxBlockHeight) {
+        break;
+      }
+
+      factor -= 0.04;
+    }
+
+    return selected;
   }
 
   function resolveContentStartY(layoutMode, baseContentStartY, layoutPreset, blockHeight) {
@@ -4138,17 +4090,10 @@
     return lines;
   }
 
-  function drawWrappedText(context, text, centerX, startY, maxWidth, lineHeight, withStroke) {
-    const lines = buildWrappedLines(context, text, maxWidth);
-
+  function drawPreparedTextLines(context, lines, centerX, startY, lineHeight, withStroke) {
     lines.forEach(function (line, index) {
       const y = startY + index * lineHeight;
-
-      if (withStroke) {
-        context.strokeText(line, centerX, y);
-      }
-
-      context.fillText(line, centerX, y);
+      strokeFillText(context, line, centerX, y, { withStroke: withStroke, backdrop: true });
     });
 
     return {
@@ -4171,9 +4116,48 @@
     context.closePath();
   }
 
-  function strokeFillText(context, text, x, y) {
-    context.strokeText(text, x, y);
+  function scaleCanvasFont(font, factor) {
+    return String(font || "").replace(/(\d+(?:\.\d+)?)px/u, function (_, size) {
+      return Math.max(18, Math.round(Number(size) * factor)) + "px";
+    });
+  }
+
+  function getCanvasFontSize(font) {
+    const match = String(font || "").match(/(\d+(?:\.\d+)?)px/u);
+    return match ? Number(match[1]) : 48;
+  }
+
+  function strokeFillText(context, text, x, y, options) {
+    const drawStroke = !options || options.withStroke !== false;
+    if (options && options.backdrop) {
+      drawTextLineBackdrop(context, text, x, y);
+    }
+
+    if (drawStroke) {
+      context.strokeText(text, x, y);
+    }
     context.fillText(text, x, y);
+  }
+
+  function drawTextLineBackdrop(context, text, centerX, baselineY) {
+    const measuredWidth = context.measureText(text).width;
+    const fontSize = getCanvasFontSize(context.font);
+    const paddingX = fontSize * 0.24;
+    const paddingY = fontSize * 0.16;
+    const pillWidth = Math.min(elements.canvas.width * 0.86, measuredWidth + paddingX * 2);
+    const pillHeight = fontSize + paddingY * 2;
+    const x = centerX - pillWidth / 2;
+    const y = baselineY - fontSize * 0.82 - paddingY;
+    const radius = Math.min(22, pillHeight / 2);
+
+    context.save();
+    roundRect(context, x, y, pillWidth, pillHeight, radius);
+    context.fillStyle = "rgba(255, 248, 240, 0.5)";
+    context.fill();
+    context.strokeStyle = "rgba(28, 44, 37, 0.1)";
+    context.lineWidth = Math.max(1, fontSize * 0.018);
+    context.stroke();
+    context.restore();
   }
 
   function copyPost() {
@@ -5121,7 +5105,7 @@
       logoPosition: "bottom_right",
       logoSize: 14,
       logoOpacity: 100,
-      layout: "top",
+      layout: "center",
       textOpacity: 92,
       strokeStrength: 68,
     };

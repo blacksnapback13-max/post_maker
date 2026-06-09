@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.8 - 2026-06-09
+
+- Removed the client-side blurred duplicate-image cleanup layer from AI poster backgrounds so generated images and PNG exports no longer show a soft frame or misty duplicate overlay.
+- Removed full-canvas readability overlays; AI backgrounds now render as the original provider image plus only the app-owned text, reference, local per-line text backing, and optional logo.
+- Added adaptive poster typography so long verses shrink into a compact centered block instead of spreading across most of the poster.
+- Updated image prompts to stop asking providers for a blank center, text-safe area, frosted-glass panel, or blurred caption zone inside the generated image.
+
 ## 1.2.7 - 2026-06-09
 
 - Added a server-side Pollinations request queue so Render sends only one Pollinations image request at a time from the shared IP.
