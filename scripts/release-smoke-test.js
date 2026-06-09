@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const { once } = require("node:events");
 const {
   buildGeminiPrompt,
+  buildImageProvidersUnavailableError,
   buildPollinationsPrompt,
   buildPostPrompt,
   buildScriptureSuggestionPrompt,
@@ -180,6 +181,13 @@ async function main() {
   assert.doesNotMatch(pollinationsPrompt, /Base prompt context|Scripture reference mood|Christian social media|Negative prompt:/u);
   pass("pollinations prompt stays visual-only and keeps artifact bans out of the positive prompt");
 
+  const pollinationsQueueError = new Error('Pollinations image API failed HTTP 402: {"x402Version":1,"error":"Queue full for IP: 2a06:98c0:3600::103: 1 requests already queued (max: 1)."}');
+  pollinationsQueueError.statusCode = 402;
+  const friendlyQueueError = buildImageProvidersUnavailableError([pollinationsQueueError]);
+  assert.match(friendlyQueueError.message, /Pollinations уже обрабатывает предыдущий фон/u);
+  assert.doesNotMatch(friendlyQueueError.message, /x402Version|accepts|resource|2a06:98c0/u);
+  pass("pollinations queue-full errors are user-friendly");
+
   const server = createServer();
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -194,7 +202,7 @@ async function main() {
 
     const configResult = await requestJson(baseUrl, "/api/config");
     assert.equal(configResult.response.status, 200);
-    assert.equal(configResult.payload.version, "1.2.6");
+    assert.equal(configResult.payload.version, "1.2.7");
     assert.equal(configResult.payload.provider, "multi");
     assert.equal(typeof configResult.payload.textEnabled, "boolean");
     assert.ok(Array.isArray(configResult.payload.imageProviders));
@@ -206,7 +214,7 @@ async function main() {
 
     const imageUsageResult = await requestJson(baseUrl, "/api/image-usage");
     assert.equal(imageUsageResult.response.status, 200);
-    assert.equal(imageUsageResult.payload.version, "1.2.6");
+    assert.equal(imageUsageResult.payload.version, "1.2.7");
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.gemini);
     assert.ok(imageUsageResult.payload.imageProviderUsage.providers.pollinations);
     pass("/api/image-usage exposes daily image provider archive");

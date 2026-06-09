@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.7 - 2026-06-09
+
+- Added a server-side Pollinations request queue so Render sends only one Pollinations image request at a time from the shared IP.
+- Added longer dedicated retries for Pollinations `Queue full` / `already queued` errors without treating them as daily quota exhaustion.
+- Replaced raw Pollinations `x402` JSON in poster status with a short localized message.
+- Documented the intended multi-provider free/limited image stack: Gemini, Cloudflare Workers AI, Hugging Face, Qwen/DashScope, then Pollinations.
+
 ## 1.2.6 - 2026-05-18
 
 - Pollinations/Diffusion prompts are now visual-only: no scripture, reference, text, logo, poster, or negative prompt wording is sent in the positive prompt.

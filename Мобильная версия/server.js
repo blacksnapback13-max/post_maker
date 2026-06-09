@@ -17,7 +17,7 @@ loadEnvFile(PARENT_ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || "127.0.0.1";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.6";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.7";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
@@ -35,6 +35,8 @@ const DEFAULT_POLLINATIONS_TIMEOUT_MS = Number(process.env.POLLINATIONS_TIMEOUT_
 const DEFAULT_IMAGE_PROVIDER_TIMEOUT_MS = Number(process.env.IMAGE_PROVIDER_TIMEOUT_MS || 90000);
 const DEFAULT_POLLINATIONS_RETRY_ATTEMPTS = Number(process.env.POLLINATIONS_RETRY_ATTEMPTS || 3);
 const DEFAULT_POLLINATIONS_RETRY_DELAY_MS = Number(process.env.POLLINATIONS_RETRY_DELAY_MS || 4500);
+const DEFAULT_POLLINATIONS_QUEUE_RETRY_ATTEMPTS = Number(process.env.POLLINATIONS_QUEUE_RETRY_ATTEMPTS || 7);
+const DEFAULT_POLLINATIONS_QUEUE_RETRY_DELAY_MS = Number(process.env.POLLINATIONS_QUEUE_RETRY_DELAY_MS || 9000);
 const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
   "text",
   "letters",
@@ -66,6 +68,7 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
   "page",
   "screen",
 ].join(", ");
+let pollinationsRequestQueue = Promise.resolve();
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -841,13 +844,27 @@ function combineProviderErrors(errors) {
 
 function buildImageProvidersUnavailableError(errors) {
   const combined = combineProviderErrors(errors);
+  const userMessage = getImageProviderUserMessage(combined);
   const error = new Error(
     "AI-генераторы изображения сейчас недоступны. Я не подставляю SVG-фон вместо AI-картинки. " +
-      "Подождите минуту и нажмите «Новый фон» еще раз. " +
-      shortenText(combined.message || "", 360)
+      userMessage
   );
   error.statusCode = 503;
   return error;
+}
+
+function getImageProviderUserMessage(error) {
+  const message = String(error && error.message ? error.message : "");
+
+  if (isPollinationsQueueFullError(error)) {
+    return "Pollinations уже обрабатывает предыдущий фон для этого IP. Я сделал более длинное ожидание в сервере; если очередь снова занята, подождите 30-60 секунд и нажмите «Новый фон» еще раз.";
+  }
+
+  if (isQuotaLikeError(error)) {
+    return "Похоже, бесплатная квота основного image-провайдера на сегодня закончилась. Попробуйте позже или включите еще один бесплатный image-провайдер в настройках сервера.";
+  }
+
+  return "Подождите минуту и нажмите «Новый фон» еще раз. " + shortenText(message, 220);
 }
 
 async function requestGeminiImage(prompt, model, referenceImage, input) {
@@ -1102,6 +1119,19 @@ async function requestDashscopeQwenImage(input, prompt) {
 }
 
 async function requestPollinationsImage(input, prompt) {
+  return enqueuePollinationsImageRequest(function () {
+    return requestPollinationsImageNow(input, prompt);
+  });
+}
+
+async function enqueuePollinationsImageRequest(task) {
+  const previous = pollinationsRequestQueue.catch(function () {});
+  const current = previous.then(task);
+  pollinationsRequestQueue = current.catch(function () {});
+  return current;
+}
+
+async function requestPollinationsImageNow(input, prompt) {
   const imagePrompt = buildPollinationsPrompt(input, prompt);
   const dimensions = getPollinationsImageDimensions(input && input.posterSettings && input.posterSettings.format);
   const seed = getImageSeed(input);
@@ -1126,7 +1156,8 @@ async function requestPollinationsImage(input, prompt) {
       url.searchParams.set("key", process.env.POLLINATIONS_API_KEY);
     }
 
-    for (let attempt = 1; attempt <= getPollinationsRetryAttempts(); attempt += 1) {
+    const maxAttempts = Math.max(getPollinationsRetryAttempts(), getPollinationsQueueRetryAttempts());
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
         const response = await fetchWithTimeout(url, {
           method: "GET",
@@ -1148,8 +1179,10 @@ async function requestPollinationsImage(input, prompt) {
         return imageFromArrayBuffer("pollinations", "pollinations/" + pollinationsModel, mimeType, await response.arrayBuffer(), imagePrompt);
       } catch (error) {
         errors.push(error);
-        if (attempt < getPollinationsRetryAttempts() && isTemporaryProviderBackoffError(error)) {
-          await delay(getPollinationsRetryDelayMs() * attempt);
+        const queueFull = isPollinationsQueueFullError(error);
+        const retryLimit = queueFull ? getPollinationsQueueRetryAttempts() : getPollinationsRetryAttempts();
+        if (attempt < retryLimit && isTemporaryProviderBackoffError(error)) {
+          await delay(queueFull ? getPollinationsQueueRetryDelayMs() : getPollinationsRetryDelayMs() * attempt);
           continue;
         }
         break;
@@ -1168,6 +1201,16 @@ function getPollinationsRetryAttempts() {
 function getPollinationsRetryDelayMs() {
   const delayMs = Number(DEFAULT_POLLINATIONS_RETRY_DELAY_MS);
   return Number.isFinite(delayMs) ? Math.max(1000, Math.min(20000, Math.floor(delayMs))) : 4500;
+}
+
+function getPollinationsQueueRetryAttempts() {
+  const attempts = Number(DEFAULT_POLLINATIONS_QUEUE_RETRY_ATTEMPTS);
+  return Number.isFinite(attempts) ? Math.max(1, Math.min(10, Math.floor(attempts))) : 7;
+}
+
+function getPollinationsQueueRetryDelayMs() {
+  const delayMs = Number(DEFAULT_POLLINATIONS_QUEUE_RETRY_DELAY_MS);
+  return Number.isFinite(delayMs) ? Math.max(3000, Math.min(20000, Math.floor(delayMs))) : 9000;
 }
 
 function normalizeBaseUrl(value) {
@@ -2575,6 +2618,13 @@ function isTemporaryProviderBackoffError(error) {
     status === 503 ||
     status === 504 ||
     /queue full|already queued|server busy|temporarily unavailable|try again|timed out|timeout/u.test(message);
+}
+
+function isPollinationsQueueFullError(error) {
+  const status = Number(error && error.statusCode);
+  const message = String(error && error.message ? error.message : "").toLowerCase();
+  return (status === 402 || /pollinations|x402|enter\.pollinations\.ai/u.test(message)) &&
+    /queue full|already queued|max:\s*1/u.test(message);
 }
 
 function isStaleTemporaryProviderDisable(provider, record) {

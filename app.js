@@ -3440,12 +3440,31 @@
       tr: "“Yeni arka plan” düğmesiyle tekrar deneyin.",
     };
     const language = fallbackPrefix[state.language] ? state.language : "ru";
+    const detail = formatPosterErrorMessage(error && error.message ? error.message : "", language);
 
     return (
       fallbackPrefix[language] +
       " " +
-      (error && error.message ? error.message : fallbackSuffix[language])
+      (detail || fallbackSuffix[language])
     );
+  }
+
+  function formatPosterErrorMessage(message, language) {
+    const cleanMessage = cleanDisplayText(message);
+    if (!cleanMessage) {
+      return "";
+    }
+
+    if (/queue full|already queued|x402|enter\.pollinations\.ai|Pollinations уже обрабатывает/iu.test(cleanMessage)) {
+      return {
+        ru: "Pollinations еще обрабатывает предыдущий фон. Подождите 30-60 секунд и нажмите «Новый фон» еще раз.",
+        uk: "Pollinations ще обробляє попередній фон. Зачекайте 30-60 секунд і натисніть «Новий фон» ще раз.",
+        pl: "Pollinations nadal przetwarza poprzednie tło. Poczekaj 30-60 sekund i kliknij „Nowe tło” ponownie.",
+        tr: "Pollinations önceki arka planı hâlâ işliyor. 30-60 saniye bekleyip “Yeni arka plan” düğmesine yeniden basın.",
+      }[language] || "Pollinations еще обрабатывает предыдущий фон. Подождите 30-60 секунд и нажмите «Новый фон» еще раз.";
+    }
+
+    return shortenText(cleanMessage, 260);
   }
 
   function loadImageAsset(src) {
@@ -3708,7 +3727,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.6";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.7";
     elements.appVersionBadge.textContent = "v" + version;
   }
 

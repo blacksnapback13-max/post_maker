@@ -59,6 +59,10 @@ services:
         value: "3"
       - key: POLLINATIONS_RETRY_DELAY_MS
         value: "4500"
+      - key: POLLINATIONS_QUEUE_RETRY_ATTEMPTS
+        value: "7"
+      - key: POLLINATIONS_QUEUE_RETRY_DELAY_MS
+        value: "9000"
       - key: POLLINATIONS_ENHANCE_PROMPT
         value: "false"
       - key: POLLINATIONS_IMAGE_DAILY_LIMIT
