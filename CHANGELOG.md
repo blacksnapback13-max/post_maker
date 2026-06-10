@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.9 - 2026-06-10
+
+- Removed the remaining per-line text backing from poster canvas output: generated posters now have no blur layer, no translucent backing, and no softened text plate over the image.
+- Removed logo shadow blur so canvas rendering contains no explicit blur/shadowBlur operation.
+- Tightened image prompts toward sharp, crisp, clear full-frame backgrounds instead of haze, mist, frosted-glass, or soft-panel language.
+
 ## 1.2.8 - 2026-06-09
 
 - Removed the client-side blurred duplicate-image cleanup layer from AI poster backgrounds so generated images and PNG exports no longer show a soft frame or misty duplicate overlay.

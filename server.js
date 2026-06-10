@@ -20,7 +20,7 @@ loadEnvFile(ENV_PATH);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "0.0.0.0";
-const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.7";
+const APP_VERSION = readPackageVersion(PACKAGE_PATH) || "1.2.9";
 const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
 const DEFAULT_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const DEFAULT_SEARCH_TEXT_MODEL = process.env.GEMINI_SEARCH_TEXT_MODEL || DEFAULT_TEXT_MODEL;
@@ -70,6 +70,15 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
   "paper",
   "page",
   "screen",
+  "blur",
+  "blurry",
+  "soft focus",
+  "frosted glass",
+  "haze panel",
+  "misty panel",
+  "soft rectangle",
+  "blurred center",
+  "low-detail center",
 ].join(", ");
 const SERVER_STARTED_AT = new Date().toISOString();
 
@@ -97,7 +106,7 @@ const moodProfiles = [
     id: "purity",
     matches: ["чистота", "до брака", "границы", "святость", "воздержание"],
     scenes: [
-      "a quiet lake at sunrise with transparent air and gentle morning mist",
+      "a quiet lake at sunrise with transparent clear morning air",
       "a calm sea shore before sunrise with pale pastel light",
       "a dew-covered meadow with soft dawn light and spacious horizon",
     ],
@@ -121,12 +130,12 @@ const moodProfiles = [
     id: "communication",
     matches: ["общение", "прощение", "обида", "конфликт", "мир", "слушание"],
     scenes: [
-      "a still mountain lake with layered mist and calm reflective water",
-      "a quiet forest path with soft blue morning haze",
+      "a still mountain lake with clear reflective water",
+      "a quiet forest path with crisp blue morning air",
       "a gentle river landscape with calm overcast light and atmospheric depth",
     ],
     lightings: ["soft blue morning light", "delicate cloudy glow", "quiet post-rain light"],
-    palettes: ["dusty blue, mist gray, soft green", "cool blue, warm cream, muted pine"],
+    palettes: ["dusty blue, cool gray, soft green", "cool blue, warm cream, muted pine"],
     moods: ["restoring", "tender", "quiet", "merciful", "reflective"],
   },
   {
@@ -158,7 +167,7 @@ const moodProfiles = [
 const variationPool = [
   "change the viewpoint and foreground-midground structure without creating a blank center patch",
   "make the horizon a little higher and the foreground softer",
-  "use slightly more atmospheric haze and depth",
+  "use clearer atmospheric depth and crisp scene separation",
   "lean into a more cinematic but still realistic composition",
   "make the composition more minimal and editorial while preserving natural detail across the whole frame",
   "add a delicate sense of fresh air after rain",
@@ -167,7 +176,7 @@ const variationPool = [
 const compositionPool = [
   "portrait 4:5 environmental composition with natural detail across the full frame",
   "editorial image composition with organic foreground, midground, and background depth",
-  "balanced landscape composition with no artificial blank center zone, frame, haze patch, or center blur",
+  "balanced landscape composition with no artificial blank center zone, frame, low-detail patch, or washed-out center",
 ];
 
 const languageMeta = {
@@ -318,7 +327,7 @@ const posterSubjectGuides = {
   ],
   lake: [
     "a still lake with reflective water and quiet morning light",
-    "a peaceful lake shore with soft mist and gentle open composition",
+    "a peaceful lake shore with clear reflective air and gentle open composition",
   ],
   river: [
     "a calm river scene with flowing water and contemplative depth",
@@ -330,15 +339,15 @@ const posterSubjectGuides = {
   ],
   flowers: [
     "a delicate floral landscape with airy blossoms and organic full-frame detail",
-    "a peaceful garden scene with soft flowers, light haze, and refined balance",
+    "a peaceful garden scene with soft flowers, clear diffused light, and refined balance",
   ],
   rain: [
-    "a rain-washed scene with soft reflections, mist, and calm atmosphere",
+    "a rain-washed scene with clean reflections and calm atmosphere",
     "a gentle fog-and-rain landscape with poetic depth and subdued motion",
   ],
   city: [
     "a calm modern city skyline with atmospheric light and natural urban depth",
-    "an elegant urban horizon with soft haze, reflective surfaces, and consistent central detail",
+    "an elegant urban horizon with clear air, reflective surfaces, and consistent central detail",
   ],
   old_town: [
     "a peaceful old town street with timeless architecture and gentle light",
@@ -396,7 +405,7 @@ const posterVisualStyleGuides = {
   vintage_film:
     "1970s analog film photography, soft grain, faded contrast, imperfect exposure, nostalgic lens character",
   dreamy:
-    "ethereal dreamlike scene, luminous haze, soft-focus glow, delicate highlights, gentle surreal atmosphere",
+    "ethereal dreamlike scene, luminous clear glow, crisp highlights, delicate surreal atmosphere",
   modernism:
     "modernist design composition, Bauhaus-like geometry, clean planes, disciplined grid, reduced color and architectural rhythm",
   postmodern:
@@ -425,9 +434,9 @@ const posterFormatGuides = {
 };
 
 const layoutGuides = {
-  top: "keep the upper half part of the same natural scene, without any blank or blurred upper panel",
-  center: "keep the center part of the same natural scene, without any blurred central patch",
-  bottom: "keep the lower half part of the same natural scene, without any blank or blurred lower panel",
+  top: "keep the upper half part of the same natural scene, without any blank or washed-out upper panel",
+  center: "keep the center part of the same natural scene, without any washed-out central patch",
+  bottom: "keep the lower half part of the same natural scene, without any blank or washed-out lower panel",
 };
 
 const diffusionFormatGuides = {
@@ -1572,8 +1581,8 @@ function buildHighQualityImagePrompt(input, prompt, maxLength) {
     "Lighting: " + lighting + ".",
     "Palette: " + palette + ".",
     "Composition: realistic environmental depth, strong natural focal hierarchy, coherent full-frame detail; " + layoutPrompt + ".",
-    "Quality: cinematic, richly detailed, professional, polished, non-generic, high resolution, natural surfaces, not a simple gradient-only backdrop.",
-    "Do not add a frosted-glass panel, blurred center, misty blank area, soft rectangle, duplicated-image frame, vignette frame, or artificial clarity patch.",
+    "Quality: sharp, crisp, clear, cinematic, richly detailed, professional, polished, non-generic, high resolution, natural surfaces, not a simple gradient-only backdrop.",
+    "Sharpness: clean edge-to-edge detail, no blank panels, no duplicated-image frames, no low-detail center, no artificial wash.",
     "Subject handling: " + subjectSafety + ".",
     "Different variant cue: " + pickBySeed(variationPool, seed + 41) + ".",
   ].filter(Boolean).join(" "), maxLength || 1800);
@@ -1833,7 +1842,7 @@ function buildGeminiPrompt(input) {
     "Color palette: " + palette + ".",
     "Mood: " + mood + ".",
     "Composition: " + composition + ".",
-    "Quality bar: professional editorial background, high-resolution, layered foreground/midground/background depth, intentional focal hierarchy, rich but restrained detail, natural light behavior, crisp surfaces, no muddy AI blur, no low-effort gradient-only backdrop, no AI text artifacts.",
+    "Quality bar: professional editorial background, high-resolution, layered foreground/midground/background depth, intentional focal hierarchy, rich but restrained detail, natural light behavior, sharp crisp clear surfaces, no low-effort gradient-only backdrop, no AI text artifacts.",
     "Layout guidance: " + layoutPrompt + ".",
     hasReferenceImage
       ? "A user reference image is attached. Use it as inspiration for composition, atmosphere, palette, and visual motifs while still creating a fresh original background for this verse. Do not copy any text, logos, watermarks, or brand elements from the reference."
@@ -1843,7 +1852,7 @@ function buildGeminiPrompt(input) {
     "Use imagery that faithfully matches the selected subject and feels calm, reverent, and complete as a clean background without containing religious symbols or writing.",
     "Subject guardrails: " + subjectSafety + ".",
     "Negative prompt: " + IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT + ".",
-    "Do not reserve or paint any special blank panel, center haze, or soft rectangular zone; generate a complete scene with natural detail throughout.",
+    "Do not reserve or paint any special blank panel, center wash, or artificial rectangular zone; generate a complete scene with natural detail throughout.",
     "The result should feel peaceful, reverent, emotionally aligned with the post, and beautiful without looking generic.",
   ].join(" ");
 }
@@ -2393,7 +2402,7 @@ function selectMoodProfile(topic, verseFocus, tags) {
     id: "default",
     scenes: [
       "a quiet sea horizon with gentle light and soft atmosphere",
-      "a serene mountain valley with mist and morning air",
+      "a serene mountain valley with clear morning air",
       "a peaceful forest clearing with calm natural light",
     ],
     lightings: ["soft morning glow", "gentle diffused daylight", "quiet sunrise atmosphere"],
@@ -2436,7 +2445,7 @@ function buildTypographyHint(settings) {
     textOpacity +
     "%, and outline strength around " +
     strokeStrength +
-    "%. The image itself must contain no rendered letters, writing, blank panel, or blurred clarity patch."
+    "%. The image itself must contain no rendered letters, writing, blank panel, or low-detail clarity patch."
   );
 }
 

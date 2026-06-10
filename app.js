@@ -3645,7 +3645,7 @@
     }
 
     const currentVersion = elements.appVersionBadge.textContent.replace(/^v/i, "").trim();
-    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.8";
+    const version = cleanDisplayText(config && config.version) || currentVersion || "1.2.9";
     elements.appVersionBadge.textContent = "v" + version;
   }
 
@@ -3884,13 +3884,6 @@
 
     context.save();
     context.globalAlpha = opacity;
-    context.shadowColor = "rgba(255, 248, 240, 0.26)";
-    context.shadowBlur = 18;
-    context.shadowOffsetY = 0;
-    context.drawImage(logoAsset.image, x, y, logoWidth, logoHeight);
-    context.shadowColor = "rgba(17, 21, 18, 0.28)";
-    context.shadowBlur = 24;
-    context.shadowOffsetY = 10;
     context.drawImage(logoAsset.image, x, y, logoWidth, logoHeight);
     context.restore();
   }
@@ -3921,7 +3914,7 @@
     if (hasTopic) {
       context.font = typographyPreset.topicFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.topic, width / 2, layoutPreset.topicY, { backdrop: true });
+      strokeFillText(context, data.topic, width / 2, layoutPreset.topicY);
     }
 
     if (data.placeholder && data.message) {
@@ -3949,9 +3942,7 @@
 
       context.font = messageLayout.referenceFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.reference, width / 2, messageMetrics.endY + messageLayout.referenceGap, {
-        backdrop: true,
-      });
+      strokeFillText(context, data.reference, width / 2, messageMetrics.endY + messageLayout.referenceGap);
     } else {
       const verseLayout = buildAdaptivePosterTextLayout(context, {
         text: data.verseText,
@@ -3977,9 +3968,7 @@
 
       context.font = verseLayout.referenceFont;
       context.lineWidth = 6 + strokeStrength * 8;
-      strokeFillText(context, data.reference, width / 2, verseMetrics.endY + verseLayout.referenceGap, {
-        backdrop: true,
-      });
+      strokeFillText(context, data.reference, width / 2, verseMetrics.endY + verseLayout.referenceGap);
     }
 
     context.restore();
@@ -4093,27 +4082,13 @@
   function drawPreparedTextLines(context, lines, centerX, startY, lineHeight, withStroke) {
     lines.forEach(function (line, index) {
       const y = startY + index * lineHeight;
-      strokeFillText(context, line, centerX, y, { withStroke: withStroke, backdrop: true });
+      strokeFillText(context, line, centerX, y, { withStroke: withStroke });
     });
 
     return {
       lines: lines,
       endY: startY + (lines.length - 1) * lineHeight,
     };
-  }
-
-  function roundRect(context, x, y, width, height, radius) {
-    context.beginPath();
-    context.moveTo(x + radius, y);
-    context.lineTo(x + width - radius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + radius);
-    context.lineTo(x + width, y + height - radius);
-    context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    context.lineTo(x + radius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - radius);
-    context.lineTo(x, y + radius);
-    context.quadraticCurveTo(x, y, x + radius, y);
-    context.closePath();
   }
 
   function scaleCanvasFont(font, factor) {
@@ -4129,35 +4104,10 @@
 
   function strokeFillText(context, text, x, y, options) {
     const drawStroke = !options || options.withStroke !== false;
-    if (options && options.backdrop) {
-      drawTextLineBackdrop(context, text, x, y);
-    }
-
     if (drawStroke) {
       context.strokeText(text, x, y);
     }
     context.fillText(text, x, y);
-  }
-
-  function drawTextLineBackdrop(context, text, centerX, baselineY) {
-    const measuredWidth = context.measureText(text).width;
-    const fontSize = getCanvasFontSize(context.font);
-    const paddingX = fontSize * 0.24;
-    const paddingY = fontSize * 0.16;
-    const pillWidth = Math.min(elements.canvas.width * 0.86, measuredWidth + paddingX * 2);
-    const pillHeight = fontSize + paddingY * 2;
-    const x = centerX - pillWidth / 2;
-    const y = baselineY - fontSize * 0.82 - paddingY;
-    const radius = Math.min(22, pillHeight / 2);
-
-    context.save();
-    roundRect(context, x, y, pillWidth, pillHeight, radius);
-    context.fillStyle = "rgba(255, 248, 240, 0.5)";
-    context.fill();
-    context.strokeStyle = "rgba(28, 44, 37, 0.1)";
-    context.lineWidth = Math.max(1, fontSize * 0.018);
-    context.stroke();
-    context.restore();
   }
 
   function copyPost() {
