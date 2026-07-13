@@ -81,6 +81,8 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
   "low-detail center",
 ].join(", ");
 const SERVER_STARTED_AT = new Date().toISOString();
+const API_AUTH_REQUIRED = readBooleanEnv("API_AUTH_REQUIRED", isProduction());
+const API_ALLOWED_ORIGINS = parseAllowedOrigins(process.env.API_ALLOWED_ORIGINS || "");
 
 let latestJob = {
   id: "idle",
@@ -556,10 +558,74 @@ function buildStatusPayload() {
   };
 }
 
+function parseAllowedOrigins(value) {
+  return new Set(String(value || "").split(",").map((origin) => origin.trim()).filter(Boolean));
+}
+
+function requestOrigin(request) {
+  return String(request.headers.origin || "").trim();
+}
+
+function corsHeaders(request = null) {
+  const origin = request ? requestOrigin(request) : "";
+  const allowOrigin = !origin
+    ? "*"
+    : API_ALLOWED_ORIGINS.size && API_ALLOWED_ORIGINS.has(origin)
+      ? origin
+      : (!isProduction() && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin))
+        ? origin
+        : "null";
+  return {
+    "access-control-allow-origin": allowOrigin,
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type,authorization",
+    "vary": "Origin",
+  };
+}
+
+function publicApiPath(pathname) {
+  return pathname === "/api/status" || pathname === "/api/config";
+}
+
+function apiAuthToken() {
+  return String(process.env.API_AUTH_TOKEN || process.env.APP_API_TOKEN || "").trim();
+}
+
+function safeTokenEqual(provided, expected) {
+  const a = Buffer.from(String(provided || ""));
+  const b = Buffer.from(String(expected || ""));
+  return a.length === b.length && b.length > 0 && require("node:crypto").timingSafeEqual(a, b);
+}
+
+function requireApiAuth(request, response, pathname) {
+  if (!API_AUTH_REQUIRED || publicApiPath(pathname)) return true;
+  const token = apiAuthToken();
+  if (!token) {
+    sendJson(response, 503, { error: "API auth is required but API_AUTH_TOKEN is not configured." });
+    return false;
+  }
+  const provided = String(request.headers.authorization || "").match(/^Bearer\s+(.+)$/i)?.[1] || "";
+  if (!safeTokenEqual(provided, token)) {
+    sendJson(response, 401, { error: "Unauthorized" });
+    return false;
+  }
+  return true;
+}
+
 function createServer() {
   return http.createServer(async function (request, response) {
     try {
       const requestUrl = new URL(request.url || "/", "http://localhost");
+
+      if (request.method === "OPTIONS") {
+        response.writeHead(204, corsHeaders(request));
+        response.end();
+        return;
+      }
+
+      if (requestUrl.pathname.startsWith("/api/") && !requireApiAuth(request, response, requestUrl.pathname)) {
+        return;
+      }
 
       if (request.method === "GET" && requestUrl.pathname === "/api/status") {
         return sendJson(response, 200, buildStatusPayload());
@@ -2614,6 +2680,7 @@ function isMobileRequest(request) {
 function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(),
     "Cache-Control": "no-store",
   });
   response.end(JSON.stringify(payload));
