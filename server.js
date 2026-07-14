@@ -82,6 +82,7 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
 ].join(", ");
 const SERVER_STARTED_AT = new Date().toISOString();
 const RESPONSE_REQUESTS = new WeakMap();
+const RATE_LIMITS = new Map();
 
 function isProduction() {
   return String(process.env.NODE_ENV || "").trim().toLowerCase() === "production";
@@ -603,6 +604,35 @@ function safeTokenEqual(provided, expected) {
   return a.length === b.length && b.length > 0 && require("node:crypto").timingSafeEqual(a, b);
 }
 
+function rateLimitKey(request, name) {
+  return `${name}:${request.headers['x-forwarded-for'] || request.socket.remoteAddress || 'unknown'}`;
+}
+
+function checkRateLimit(request, response, name, maxRequests, windowMs) {
+  const key = rateLimitKey(request, name);
+  const now = Date.now();
+  const current = RATE_LIMITS.get(key);
+  const record = current && now - current.startedAt < windowMs
+    ? current
+    : { count: 0, startedAt: now };
+  if (record.count >= maxRequests) {
+    sendJson(response, 429, { error: 'Too many requests' });
+    return false;
+  }
+  record.count += 1;
+  RATE_LIMITS.set(key, record);
+  return true;
+}
+
+function requireEndpointRateLimit(request, response, pathname) {
+  if (request.method !== 'POST') return true;
+  if (pathname === '/api/generate-post') return checkRateLimit(request, response, 'generate-post', 30, 60 * 60 * 1000);
+  if (pathname === '/api/suggest-scriptures') return checkRateLimit(request, response, 'suggest-scriptures', 30, 60 * 60 * 1000);
+  if (pathname === '/api/translate-topic') return checkRateLimit(request, response, 'translate-topic', 60, 60 * 60 * 1000);
+  if (pathname === '/api/generate-background') return checkRateLimit(request, response, 'generate-background', 20, 60 * 60 * 1000);
+  return true;
+}
+
 function requireApiAuth(request, response, pathname) {
   if (!API_AUTH_REQUIRED || publicApiPath(pathname)) return true;
   const token = apiAuthToken();
@@ -631,6 +661,9 @@ function createServer() {
       }
 
       if (requestUrl.pathname.startsWith("/api/") && !requireApiAuth(request, response, requestUrl.pathname)) {
+        return;
+      }
+      if (requestUrl.pathname.startsWith("/api/") && !requireEndpointRateLimit(request, response, requestUrl.pathname)) {
         return;
       }
 

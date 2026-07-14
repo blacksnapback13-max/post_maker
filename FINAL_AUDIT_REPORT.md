@@ -7,6 +7,7 @@ Branch: `codex/full-audit-hardening`
 - Current-file and Git-history secret scanner.
 - Broader CI with install, syntax check, release smoke, UI smoke, and secret scans.
 - Fixed `isProduction()` startup regression found by smoke tests.
+- Added in-memory rate limits for the AI endpoints.
 
 ## Validation
 
@@ -19,5 +20,5 @@ Branch: `codex/full-audit-hardening`
 ## Remaining Risk
 
 - HttpOnly login/session/logout flow for desktop and mobile is still not implemented.
-- Dedicated AI endpoint rate limiting remains open.
+- HttpOnly session auth still needs browser-tested implementation; AI endpoint rate limiting is now covered.
 - UI smoke should be rerun with Chrome launched for CDP before merge.
