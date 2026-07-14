@@ -81,6 +81,7 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
   "low-detail center",
 ].join(", ");
 const SERVER_STARTED_AT = new Date().toISOString();
+const RESPONSE_REQUESTS = new WeakMap();
 const API_AUTH_REQUIRED = readBooleanEnv("API_AUTH_REQUIRED", isProduction());
 const API_ALLOWED_ORIGINS = parseAllowedOrigins(process.env.API_ALLOWED_ORIGINS || "");
 
@@ -615,6 +616,7 @@ function requireApiAuth(request, response, pathname) {
 function createServer() {
   return http.createServer(async function (request, response) {
     try {
+      RESPONSE_REQUESTS.set(response, request);
       const requestUrl = new URL(request.url || "/", "http://localhost");
 
       if (request.method === "OPTIONS") {

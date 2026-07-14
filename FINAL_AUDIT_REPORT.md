@@ -23,3 +23,8 @@ npm run typecheck
 npm run lint
 npm run build
 ```
+
+## Second-Pass Validation
+
+- `npm run check` passed after second-pass CORS hardening.
+- `npm run secret-scan` passed.
