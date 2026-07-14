@@ -82,6 +82,11 @@ const IMAGE_TEXT_ARTIFACT_NEGATIVE_PROMPT = [
 ].join(", ");
 const SERVER_STARTED_AT = new Date().toISOString();
 const RESPONSE_REQUESTS = new WeakMap();
+
+function isProduction() {
+  return String(process.env.NODE_ENV || "").trim().toLowerCase() === "production";
+}
+
 const API_AUTH_REQUIRED = readBooleanEnv("API_AUTH_REQUIRED", isProduction());
 const API_ALLOWED_ORIGINS = parseAllowedOrigins(process.env.API_ALLOWED_ORIGINS || "");
 

@@ -1,4 +1,4 @@
-name: Security scan
+name: Security and CI
 
 on:
   pull_request:
@@ -6,11 +6,18 @@ on:
     branches: [main]
 
 jobs:
-  secret-scan:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/secret-scan.cjs
+      - run: npm install
+      - run: npm run check
+      - run: npm run smoke
+      - run: npm run smoke:ui
+      - run: npm run secret-scan
+      - run: npm run secret-scan -- --history

@@ -2,29 +2,22 @@
 
 Branch: `codex/full-audit-hardening`
 
-## Scope
-
-Audited local working copy for `post_maker`. See `AUDIT.md` for findings and status.
-
 ## Implemented
 
-- Added repeatable local secret scan and GitHub Actions workflow.
-- Added secret rotation checklist.
-- Applied P0 hardening relevant to this repository.
+- Current-file and Git-history secret scanner.
+- Broader CI with install, syntax check, release smoke, UI smoke, and secret scans.
+- Fixed `isProduction()` startup regression found by smoke tests.
 
 ## Validation
 
-Run the available commands for this repo, usually:
+- `npm run check`: passed.
+- `npm run smoke`: passed; live Gemini checks skipped because `GEMINI_API_KEY` is not set.
+- `npm run secret-scan`: passed.
+- `npm run secret-scan -- --history`: passed.
+- `npm run smoke:ui`: blocked locally because no Chrome DevTools endpoint is listening on `127.0.0.1:9222`; bundled Playwright was available.
 
-```sh
-npm run secret-scan
-npm run check
-npm run typecheck
-npm run lint
-npm run build
-```
+## Remaining Risk
 
-## Second-Pass Validation
-
-- `npm run check` passed after second-pass CORS hardening.
-- `npm run secret-scan` passed.
+- HttpOnly login/session/logout flow for desktop and mobile is still not implemented.
+- Dedicated AI endpoint rate limiting remains open.
+- UI smoke should be rerun with Chrome launched for CDP before merge.
