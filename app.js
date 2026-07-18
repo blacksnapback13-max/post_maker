@@ -1034,12 +1034,28 @@
     "gelecek sisli göründüğünde umut nasıl kaybedilmez",
   ];
 
-  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-04-28";
+  const TOPIC_ROTATION_STORAGE_KEY = "post-maker-topic-rotation-v2026-07-18";
   const TOPIC_DECK_SIZE = 1000;
   const TOPIC_RECENT_LIMIT = 80;
   const TOPIC_DIRECTION_WINDOW = 30;
   const TOPIC_RELATIONSHIP_DIRECTION_LIMIT = 1;
   const TOPIC_DEFAULT_DIRECTION_LIMIT = 2;
+  const bibleTranslationOptions = {
+    ru: [
+      { id: "synodal", label: "Синодальный перевод · public domain", shortLabel: "Синодальный" },
+    ],
+    uk: [
+      { id: "freedom", label: "Біблія свободи · public domain", shortLabel: "Біблія свободи" },
+    ],
+    pl: [
+      { id: "ubg", label: "Uwspółcześniona Biblia Gdańska · CC BY-ND 4.0", shortLabel: "UBG" },
+    ],
+    tr: [
+      { id: "ytc", label: "Yorumsuz Türkçe Çeviri · CC BY-ND 4.0", shortLabel: "YTC" },
+      { id: "obtt", label: "Open Basic Turkish New Testament · CC BY-SA 4.0", shortLabel: "OBTT" },
+    ],
+  };
+  const defaultBibleTranslations = { ru: "synodal", uk: "freedom", pl: "ubg", tr: "ytc" };
   const topicDirectionRules = [
     {
       id: "finances",
@@ -1881,6 +1897,7 @@
 
   const state = {
     language: "ru",
+    bibleTranslation: defaultBibleTranslations.ru,
     scriptureMatchMode: "explicit",
     postStyle: "inspiring",
     allowEmojis: false,
@@ -1943,6 +1960,7 @@
     surpriseBtn: document.getElementById("surprise-btn"),
     scriptureModeBtn: document.getElementById("scripture-mode-btn"),
     languageBtn: document.getElementById("language-btn"),
+    bibleTranslationBtn: document.getElementById("bible-translation-btn"),
     selectedVerse: document.getElementById("selected-verse"),
     postStyleBtn: document.getElementById("post-style-btn"),
     emojiToggleBtn: document.getElementById("emoji-toggle-btn"),
@@ -1974,6 +1992,11 @@
     languageModalTitle: document.getElementById("language-modal-title"),
     languageModalSubtitle: document.getElementById("language-modal-subtitle"),
     languageGrid: document.getElementById("language-grid"),
+    bibleTranslationModal: document.getElementById("bible-translation-modal"),
+    bibleTranslationModalEyebrow: document.getElementById("bible-translation-modal-eyebrow"),
+    bibleTranslationModalTitle: document.getElementById("bible-translation-modal-title"),
+    bibleTranslationModalSubtitle: document.getElementById("bible-translation-modal-subtitle"),
+    bibleTranslationGrid: document.getElementById("bible-translation-grid"),
     supportModal: document.getElementById("support-modal"),
     supportModalEyebrow: document.getElementById("support-modal-eyebrow"),
     supportModalTitle: document.getElementById("support-modal-title"),
@@ -2076,6 +2099,10 @@
     });
     elements.languageBtn.addEventListener("click", function () {
       openModal(elements.languageModal);
+    });
+    elements.bibleTranslationBtn.addEventListener("click", function () {
+      renderBibleTranslationOptions();
+      openModal(elements.bibleTranslationModal);
     });
     elements.supportOpenBtn.addEventListener("click", function () {
       openModal(elements.supportModal);
@@ -2943,6 +2970,9 @@
         selectionReason: state.suggestionReasons[state.selectedVerse.id] || "",
         tags: state.selectedVerse.tags,
         language: state.language,
+        bibleTranslationId: state.bibleTranslation,
+        bibleTranslation: getBibleTranslationOption(state.language, state.bibleTranslation).label,
+        verseId: state.selectedVerse.id,
         postStyle: state.postStyle,
         allowEmojis: state.allowEmojis,
         variant: state.postVariant,
@@ -4428,6 +4458,10 @@
     elements.languageModalEyebrow.textContent = t("languageModalEyebrow");
     elements.languageModalTitle.textContent = t("languageModalTitle");
     elements.languageModalSubtitle.textContent = t("languageModalSubtitle");
+    const bibleTranslationCopy = getBibleTranslationUiCopy();
+    elements.bibleTranslationModalEyebrow.textContent = bibleTranslationCopy.eyebrow;
+    elements.bibleTranslationModalTitle.textContent = bibleTranslationCopy.title;
+    elements.bibleTranslationModalSubtitle.textContent = bibleTranslationCopy.subtitle;
     elements.supportModalEyebrow.textContent = t("supportModalEyebrow");
     elements.supportModalTitle.textContent = t("supportModalTitle");
     elements.supportModalSubtitle.textContent = t("supportModalSubtitle");
@@ -4471,7 +4505,9 @@
     elements.posterSettingsApplyBtn.textContent = t("posterApply");
     elements.posterSettingsResetBtn.textContent = t("posterReset");
     updateLanguageButton();
+    updateBibleTranslationButton();
     renderLanguageOptions();
+    renderBibleTranslationOptions();
     renderScriptureModeOptions();
     renderPostStyleOptions();
     renderExportPresetOptions();
@@ -4499,6 +4535,63 @@
       });
       elements.languageGrid.appendChild(button);
     });
+  }
+
+  function getBibleTranslationUiCopy() {
+    const copy = {
+      ru: { eyebrow: "Писание", title: "Выберите перевод Библии", subtitle: "Перевод применяется к тексту поста и постера." },
+      uk: { eyebrow: "Писання", title: "Оберіть переклад Біблії", subtitle: "Переклад застосовується до допису й постера." },
+      pl: { eyebrow: "Pismo", title: "Wybierz przekład Biblii", subtitle: "Przekład jest stosowany w poście i na grafice." },
+      tr: { eyebrow: "Kutsal Yazı", title: "Kutsal Kitap çevirisini seçin", subtitle: "Çeviri paylaşım metnine ve postere uygulanır." },
+    };
+    return copy[state.language] || copy.ru;
+  }
+
+  function getBibleTranslations(language) {
+    return bibleTranslationOptions[language] || bibleTranslationOptions.ru;
+  }
+
+  function getDefaultBibleTranslation(language) {
+    return defaultBibleTranslations[language] || defaultBibleTranslations.ru;
+  }
+
+  function getBibleTranslationOption(language, translationId) {
+    return getBibleTranslations(language).find(function (option) {
+      return option.id === translationId;
+    }) || getBibleTranslations(language)[0];
+  }
+
+  function updateBibleTranslationButton() {
+    const option = getBibleTranslationOption(state.language, state.bibleTranslation);
+    elements.bibleTranslationBtn.textContent = option.shortLabel;
+  }
+
+  function renderBibleTranslationOptions() {
+    elements.bibleTranslationGrid.innerHTML = "";
+    getBibleTranslations(state.language).forEach(function (option) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "option-card" + (state.bibleTranslation === option.id ? " is-selected" : "");
+      button.innerHTML = "<strong>" + escapeHtml(option.label) + "</strong>";
+      button.addEventListener("click", function () {
+        applyBibleTranslation(option.id);
+      });
+      elements.bibleTranslationGrid.appendChild(button);
+    });
+  }
+
+  function applyBibleTranslation(translationId) {
+    if (!getBibleTranslationOption(state.language, translationId)) {
+      return;
+    }
+    state.bibleTranslation = translationId;
+    updateBibleTranslationButton();
+    renderBibleTranslationOptions();
+    closeModal(elements.bibleTranslationModal);
+
+    if (state.selectedVerse) {
+      void generatePostContent({ refreshPoster: true, forceRegenerate: true });
+    }
   }
 
   function renderScriptureModeOptions() {
@@ -4857,6 +4950,7 @@
     const translationToken = state.topicTranslationToken + 1;
     state.topicTranslationToken = translationToken;
     state.language = language;
+    state.bibleTranslation = getDefaultBibleTranslation(language);
     applyTranslations();
     closeModal(elements.languageModal);
 
@@ -6792,6 +6886,8 @@
     let rotation = state.topicRotation[targetLanguage] || createEmptyTopicLanguageState();
     let topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
     let deckSize = topics.length;
+    rotation.served = Array.isArray(rotation.served) ? rotation.served.filter(Boolean) : [];
+    const servedSet = new Set(rotation.served.map(normalize));
 
     rotation.queue = (rotation.queue || []).filter(function (topic) {
       return topics.indexOf(topic) !== -1;
@@ -6803,19 +6899,28 @@
       ? rotation.recentDirections.filter(Boolean).slice(0, TOPIC_DIRECTION_WINDOW)
       : [];
 
-    if (!rotation.queue.length || (rotation.used || 0) >= deckSize) {
-      if ((rotation.used || 0) >= deckSize) {
+    if (!rotation.queue.length) {
+      let freshPool = topics.filter(function (topic) {
+        return !servedSet.has(normalize(topic));
+      });
+
+      // Each deck carries a distinct wording pattern. Move forward until one has
+      // unseen topics rather than recycling a previous suggestion.
+      while (!freshPool.length && rotation.cycle < 500) {
         rotation.cycle = (rotation.cycle || 0) + 1;
+        topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle);
+        deckSize = topics.length;
+        freshPool = topics.filter(function (topic) {
+          return !servedSet.has(normalize(topic));
+        });
       }
 
       rotation.used = 0;
-      topics = getTopicDeckForLanguage(targetLanguage, rotation.cycle || 0);
-      deckSize = topics.length;
-      const recentSet = new Set(rotation.recent.slice(0, TOPIC_RECENT_LIMIT));
-      const freshPool = topics.filter(function (topic) {
-        return !recentSet.has(topic);
+      const recentSet = new Set(rotation.recent.slice(0, TOPIC_RECENT_LIMIT).map(normalize));
+      const diversePool = freshPool.filter(function (topic) {
+        return !recentSet.has(normalize(topic));
       });
-      rotation.queue = buildDiverseTopicQueue(freshPool.length ? freshPool : topics);
+      rotation.queue = buildDiverseTopicQueue(diversePool.length ? diversePool : freshPool);
     }
 
     const currentTopic = elements.topicInput.value.trim();
@@ -6833,6 +6938,9 @@
     rotation.recentDirections = [nextDirection]
       .concat(rotation.recentDirections || [])
       .slice(0, TOPIC_DIRECTION_WINDOW);
+    if (nextTopic && !servedSet.has(normalize(nextTopic))) {
+      rotation.served.push(nextTopic);
+    }
 
     state.topicRotation[targetLanguage] = rotation;
     saveTopicRotationState();
@@ -6989,6 +7097,7 @@
   function createEmptyTopicLanguageState() {
     return {
       queue: [],
+      served: [],
       recent: [],
       recentDirections: [],
       used: 0,
@@ -7004,6 +7113,7 @@
       const entry = source[language] && typeof source[language] === "object" ? source[language] : {};
       normalized[language] = {
         queue: Array.isArray(entry.queue) ? entry.queue.filter(Boolean) : [],
+        served: Array.isArray(entry.served) ? entry.served.filter(Boolean) : [],
         recent: Array.isArray(entry.recent) ? entry.recent.filter(Boolean) : [],
         recentDirections: Array.isArray(entry.recentDirections)
           ? entry.recentDirections.filter(Boolean).slice(0, TOPIC_DIRECTION_WINDOW)

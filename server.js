@@ -101,6 +101,140 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
 };
 
+const OPEN_BIBLE_TRANSLATIONS = {
+  synodal: {
+    directory: path.join(APP_ROOT, "data", "bibles", "src", "russyn"),
+    sourceName: "eBible.org · Russian Synodal Bible",
+    sourceUrl: "https://ebible.org/details.php?id=russyn",
+    license: "Public Domain",
+  },
+  freedom: {
+    directory: path.join(APP_ROOT, "data", "bibles", "src", "ukrfb"),
+    sourceName: "eBible.org · Біблія свободи",
+    sourceUrl: "https://ebible.org/details.php?id=ukrfb",
+    license: "Public Domain",
+  },
+  ubg: {
+    directory: path.join(APP_ROOT, "data", "bibles", "src", "polubg"),
+    sourceName: "Fundacja Wrota Nadziei · Uwspółcześniona Biblia Gdańska",
+    sourceUrl: "https://ebible.org/details.php?id=polubg",
+    license: "CC BY-ND 4.0",
+  },
+  ytc: {
+    directory: path.join(APP_ROOT, "data", "bibles", "src", "turytc"),
+    sourceName: "eBible.org · Yorumsuz Türkçe Çeviri",
+    sourceUrl: "https://ebible.org/details.php?id=turytc",
+    license: "CC BY-ND 4.0",
+  },
+  obtt: {
+    directory: path.join(APP_ROOT, "data", "bibles", "src", "turobt"),
+    sourceName: "Biblica · Open Basic Turkish New Testament",
+    sourceUrl: "https://ebible.org/details.php?id=turobt",
+    license: "CC BY-SA 4.0",
+  },
+};
+
+const OPEN_BIBLE_VERSE_MAP = {
+  "gen-2-24": ["GEN", 2, "24"],
+  "mark-10-9": ["MRK", 10, "9"],
+  "ps-126-1": ["PSA", 126, "1"],
+  "prov-4-23": ["PRO", 4, "23"],
+  "1thes-4-3-4": ["1TH", 4, "3-4"],
+  "song-8-4": ["SNG", 8, "4"],
+  "amos-3-3": ["AMO", 3, "3"],
+  "matt-6-33": ["MAT", 6, "33"],
+  "prov-3-5-6": ["PRO", 3, "5-6"],
+  "eccl-4-9-10": ["ECC", 4, "9-10"],
+  "1cor-13-4-7": ["1CO", 13, "4-7"],
+  "phil-2-3-4": ["PHP", 2, "3-4"],
+  "james-1-19": ["JAS", 1, "19"],
+  "gal-5-22-23": ["GAL", 5, "22-23"],
+  "2tim-2-22": ["2TI", 2, "22"],
+  "eph-4-2-3": ["EPH", 4, "2-3"],
+  "col-3-13-14": ["COL", 3, "13-14"],
+  "rom-12-10": ["ROM", 12, "10"],
+  "1pet-4-8": ["1PE", 4, "8"],
+  "eph-5-25": ["EPH", 5, "25"],
+  "prov-19-14": ["PRO", 19, "14"],
+};
+
+const openBibleFileCache = new Map();
+
+function resolveOpenBibleVerse(translationId, verseId) {
+  const translation = OPEN_BIBLE_TRANSLATIONS[translationId];
+  const location = OPEN_BIBLE_VERSE_MAP[verseId];
+  if (!translation || !location || !fs.existsSync(translation.directory)) {
+    return null;
+  }
+
+  const [bookId, chapter, verseRange] = location;
+  const filePath = getOpenBibleBookFile(translationId, translation.directory, bookId);
+  if (!filePath) {
+    return null;
+  }
+
+  const source = fs.readFileSync(filePath, "utf8");
+  const chapterPattern = new RegExp("\\\\c\\s+" + chapter + "\\s+([\\s\\S]*?)(?=\\\\c\\s+\\d+|$)");
+  const chapterMatch = source.match(chapterPattern);
+  if (!chapterMatch) {
+    return null;
+  }
+
+  const verseNumbers = verseRange.split("-").map(Number);
+  const start = verseNumbers[0];
+  const end = verseNumbers[1] || start;
+  const fragments = [];
+  for (let number = start; number <= end; number += 1) {
+    const versePattern = new RegExp("\\\\v\\s+" + number + "(?:\\s+|$)([\\s\\S]*?)(?=\\\\v\\s+\\d+|$)");
+    const match = chapterMatch[1].match(versePattern);
+    if (match) {
+      fragments.push(cleanUsfmText(match[1]));
+    }
+  }
+
+  const text = fragments.filter(Boolean).join(" ").trim();
+  if (!text) {
+    return null;
+  }
+
+  const bookTitle = (source.match(/^\\toc3\s+(.+)$/m) || source.match(/^\\h\s+(.+)$/m) || [])[1] || bookId;
+  return {
+    text: text,
+    reference: cleanText(bookTitle) + " " + chapter + ":" + verseRange,
+    attribution: {
+      name: translation.sourceName,
+      url: translation.sourceUrl,
+      license: translation.license,
+    },
+  };
+}
+
+function getOpenBibleBookFile(translationId, directory, bookId) {
+  const cacheKey = translationId + ":" + bookId;
+  if (openBibleFileCache.has(cacheKey)) {
+    return openBibleFileCache.get(cacheKey);
+  }
+
+  const file = fs.readdirSync(directory).find(function (name) {
+    if (!name.endsWith(".usfm")) {
+      return false;
+    }
+    const candidate = path.join(directory, name);
+    return new RegExp("^\\\\id\\s+" + bookId + "(?:\\s|$)", "m").test(fs.readFileSync(candidate, "utf8"));
+  });
+  const resolved = file ? path.join(directory, file) : "";
+  openBibleFileCache.set(cacheKey, resolved);
+  return resolved;
+}
+
+function cleanUsfmText(value) {
+  return cleanText(String(value || "")
+    .replace(/\\f\s+[\s\S]*?\\f\*/g, " ")
+    .replace(/\\x\s+[\s\S]*?\\x\*/g, " ")
+    .replace(/\\[a-z0-9]+\*?/gi, " ")
+    .replace(/[{}]/g, " "));
+}
+
 const moodProfiles = [
   {
     id: "purity",
@@ -597,6 +731,13 @@ function createServer() {
 
       if (request.method === "POST" && requestUrl.pathname === "/api/generate-post") {
         const body = await readJsonBody(request);
+        const openBibleVerse = resolveOpenBibleVerse(body.bibleTranslationId, body.verseId);
+        const generationInput = openBibleVerse
+          ? Object.assign({}, body, {
+              verseText: openBibleVerse.text,
+              reference: openBibleVerse.reference,
+            })
+          : body;
 
         if (!process.env.GEMINI_API_KEY) {
           return sendJson(response, 503, {
@@ -606,11 +747,15 @@ function createServer() {
 
         const payload = await runTrackedJob("Генерация поста", async function (job) {
           updateJob(job, 20, "Собираю промпт для текста");
-          const prompt = buildPostPrompt(body);
+          const prompt = buildPostPrompt(generationInput);
           updateJob(job, 45, "Жду ответ Gemini");
           const generated = await requestGeminiJson(prompt, getTextModel());
           updateJob(job, 80, "Нормализую пост и хэштеги");
-          const normalized = normalizeGeneratedPost(generated, body);
+          const normalized = normalizeGeneratedPost(generated, generationInput);
+          if (openBibleVerse) {
+            normalized.verseText = openBibleVerse.text;
+            normalized.reference = openBibleVerse.reference;
+          }
           return {
             provider: "gemini",
             model: generated.__model || getTextModel(),
@@ -619,6 +764,7 @@ function createServer() {
             hashtags: normalized.hashtags,
             verseText: normalized.verseText,
             reference: normalized.reference,
+            bibleAttribution: openBibleVerse ? openBibleVerse.attribution : null,
           };
         });
 
@@ -1993,6 +2139,7 @@ function buildPostPrompt(input) {
   const selectionReason = cleanText(input.selectionReason);
   const tags = Array.isArray(input.tags) ? input.tags.map(cleanText).filter(Boolean) : [];
   const language = resolveLanguage(input.language);
+  const bibleTranslation = cleanText(input.bibleTranslation);
   const style = String(input.postStyle || "inspiring");
   const variant = Number.isFinite(Number(input.variant)) ? Number(input.variant) : 0;
   const topicLens = buildTopicLens(topic, tags);
@@ -2002,6 +2149,9 @@ function buildPostPrompt(input) {
   return [
     "You are a Protestant evangelical content editor writing short theological social posts.",
     "Write only in " + languageMeta[language].name + ".",
+    bibleTranslation
+      ? 'Use the selected Bible translation preference, "' + bibleTranslation + '", when rendering the verse text and reference. Do not name or imitate a translation if you cannot render it faithfully; preserve the supplied verse meaning instead.'
+      : "Use the supplied verse rendering faithfully.",
     "Base the post carefully on the given Bible verse and topic.",
     "The theology must be recognizably Protestant: Scripture-first, Christ-centered, grace-centered, calling for repentance, faith, holiness, and obedience as fruit of grace.",
     "Do not sound sacramentalist, prosperity-focused, manipulative, universalist, or works-righteous.",
@@ -3179,4 +3329,5 @@ module.exports = {
   buildScriptureSuggestionPrompt,
   createServer,
   normalizeSuggestedScriptures,
+  resolveOpenBibleVerse,
 };

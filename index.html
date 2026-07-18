@@ -64,6 +64,9 @@
               <button type="button" id="language-btn" class="ghost-btn compact-btn">
                 Русский
               </button>
+              <button type="button" id="bible-translation-btn" class="ghost-btn compact-btn">
+                Синодальный
+              </button>
             </div>
           </div>
 
@@ -230,6 +233,21 @@
         </div>
 
         <div id="language-grid" class="option-grid"></div>
+      </div>
+    </div>
+
+    <div id="bible-translation-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close="bible-translation-modal"></div>
+      <div class="modal-dialog compact-modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div>
+            <p id="bible-translation-modal-eyebrow" class="eyebrow">Писание</p>
+            <h2 id="bible-translation-modal-title">Выберите перевод Библии</h2>
+            <p id="bible-translation-modal-subtitle" class="modal-subtitle">Перевод применяется к тексту поста и постера.</p>
+          </div>
+          <button type="button" class="icon-btn" data-modal-close="bible-translation-modal">×</button>
+        </div>
+        <div id="bible-translation-grid" class="option-grid"></div>
       </div>
     </div>
 
